@@ -1,0 +1,427 @@
+/* ==========================================================================
+   MAP STYLES & CUSTOM CARTOGRAPHY
+   Parchment Texture, Custom Markers, Glowing Halos, Animated Paths
+   ========================================================================== */
+
+/* Parchment Basemap Filter */
+.parchment-theme .leaflet-tile-pane {
+  filter: sepia(45%) saturate(120%) brightness(95%) contrast(105%) hue-rotate(-10deg);
+}
+
+.satellite-theme .leaflet-tile-pane {
+  filter: saturate(110%) contrast(110%);
+}
+
+/* Map Overlays & Watermarks */
+.floating-era-badge {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 800;
+  background: rgba(247, 243, 233, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-gold);
+  border-left: 5px solid var(--color-crimson);
+  border-radius: 8px;
+  padding: 0.75rem 1.15rem;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  transition: all 0.3s ease;
+}
+
+.era-tag {
+  font-family: var(--font-serif-title);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.era-title {
+  font-family: var(--font-serif-title);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.era-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Floating Action Buttons on Map */
+.map-floating-actions {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.floating-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-parchment-dark);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+  text-align: center;
+}
+
+.floating-btn:hover {
+  background: #FFF;
+  color: var(--color-crimson);
+  border-color: var(--color-gold);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-1px);
+}
+
+/* Map Legend */
+.map-legend-box {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 800;
+  background: rgba(247, 243, 233, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  max-width: 250px;
+  font-size: 0.76rem;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.75rem;
+  background: #E5D9C4;
+  border-bottom: 1px solid var(--border-parchment);
+  cursor: pointer;
+}
+
+.legend-title {
+  font-family: var(--font-serif-title);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.legend-collapse-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.legend-body {
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text-secondary);
+}
+
+.legend-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.marker-savior {
+  background: #EAB308;
+  border: 2px solid #78350F;
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.8);
+}
+
+.marker-diaspora {
+  background: #2563EB;
+  border: 2px solid #1E3A8A;
+}
+
+.marker-church {
+  background: #DC2626;
+  border: 2px solid #7F1D1D;
+  box-shadow: 0 0 5px rgba(220, 38, 38, 0.5);
+}
+
+.marker-epistle {
+  background: #9333EA; /* only for reference badge or replaced with gold/crimson */
+  background: #C45B38;
+  border: 2px solid #7D1B16;
+}
+
+.legend-line {
+  width: 22px;
+  height: 3px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.line-savior {
+  background: #D97706;
+  height: 4px;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.7);
+}
+
+.line-paul1 { background: #16A34A; }
+.line-paul2 { background: #EA580C; }
+.line-paul3 { background: #0284C7; }
+.line-paul4 { background: #475569; }
+.line-province {
+  background: transparent;
+  border-bottom: 2px dashed #92400E;
+}
+
+/* ==========================================================================
+   CUSTOM LEAFLET MARKER ELEMENTS
+   ========================================================================== */
+
+/* Savior Event Marker */
+.custom-marker-savior {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.savior-pulse-ring {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(234, 179, 8, 0.35);
+  animation: pulse-radiate 2.4s infinite ease-out;
+}
+
+.savior-icon-inner {
+  position: relative;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FDE047 0%, #D97706 100%);
+  border: 2px solid #FFF8EB;
+  color: #451A03;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 10px rgba(245, 158, 11, 0.7);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker-savior:hover .savior-icon-inner {
+  transform: scale(1.22);
+}
+
+/* Church Congregation Marker */
+.custom-marker-church {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.church-pulse-ring {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.25);
+  animation: pulse-radiate 3s infinite ease-out;
+}
+
+.church-icon-inner {
+  position: relative;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #EF4444 0%, #991B1B 100%);
+  border: 2px solid #FFF;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.custom-marker-church:hover .church-icon-inner {
+  transform: scale(1.25);
+}
+
+/* Jewish Diaspora Marker */
+.custom-marker-diaspora {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diaspora-icon-inner {
+  position: relative;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  border: 2px solid #DBEAFE;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.custom-marker-diaspora:hover .diaspora-icon-inner {
+  transform: scale(1.25);
+}
+
+/* Seven Churches of Revelation Marker */
+.custom-marker-revelation {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.revelation-icon-inner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F59E0B 0%, #B45309 100%);
+  border: 2px solid #FFF;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.85);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.custom-marker-revelation:hover .revelation-icon-inner {
+  transform: scale(1.3);
+}
+
+/* City Text Label Marker */
+.custom-city-label {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.city-label-text {
+  font-family: var(--font-serif-title);
+  font-size: 11px;
+  font-weight: 700;
+  color: #26190E;
+  text-shadow: 0 0 3px #FDF8ED, 0 0 6px #FDF8ED, 0 1px 2px rgba(255,255,255,0.9);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.city-label-major {
+  font-size: 13px;
+  color: #170E07;
+  text-decoration: underline;
+  text-decoration-color: rgba(197, 160, 89, 0.6);
+  text-underline-offset: 2px;
+}
+
+/* Keyframe Animations */
+@keyframes pulse-radiate {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Custom Tooltip Styling */
+.leaflet-tooltip.custom-bible-tooltip {
+  background: rgba(249, 246, 238, 0.96);
+  border: 1px solid var(--color-gold);
+  border-radius: 6px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.custom-bible-tooltip::before {
+  border-top-color: var(--color-gold) !important;
+}
+
+.tooltip-title {
+  font-family: var(--font-serif-title);
+  font-weight: 700;
+  color: var(--color-crimson);
+  font-size: 0.85rem;
+}
+
+.tooltip-scripture {
+  font-family: var(--font-scripture);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}

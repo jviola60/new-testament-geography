@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Testament Geography - Interactive Atlas (~6 BC – 100 AD)</title>
+  <meta name="description" content="An interactive cartographic atlas of the New Testament world spanning 6 BC to 100 AD. Explore the life and ministry of Jesus Christ, Paul's missionary journeys, Jewish diaspora communities, and the exponential growth of early Christian churches across the Roman Empire.">
+  <meta name="keywords" content="New Testament Geography, Bible Atlas, Life of Jesus Christ, Paul's Missionary Journeys, Holy Land Map, Early Christian Church, Jewish Diaspora, Roman Empire">
+  <meta name="author" content="Interactive Scripture Atlas">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="New Testament Geography - Interactive Atlas">
+  <meta property="og:description" content="Interactive map of the New Testament from 6 BC to 100 AD with the Savior's footsteps, missionary journeys, and early church growth.">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
+
+  <!-- Google Fonts: Cinzel (Classic Inscription), Cormorant Garamond (Scriptural/Literary), Inter & Outfit (Clean UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/timeline.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body class="parchment-theme">
+  <!-- Top Navigation Bar -->
+  <header class="app-header" id="appHeader">
+    <div class="header-left">
+      <div class="app-branding">
+        <div class="brand-symbol">
+          <svg viewBox="0 0 40 40" class="menorah-cross-icon" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.6"/>
+            <path d="M20 6 L20 34 M11 15 L29 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M20 10 C26 10, 26 18, 20 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 class="brand-title">New Testament Geography</h1>
+          <span class="brand-subtitle">Interactive Biblical Atlas & Timeline • 6 BC – 100 AD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Search & Scope -->
+    <div class="header-center">
+      <div class="search-box-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="globalSearchInput" placeholder="Search city, miracle, event, scripture, or person..." autocomplete="off" aria-label="Search the New Testament Atlas">
+        <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" aria-label="Clear search" style="display: none;">&times;</button>
+        <div id="searchResultsDropdown" class="search-results-dropdown" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-right">
+      <!-- Quick Region Focus Dropdown -->
+      <div class="dropdown-container">
+        <button id="regionSelectBtn" class="btn btn-outline" title="Zoom to biblical region">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+          <span class="btn-text">Regions</span>
+        </button>
+        <div id="regionDropdown" class="dropdown-menu">
+          <button data-region="holy-land" class="dropdown-item">📍 Holy Land (Galilee & Judea)</button>
+          <button data-region="galilee" class="dropdown-item">🌊 Sea of Galilee & North</button>
+          <button data-region="jerusalem" class="dropdown-item">🏛️ Jerusalem & Inset</button>
+          <button data-region="mediterranean" class="dropdown-item">🌍 Mediterranean / Roman Empire</button>
+          <button data-region="asia-minor" class="dropdown-item">🏛️ Asia Minor (Seven Churches)</button>
+          <button data-region="greece" class="dropdown-item">🏛️ Greece & Macedonia</button>
+          <button data-region="rome" class="dropdown-item">🦅 Rome & Italy</button>
+          <button data-region="egypt" class="dropdown-item">🏺 Egypt & Alexandria</button>
+        </div>
+      </div>
+
+      <!-- Curated Tours Button -->
+      <button id="storyToursBtn" class="btn btn-primary glow-gold" title="Explore Curated Scripture Tours">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <span>Guided Tours</span>
+      </button>
+
+      <!-- Map Style Mode Toggle -->
+      <button id="mapStyleToggle" class="btn btn-mode-toggle" title="Switch between Ancient Biblical Parchment and Satellite Terrain">
+        <span class="mode-icon parchment-icon">📜</span>
+        <span class="mode-text">Parchment</span>
+      </button>
+
+      <!-- Ambient Audio Toggle -->
+      <button id="ambientAudioBtn" class="btn btn-icon" title="Toggle peaceful ambient biblical harp sounds" aria-label="Toggle ambient audio">
+        <svg id="audioIconOff" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        <svg id="audioIconOn" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      </button>
+
+      <!-- Sidebar Toggle -->
+      <button id="sidebarToggleBtn" class="btn btn-icon sidebar-toggle-btn" title="Toggle Information Panel" aria-label="Toggle drawer">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter & Layer Command Bar -->
+  <nav class="layer-filter-bar" id="filterBar" aria-label="Map layers and category filters">
+    <div class="filter-scroll-track">
+      <div class="filter-group">
+        <span class="filter-label">Layers:</span>
+        <button class="filter-chip active" data-filter="all">
+          <span class="chip-dot dot-all"></span>All Visible
+        </button>
+        <button class="filter-chip active" data-filter="savior">
+          <span class="chip-dot dot-savior"></span>Savior's Ministry
+        </button>
+        <button class="filter-chip active" data-filter="diaspora">
+          <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
+        </button>
+        <button class="filter-chip active" data-filter="churches">
+          <span class="chip-dot dot-church"></span>Christian Churches
+        </button>
+        <button class="filter-chip active" data-filter="journeys">
+          <span class="chip-dot dot-journey"></span>Paul's Journeys
+        </button>
+        <button class="filter-chip" data-filter="heatmaps">
+          <span class="chip-dot dot-heatmap"></span>Growth Heatmap
+        </button>
+        <button class="filter-chip active" data-filter="provinces">
+          <span class="chip-dot dot-provinces"></span>Roman Provinces
+        </button>
+      </div>
+
+      <div class="filter-group-right">
+        <!-- Metric Counters -->
+        <div class="stat-pill" title="Events visible in current year">
+          <span class="stat-num" id="statEventsCount">0</span>
+          <span class="stat-name">Events</span>
+        </div>
+        <div class="stat-pill" title="Active Christian communities by current date">
+          <span class="stat-num" id="statChurchesCount">0</span>
+          <span class="stat-name">Churches</span>
+        </div>
+        <div class="stat-pill" title="Jewish diaspora settlements recorded">
+          <span class="stat-num" id="statDiasporaCount">0</span>
+          <span class="stat-name">Diaspora Hubs</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Map Viewport & Overlays Container -->
+  <main class="app-main-container">
+    <!-- Map Container -->
+    <div id="map" class="map-viewport" role="region" aria-label="Interactive Map of New Testament Lands"></div>
+
+    <!-- Active Era Banner / Watermark (Floating on Map) -->
+    <div class="floating-era-badge" id="floatingEraBadge">
+      <div class="era-tag" id="eraTag">ERA</div>
+      <div class="era-title" id="eraTitle">The Roman Republic to Augustus</div>
+      <div class="era-desc" id="eraDesc">Herod the Great rules Judea under Roman suzerainty.</div>
+    </div>
+
+    <!-- Map Quick Navigation Floating Controls -->
+    <div class="map-floating-actions">
+      <button id="recenterBtn" class="floating-btn" title="Reset View to Eastern Mediterranean" aria-label="Reset view">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+      </button>
+      <button id="holyLandQuickBtn" class="floating-btn" title="Zoom to Holy Land / Galilee & Judea" aria-label="Zoom to Holy Land">
+        <span style="font-weight: 700; font-size: 12px;">HOLY<br>LAND</span>
+      </button>
+      <button id="jerusalemQuickBtn" class="floating-btn" title="Zoom to Jerusalem & Passion Week" aria-label="Zoom to Jerusalem">
+        <span style="font-size: 14px;">🏛️</span>
+      </button>
+    </div>
+
+    <!-- Floating Map Legend -->
+    <div class="map-legend-box" id="mapLegend">
+      <div class="legend-header" id="legendToggleHeader">
+        <span class="legend-title">Atlas Legend</span>
+        <button class="legend-collapse-btn" id="legendCollapseBtn" aria-label="Toggle legend">−</button>
+      </div>
+      <div class="legend-body" id="legendBody">
+        <div class="legend-item"><span class="legend-marker marker-savior"></span> <span>Jesus's Ministry & Miracles</span></div>
+        <div class="legend-item"><span class="legend-line line-savior"></span> <span>Savior's Footsteps / Routes</span></div>
+        <div class="legend-item"><span class="legend-marker marker-diaspora"></span> <span>Jewish Synagogues & Diaspora</span></div>
+        <div class="legend-item"><span class="legend-marker marker-church"></span> <span>Christian Congregations</span></div>
+        <div class="legend-item"><span class="legend-marker marker-epistle"></span> <span>Seven Churches / Epistle Centers</span></div>
+        <div class="legend-item"><span class="legend-line line-paul1"></span> <span>Paul's 1st Journey (47–49 AD)</span></div>
+        <div class="legend-item"><span class="legend-line line-paul2"></span> <span>Paul's 2nd Journey (49–52 AD)</span></div>
+        <div class="legend-item"><span class="legend-line line-paul3"></span> <span>Paul's 3rd Journey (53–58 AD)</span></div>
+        <div class="legend-item"><span class="legend-line line-paul4"></span> <span>Paul's Voyage to Rome (59–60 AD)</span></div>
+        <div class="legend-item"><span class="legend-line line-province"></span> <span>Roman Provincial Boundaries</span></div>
+      </div>
+    </div>
+
+    <!-- Detail Drawer / Sidebar -->
+    <aside class="detail-sidebar" id="detailSidebar" aria-label="Scripture & Information Panel">
+      <div class="sidebar-header">
+        <div class="sidebar-title-wrap">
+          <span class="sidebar-eyebrow" id="sidebarEyebrow">SELECTION DETAILS</span>
+          <h2 class="sidebar-title" id="sidebarTitle">Welcome to the New Testament Atlas</h2>
+        </div>
+        <button id="closeSidebarBtn" class="close-btn" aria-label="Close sidebar">&times;</button>
+      </div>
+
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="scripture">Scriptures</button>
+        <button class="tab-btn" data-tab="people">People & Church</button>
+        <button class="tab-btn" data-tab="chronology">Era Events</button>
+      </div>
+
+      <div class="sidebar-content" id="sidebarContent">
+        <!-- Content dynamically injected by uiController.js -->
+        <div class="sidebar-section welcome-intro">
+          <div class="hero-quote">
+            <p class="quote-text">"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."</p>
+            <span class="quote-ref">— John 3:16</span>
+          </div>
+
+          <div class="feature-card">
+            <h3>How to Explore</h3>
+            <ul class="feature-steps">
+              <li><strong>Scrub the Timeline</strong> at the bottom from <strong>6 BC to 100 AD</strong> to witness history unfold.</li>
+              <li><strong>Click Any Pin or City</strong> to reveal ancient geography, demographics, and biblical references.</li>
+              <li><strong>Switch Map Modes</strong> via the top bar to compare Ancient Biblical Parchment with High-Res Satellite Terrain.</li>
+              <li><strong>Start a Guided Tour</strong> to journey through Jesus's Ministry, Passion Week, or Paul's Travels.</li>
+            </ul>
+          </div>
+
+          <div class="curated-shortcut-grid">
+            <h4>Quick Focus Tours</h4>
+            <div class="tour-mini-cards">
+              <div class="tour-mini-card" data-tour-id="savior-life">
+                <div class="tour-icon">🌟</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Life & Ministry of Jesus</span>
+                  <span class="tour-era">6 BC – 30 AD • 14 Stops</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="passion-week">
+                <div class="tour-icon">✝️</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Passion Week in Jerusalem</span>
+                  <span class="tour-era">Spring 30 AD • 9 Stations</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="acts-early-church">
+                <div class="tour-icon">🔥</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Pentecost & Church Birth</span>
+                  <span class="tour-era">30 AD – 47 AD • 10 Sites</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="paul-journeys">
+                <div class="tour-icon">⛵</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Paul's Missionary Journeys</span>
+                  <span class="tour-era">47 AD – 62 AD • 4 Voyages</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="revelation-churches">
+                <div class="tour-icon">📜</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Seven Churches of Revelation</span>
+                  <span class="tour-era">95 AD • Patmos & Asia</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Interactive Timeline Control Bar (~6 BC to 100 AD) -->
+  <footer class="app-timeline-footer" id="timelineFooter">
+    <div class="timeline-control-bar">
+      <!-- Playback Controls -->
+      <div class="playback-controls">
+        <button id="stepBackBtn" class="btn-ctrl" title="Step Back 1 Year (Left Arrow)" aria-label="Step back">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg>
+        </button>
+        <button id="playPauseBtn" class="btn-ctrl btn-play glow-gold" title="Play / Pause Timeline (Spacebar)" aria-label="Play timeline">
+          <svg id="playIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button id="stepForwardBtn" class="btn-ctrl" title="Step Forward 1 Year (Right Arrow)" aria-label="Step forward">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
+        </button>
+        <!-- Speed Selector -->
+        <div class="speed-selector">
+          <button class="speed-btn active" data-speed="1">1×</button>
+          <button class="speed-btn" data-speed="2">2×</button>
+          <button class="speed-btn" data-speed="5">5×</button>
+        </div>
+      </div>
+
+      <!-- Current Year Display with BC / AD clarity -->
+      <div class="current-date-badge" id="currentDateBadge">
+        <div class="badge-year" id="displayYear">6 BC</div>
+        <div class="badge-season" id="displaySeason">Roman Census • Annunciation</div>
+      </div>
+
+      <!-- Timeline Era Filter Tabs -->
+      <div class="era-selector-tabs" id="eraTabs">
+        <button class="era-tab active" data-start-year="-6" data-end-year="-4" title="Nativity & Infancy">Nativity (-6 to -4)</button>
+        <button class="era-tab" data-start-year="-4" data-end-year="26" title="Childhood & Silent Years">Nazareth (-4 to 26)</button>
+        <button class="era-tab" data-start-year="26" data-end-year="29" title="Early Ministry">Baptism & Judea (26–29)</button>
+        <button class="era-tab" data-start-year="29" data-end-year="30" title="Galilean Ministry & Passion">Galilee & Passion (29–30)</button>
+        <button class="era-tab" data-start-year="30" data-end-year="47" title="Pentecost & Church Birth">Pentecost (30–47)</button>
+        <button class="era-tab" data-start-year="47" data-end-year="57" title="Paul's Journeys">Missionary (47–57)</button>
+        <button class="era-tab" data-start-year="58" data-end-year="70" title="Rome & Fall of Jerusalem">Rome & 70 AD (58–70)</button>
+        <button class="era-tab" data-start-year="70" data-end-year="100" title="Post-70 AD & Revelation">Apostolic Age (70–100)</button>
+      </div>
+    </div>
+
+    <!-- Scrubber Slider Track -->
+    <div class="timeline-slider-track-wrap">
+      <div class="slider-ticks" id="sliderTicks">
+        <!-- Generated by JS -->
+      </div>
+      <input type="range" id="timelineSlider" class="timeline-slider" min="-6" max="100" value="-6" step="0.25" aria-label="Timeline year slider">
+      <div class="timeline-labels">
+        <span class="t-label start">6 BC</span>
+        <span class="t-label">1 AD</span>
+        <span class="t-label highlight-gold">30 AD (Passion & Pentecost)</span>
+        <span class="t-label">50 AD (Paul in Corinth)</span>
+        <span class="t-label highlight-crimson">70 AD (Destruction of Jerusalem)</span>
+        <span class="t-label end">100 AD (Apostolic Age)</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal for Guided Story Tour -->
+  <div class="modal-backdrop" id="tourModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="tourModalTitle">Select a Curated Scripture Journey</h3>
+        <button class="close-btn" id="closeTourModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" id="tourModalBody">
+        <!-- Tour selector list populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Tour Step-By-Step Player Bar (Displays when a tour is active) -->
+  <div class="tour-stepper-bar" id="tourStepperBar" style="display: none;">
+    <div class="stepper-meta">
+      <span class="stepper-tour-label" id="stepperTourName">Life of Jesus Christ</span>
+      <span class="stepper-step-indicator" id="stepperStepCount">Stop 1 of 12</span>
+    </div>
+    <div class="stepper-controls">
+      <button id="tourPrevStepBtn" class="btn btn-ctrl btn-sm">◀ Previous</button>
+      <button id="tourNextStepBtn" class="btn btn-ctrl btn-sm glow-gold">Next ▶</button>
+      <button id="tourExitBtn" class="btn btn-outline btn-sm">Exit Tour</button>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Data Scripts -->
+  <script src="js/data/regions.js"></script>
+  <script src="js/data/cities.js"></script>
+  <script src="js/data/saviorEvents.js"></script>
+  <script src="js/data/missionaryJourneys.js"></script>
+  <script src="js/data/communities.js"></script>
+  <script src="js/data/timelineEvents.js"></script>
+  <script src="js/data/tours.js"></script>
+
+  <!-- Controller Scripts -->
+  <script src="js/mapController.js"></script>
+  <script src="js/timelineController.js"></script>
+  <script src="js/uiController.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

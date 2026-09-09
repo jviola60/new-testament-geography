@@ -87,7 +87,7 @@ class UIController {
 
           if (style === "satellite") {
             if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
-            if (mapStyleText) mapStyleText.textContent = "Satellite";
+            if (mapStyleText) mapStyleText.textContent = "1st-C. Satellite";
           } else if (style === "modern") {
             if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
             if (mapStyleText) mapStyleText.textContent = "Modern";
@@ -234,6 +234,26 @@ class UIController {
     const q = query.toLowerCase().trim();
     const results = [];
 
+    // Search Roman Provinces & Biblical Regions
+    if (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions) {
+      REGIONS_DATA.regions.forEach(region => {
+        if (
+          region.name.toLowerCase().includes(q) ||
+          (region.ancientName && region.ancientName.toLowerCase().includes(q)) ||
+          (region.summary && region.summary.toLowerCase().includes(q)) ||
+          (region.capital && region.capital.toLowerCase().includes(q))
+        ) {
+          results.push({
+            type: "region",
+            item: region,
+            title: `🏛️ ${region.name}`,
+            subtitle: `Roman Province • Capital: ${region.capital}`,
+            badge: "Region"
+          });
+        }
+      });
+    }
+
     // Search Jerusalem Sacred Sites
     if (typeof JERUSALEM_SITES !== "undefined") {
       JERUSALEM_SITES.forEach(site => {
@@ -363,6 +383,16 @@ class UIController {
       window.app.timeline.setYear(res.item.startYear);
       window.app.map.focusRegion("mediterranean");
       this.showJourneyDetail(res.item);
+    } else if (res.type === "region") {
+      if (REGIONS_DATA && REGIONS_DATA.cameraPresets && REGIONS_DATA.cameraPresets[res.item.id]) {
+        window.app.map.focusRegion(res.item.id);
+      } else if (res.item.bounds) {
+        const b = res.item.bounds;
+        const centerLat = (b[0][0] + b[1][0]) / 2;
+        const centerLng = (b[0][1] + b[1][1]) / 2;
+        window.app.map.flyToLocation(centerLat, centerLng, 8);
+      }
+      this.showRegionDetail(res.item);
     }
   }
 
@@ -1015,6 +1045,143 @@ class UIController {
           `).join("")}
         </div>
       `;
+
+    // -------------------------------------------------------------------------
+    // ROMAN PROVINCES & BIBLICAL REGIONS (Judea, Galilee, Samaria, etc.)
+    // -------------------------------------------------------------------------
+    } else if (type === "region") {
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-province">Roman Province</span>
+            <span class="city-badge badge-jerusalem-area">Capital: ${data.capital}</span>
+            ${data.elevation ? `<span class="city-badge badge-elevation">${data.elevation}</span>` : ''}
+          </div>
+
+          <div class="hero-quote" style="margin-bottom:1rem;">
+            <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif); color:#451A03;">
+              ${data.summary || data.description}
+            </div>
+            <span class="quote-ref">${data.ancientName || data.name}</span>
+          </div>
+
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Geographical & Scriptural Overview</h4>
+            <p>${data.overview || data.description}</p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Provincial Capital</span>
+              <span class="demographic-value" style="font-size:0.92rem;">${data.capital}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Roman Administration</span>
+              <span class="demographic-value" style="font-size:0.85rem;">${data.governor ? data.governor.split(',')[0] : 'Roman Legate'}</span>
+            </div>
+          </div>
+
+          ${data.scriptures && data.scriptures.length > 0 ? `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Key New Testament Scriptures (KJV)</h3>
+              <div style="display:flex; flex-direction:column; gap:0.45rem; margin-top:0.4rem;">
+                ${data.scriptures.map(s => `
+                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn" title="Read ${s.ref} on ChurchofJesusChrist.org">
+                    <span>📖 ${s.ref} • Read on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = `
+          <div class="kjv-translation-notice">
+            <span class="kjv-badge">King James Version (KJV)</span>
+            <span>Verbatim biblical record with direct study links to ChurchofJesusChrist.org.</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.85rem; margin-top:0.75rem;">
+            ${data.scriptures && data.scriptures.length > 0 ? data.scriptures.map(s => `
+              <div class="scripture-verse-card">
+                <div class="scripture-card-top">
+                  <span class="scripture-citation">📖 ${s.ref}</span>
+                  <span class="scripture-kjv-tag">KJV</span>
+                </div>
+                <div class="scripture-body">"${s.text}"</div>
+                <div class="scripture-action-row">
+                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>Read Full Chapter on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            `).join("") : `
+              <div class="history-block">
+                <p>Referenced across the New Testament Gospels, Acts of the Apostles, and Pauline Epistles.</p>
+              </div>
+            `}
+          </div>
+        `;
+      } else if (this.currentTab === "people") {
+        html = `
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <h3>Inhabitants, Communities & Early Church</h3>
+            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+              ${data.peopleAndChurch || data.description}
+            </p>
+          </div>
+
+          <div class="history-block">
+            <h4>Apostolic Reach</h4>
+            <p>Constituted the principal missionary corridor for the Savior Jesus Christ and the Twelve Apostles throughout the 1st century.</p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Imperial Roman Administration & Governance</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              ${data.politicalInsights || `Governed by: ${data.governor}`}
+            </p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Administrative Seat</span>
+              <span class="demographic-value" style="font-size:0.92rem;">${data.capital}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Authority Type</span>
+              <span class="demographic-value" style="font-size:0.88rem;">Roman Province / Client Tetrarchy</span>
+            </div>
+          </div>
+        `;
+      } else if (this.currentTab === "chronology") {
+        html = `
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Sacred Era Chronology & Milestones</h4>
+            <p style="font-size:0.9rem; line-height:1.55;">
+              ${data.eraChronology || `Active throughout the New Testament era (~6 BC – 100 AD).`}
+            </p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Biblical Era Span</span>
+              <span class="demographic-value" style="font-size:0.92rem;">~6 BC – 100 AD</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Roman Annexation</span>
+              <span class="demographic-value" style="font-size:0.92rem; color:#B45309;">1st Century AD</span>
+            </div>
+          </div>
+        `;
+      }
     }
 
     this.sidebarContent.innerHTML = html;

@@ -153,7 +153,13 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Clean Ancient Shaded Relief (default: pure historical terrain without modern street names or city labels)
+    // 1. High-Resolution Satellite & Physical Terrain (Default: true natural topography, orbital satellite imagery)
+    this.tileLayers.satellite = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
+    );
+
+    // 2. Clean Ancient Shaded Relief
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
@@ -162,12 +168,6 @@ class MapController {
         opacity: 0.95,
         attribution: "Cartography &copy; Esri World Shaded Relief"
       }
-    );
-
-    // 2. High-Resolution Satellite & Physical Terrain (true natural topography, ravines, and ridges)
-    this.tileLayers.satellite = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
     );
 
     // 3. Topographic Contours & Relief (elevation contours, hillshading, mountain names)
@@ -193,8 +193,9 @@ class MapController {
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to clean ancient shaded relief
-    this.tileLayers.parchment.addTo(this.map);
+    // Default to High-Resolution 1st-Century Satellite Earth Basemap across the whole map
+    this.tileLayers.satellite.addTo(this.map);
+    document.body.classList.add("satellite-theme");
   }
 
   setMapStyle(theme) {
@@ -210,9 +211,9 @@ class MapController {
     // Remove theme classes
     body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
 
-    if (theme === "satellite") {
-      this.tileLayers.satellite.addTo(this.map);
-      body.classList.add("satellite-theme");
+    if (theme === "parchment") {
+      this.tileLayers.parchment.addTo(this.map);
+      body.classList.add("parchment-theme");
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
@@ -220,8 +221,9 @@ class MapController {
       this.tileLayers.topo.addTo(this.map);
       body.classList.add("parchment-theme");
     } else {
-      this.tileLayers.parchment.addTo(this.map);
-      body.classList.add("parchment-theme");
+      // Default: High-Resolution 1st-Century Satellite
+      this.tileLayers.satellite.addTo(this.map);
+      body.classList.add("satellite-theme");
     }
   }
 
@@ -319,23 +321,6 @@ class MapController {
       });
 
       this.layers.jerusalemGeography.addLayer(polygon);
-
-      // Area Map Label with Elevation
-      const center = polygon.getBounds().getCenter();
-      const labelMarker = L.marker(center, {
-        icon: L.divIcon({
-          className: "leaflet-div-quarter-label",
-          html: `<div class="quarter-map-label" style="border-color:${quarter.color};">
-                   <span class="q-name" style="color:${quarter.color};">${quarter.name}</span>
-                   <span class="q-elev">${quarter.elevation}</span>
-                 </div>`,
-          iconSize: [120, 32],
-          iconAnchor: [60, 16]
-        }),
-        zIndexOffset: 150,
-        interactive: false
-      });
-      this.layers.jerusalemGeography.addLayer(labelMarker);
     });
 
     // 2. Draw 1st-Century Herodian Defensive Walls
@@ -358,17 +343,16 @@ class MapController {
       this.layers.jerusalemGeography.addLayer(line);
     });
 
-    // 3. Draw Ancient Gates
+    // 3. Draw Ancient Gates (Compact Icon to prevent text clutter)
     JERUSALEM_GEOGRAPHY.gates.forEach(gate => {
       const gateMarker = L.marker([gate.lat, gate.lng], {
         icon: L.divIcon({
           className: "leaflet-div-gate",
           html: `<div class="custom-marker-gate" title="${gate.name}">
                    <div class="gate-icon-inner">⛩️</div>
-                   <div class="gate-label">${gate.name}</div>
                  </div>`,
-          iconSize: [85, 34],
-          iconAnchor: [42, 14]
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
         }),
         zIndexOffset: 950
       });

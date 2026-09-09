@@ -385,4 +385,163 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s, transform 0.15s;
 }
+
+.epistle-tag:hover {
+  background: #FDE68A;
+  transform: translateY(-1px);
+}
+
+/* KJV Translation Notice */
+.kjv-translation-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.78rem;
+  color: #92400E;
+  line-height: 1.4;
+}
+
+.kjv-badge {
+  font-family: var(--font-serif-title);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #78350F;
+  letter-spacing: 0.03em;
+}
+
+/* Scripture Card Top & Badges */
+.scripture-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.scripture-kjv-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.scripture-action-row {
+  margin-top: 0.75rem;
+  display: flex;
+}
+
+/* Church of Jesus Christ Direct Scripture Button */
+.church-scripture-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(135deg, #FFFDF9 0%, #FAF3E7 100%);
+  border: 1px solid rgba(180, 83, 9, 0.45);
+  border-radius: 6px;
+  color: #78350F;
+  font-family: var(--font-serif-title);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.church-scripture-btn:hover {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-color: #B45309;
+  color: #451A03;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(180, 83, 9, 0.18);
+}
+
+.church-scripture-btn .btn-arrow {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #B45309;
+  transition: transform 0.2s;
+}
+
+.church-scripture-btn:hover .btn-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* Political Insights Card */
+.political-insight-card {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1px solid #FCD34D;
+  border-left: 4px solid #B45309;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.insight-icon {
+  font-size: 1.15rem;
+}
+
+/* Area & Category Badges */
+.badge-jerusalem-area {
+  background: #FEF3C7;
+  color: #78350F;
+  border: 1px solid #FDE68A;
+}
+
+.badge-category-temple {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.badge-category-passion {
+  background: #FCE7F3;
+  color: #831843;
+  border: 1px solid #FBCFE8;
+}
+
+.badge-category-resurrection {
+  background: #FEF9C3;
+  color: #854D0E;
+  border: 1px solid #FEF08A;
+}
+
+.badge-category-miracle {
+  background: #E0F2FE;
+  color: #075985;
+  border: 1px solid #BAE6FD;
+}
+
+.badge-category-roman {
+  background: #F3E8FF;
+  color: #581C87;
+  border: 1px solid #E9D5FF;
+}
+
+.badge-category-apostolic {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+

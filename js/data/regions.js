@@ -118,7 +118,7 @@ const REGIONS_DATA = {
   cameraPresets: {
     "holy-land": { center: [32.1, 35.3], zoom: 9 },
     "galilee": { center: [32.85, 35.55], zoom: 11 },
-    "jerusalem": { center: [31.7767, 35.2345], zoom: 14 },
+    "jerusalem": { center: [31.7775, 35.2355], zoom: 15 },
     "mediterranean": { center: [36.5, 27.5], zoom: 5 },
     "asia-minor": { center: [38.5, 28.5], zoom: 7 },
     "greece": { center: [39.2, 23.0], zoom: 7 },

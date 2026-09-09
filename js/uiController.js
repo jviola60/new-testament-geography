@@ -225,6 +225,22 @@ class UIController {
     const q = query.toLowerCase().trim();
     const results = [];
 
+    // Search Jerusalem Sacred Sites
+    if (typeof JERUSALEM_SITES !== "undefined") {
+      JERUSALEM_SITES.forEach(site => {
+        if (
+          site.name.toLowerCase().includes(q) ||
+          site.ancientName.toLowerCase().includes(q) ||
+          site.area.toLowerCase().includes(q) ||
+          site.summary.toLowerCase().includes(q) ||
+          site.overview.toLowerCase().includes(q) ||
+          site.scriptures.some(s => s.ref.toLowerCase().includes(q) || s.text.toLowerCase().includes(q))
+        ) {
+          results.push({ type: "jerusalemSite", item: site, title: `${site.icon} ${site.name}`, subtitle: `Jerusalem • ${site.area}`, badge: "Jerusalem" });
+        }
+      });
+    }
+
     // Search Cities
     CITIES_DATA.forEach(city => {
       if (
@@ -299,7 +315,10 @@ class UIController {
   }
 
   executeSearchResult(res) {
-    if (res.type === "city") {
+    if (res.type === "jerusalemSite") {
+      window.app.map.flyToLocation(res.item.lat, res.item.lng, 16);
+      this.showJerusalemSiteDetail(res.item);
+    } else if (res.type === "city") {
       window.app.map.flyToLocation(res.item.lat, res.item.lng, 12);
       this.showCityDetail(res.item);
     } else if (res.type === "savior" || res.type === "event") {
@@ -316,6 +335,58 @@ class UIController {
   // =========================================================================
   // DETAIL VIEWS (Cities, Events, Churches, Diaspora, Journeys)
   // =========================================================================
+
+  // Helper to construct ChurchofJesusChrist.org scripture links
+  getChurchScriptureLink(citation) {
+    if (!citation) return "https://www.churchofjesuschrist.org/study/scriptures/nt?lang=eng";
+    const bookMap = {
+      "matthew": "matt", "matt": "matt",
+      "mark": "mark",
+      "luke": "luke",
+      "john": "john",
+      "acts": "acts",
+      "romans": "rom", "rom": "rom",
+      "1 corinthians": "1-cor", "1 cor": "1-cor",
+      "2 corinthians": "2-cor", "2 cor": "2-cor",
+      "galatians": "gal", "gal": "gal",
+      "ephesians": "eph", "eph": "eph",
+      "philippians": "philip", "phil": "philip",
+      "colossians": "col", "col": "col",
+      "1 thessalonians": "1-thes", "1 thes": "1-thes",
+      "2 thessalonians": "2-thes", "2 thes": "2-thes",
+      "1 timothy": "1-tim", "1 tim": "1-tim",
+      "2 timothy": "2-tim", "2 tim": "2-tim",
+      "titus": "titus",
+      "philemon": "philem",
+      "hebrews": "heb", "heb": "heb",
+      "james": "jas", "jas": "jas",
+      "1 peter": "1-pet", "1 pet": "1-pet",
+      "2 peter": "2-pet", "2 pet": "2-pet",
+      "1 john": "1-jn", "1 jn": "1-jn",
+      "2 john": "2-jn", "2 jn": "2-jn",
+      "3 john": "3-jn", "3 jn": "3-jn",
+      "jude": "jude",
+      "revelation": "rev", "rev": "rev"
+    };
+
+    const match = citation.match(/^([\d\s]*[A-Za-z]+)\s+(\d+)(?::(\d+))?/);
+    if (!match) return "https://www.churchofjesuschrist.org/study/scriptures/nt?lang=eng";
+
+    const rawBook = match[1].trim().toLowerCase();
+    const chapter = match[2];
+    const verse = match[3] || "1";
+    const bookSlug = bookMap[rawBook] || rawBook;
+
+    return `https://www.churchofjesuschrist.org/study/scriptures/nt/${bookSlug}/${chapter}?lang=eng#${verse}`;
+  }
+
+  showJerusalemSiteDetail(site) {
+    this.currentActiveItem = { type: "jerusalemSite", data: site };
+    this.sidebarEyebrow.textContent = `1ST-CENTURY JERUSALEM • ${site.area.toUpperCase()}`;
+    this.sidebarTitle.textContent = `${site.icon} ${site.name}`;
+    this.renderActiveItemTabs();
+    this.openSidebar();
+  }
 
   showCityDetail(city) {
     this.currentActiveItem = { type: "city", data: city };
@@ -371,7 +442,145 @@ class UIController {
     const { type, data } = this.currentActiveItem;
     let html = "";
 
-    if (type === "city") {
+    // -------------------------------------------------------------------------
+    // 1ST-CENTURY JERUSALEM SACRED SITES & LANDMARKS
+    // -------------------------------------------------------------------------
+    if (type === "jerusalemSite") {
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-jerusalem-area">${data.area}</span>
+            <span class="city-badge badge-category-${data.category}">${data.category.toUpperCase()}</span>
+            <span class="city-badge badge-province">1st-Century Judea</span>
+          </div>
+
+          <div class="hero-quote" style="margin-bottom:1rem;">
+            <div class="quote-text" style="font-size:0.96rem; font-style:normal; font-family:var(--font-serif);">
+              ${data.summary}
+            </div>
+            <span class="quote-ref">${data.ancientName}</span>
+          </div>
+
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Historical & Scriptural Overview</h4>
+            <p>${data.overview}</p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Ancient Hebrew / Greek Name</span>
+              <span class="demographic-value" style="font-size:0.92rem;">${data.ancientName}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Precinct / Quarter</span>
+              <span class="demographic-value" style="font-size:0.92rem;">${data.area}</span>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <h3>Scriptures Recorded at this Site</h3>
+            <p style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:0.6rem;">
+              This sacred location features prominently in ${data.scriptures.length} major New Testament passages.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:0.4rem;">
+              ${data.scriptures.map(s => `
+                <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                  <span>📖 Read ${s.ref} (KJV)</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = `
+          <div class="kjv-translation-notice">
+            <span class="kjv-badge">King James Version (KJV)</span>
+            <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
+            ${data.scriptures.map(s => `
+              <div class="scripture-verse-card">
+                <div class="scripture-card-top">
+                  <span class="scripture-citation">📖 ${s.ref}</span>
+                  <span class="scripture-kjv-tag">KJV</span>
+                </div>
+                <div class="scripture-body">"${s.text}"</div>
+                <div class="scripture-action-row">
+                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn" title="Open full chapter on ChurchofJesusChrist.org">
+                    <span>Read Full Chapter on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else if (this.currentTab === "people") {
+        html = `
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">👥</span>
+              <h3 style="margin:0;">Biblical Witnesses & Key Figures</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+              ${data.peopleAndChurch}
+            </p>
+          </div>
+
+          <div class="history-block">
+            <h4>Role in the Savior's Ministry & Early Church</h4>
+            <p>
+              From the preaching of Christ to the gatherings of the early Apostles, this site was an eyewitness to pivotal covenants, ordinances, miracles, and the birth of the Christian community.
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Roman Administration & Imperial Politics</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              ${data.politicalInsights}
+            </p>
+          </div>
+
+          <div class="history-block">
+            <h4>1st-Century Geopolitical Background</h4>
+            <p>
+              Jerusalem during the 1st century was governed under the Roman province of Judea. The Roman Prefect (headquartered at Caesarea Maritima) arrived in Jerusalem with military cohorts during major pilgrim festivals to preserve the <em>Pax Romana</em>, while the Sadducean High Priests and Sanhedrin managed internal Jewish civil and religious jurisdiction.
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "chronology") {
+        html = `
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Sacred Milestones & Era Chronicle</h4>
+            <p style="font-size:0.9rem; line-height:1.55;">
+              ${data.eraChronology}
+            </p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Timeline Span</span>
+              <span class="demographic-value" style="font-size:0.95rem;">~6 BC – 70 AD</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Destruction Era</span>
+              <span class="demographic-value" style="font-size:0.95rem; color:#DC2626;">70 AD (Siege of Titus)</span>
+            </div>
+          </div>
+        `;
+      }
+
+    // -------------------------------------------------------------------------
+    // BIBLICAL CITIES
+    // -------------------------------------------------------------------------
+    } else if (type === "city") {
       if (this.currentTab === "overview") {
         html = `
           <div class="city-detail-badge-row">
@@ -385,7 +594,7 @@ class UIController {
             <p>${data.significance}</p>
           </div>
 
-          <div class="demographic-stats-grid">
+          <div class="demographic-stats-grid" style="margin-top:1rem;">
             <div class="demographic-stat-box">
               <span class="demographic-label">Ancient Name</span>
               <span class="demographic-value" style="font-size:0.95rem;">${data.ancientName}</span>
@@ -397,41 +606,84 @@ class UIController {
           </div>
 
           ${data.epistles && data.epistles.length > 0 ? `
-            <div>
+            <div style="margin-top:0.75rem;">
               <h4 style="font-family:var(--font-serif-title); font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">Connected New Testament Epistles</h4>
               <div class="epistle-tag-list">
-                ${data.epistles.map(e => `<span class="epistle-tag">📜 ${e}</span>`).join("")}
+                ${data.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e + ' 1')}" target="_blank" rel="noopener" class="epistle-tag" title="Study ${e} on ChurchofJesusChrist.org">
+                    📜 ${e} ↗
+                  </a>
+                `).join("")}
               </div>
             </div>
           ` : ''}
         `;
       } else if (this.currentTab === "scripture") {
         html = `
-          <div class="history-block" style="margin-bottom:1rem;">
+          <div class="kjv-translation-notice">
+            <span class="kjv-badge">King James Version (KJV)</span>
+            <span>Study scriptures connected to ${data.name} on Church of Jesus Christ.</span>
+          </div>
+
+          <div class="history-block" style="margin:0.85rem 0;">
             <h4>Scriptural Role in the Early Church</h4>
             <p>${data.christianChurchInfo}</p>
           </div>
           <div class="history-block">
-            <h4>Jewish Community & Scripture Connections</h4>
+            <h4>Jewish Community & Old/New Testament Roots</h4>
             <p>${data.jewishDiasporaInfo}</p>
           </div>
+
+          ${data.epistles && data.epistles.length > 0 ? `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Epistles Addressed to ${data.name}</h3>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                ${data.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e + ' 1')}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study Epistle to the ${e} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
         `;
       } else if (this.currentTab === "people") {
         html = `
           <div class="feature-card">
             <h3>Demographics & Communities</h3>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;"><strong>Jewish Diaspora:</strong> ${data.jewishDiasporaInfo}</p>
-            <p style="font-size:0.85rem; color:var(--text-secondary);"><strong>Christian Disciples:</strong> ${data.christianChurchInfo}</p>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+              <strong>Jewish Diaspora Hub:</strong> ${data.jewishDiasporaInfo}
+            </p>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">
+              <strong>Christian Disciples:</strong> ${data.christianChurchInfo}
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Roman Administrative Standing</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              Located within the province of <strong>${data.region}</strong>, ${data.name} operated under Roman imperial supervision. Major cities maintained imperial highways (Via Romana), harbors, and garrisons, balancing local municipal councils with Roman governors.
+            </p>
           </div>
         `;
       } else if (this.currentTab === "chronology") {
         html = `
           <div class="history-block">
             <h4>Timeline Position</h4>
-            <p>Active across the entire New Testament era (~6 BC – 100 AD).</p>
+            <p>Active and inhabited across the entire New Testament era (~6 BC – 100 AD).</p>
           </div>
         `;
       }
+
+    // -------------------------------------------------------------------------
+    // SAVIOR'S FOOTSTEPS & EVENTS
+    // -------------------------------------------------------------------------
     } else if (type === "event") {
       if (this.currentTab === "overview") {
         html = `
@@ -450,22 +702,62 @@ class UIController {
               <span class="demographic-value" style="font-size:0.92rem;">${data.season}</span>
             </div>
           </div>
+
+          <div class="feature-card">
+            <h3>Scripture Record (KJV)</h3>
+            <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.4rem;">
+              ${data.scriptures.map(s => `
+                <a href="${this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                  <span>📖 Read ${s.ref} on ChurchofJesusChrist.org</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              `).join("")}
+            </div>
+          </div>
         `;
       } else if (this.currentTab === "scripture") {
         html = `
-          ${data.scriptures.map(s => `
-            <div class="scripture-verse-card">
-              <div class="scripture-citation">📖 ${s.ref}</div>
-              <div class="scripture-body">"${s.text}"</div>
-            </div>
-          `).join("")}
+          <div class="kjv-translation-notice">
+            <span class="kjv-badge">King James Version (KJV)</span>
+            <span>Study scriptures on ChurchofJesusChrist.org</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.85rem; margin-top:0.75rem;">
+            ${data.scriptures.map(s => `
+              <div class="scripture-verse-card">
+                <div class="scripture-card-top">
+                  <span class="scripture-citation">📖 ${s.ref}</span>
+                  <span class="scripture-kjv-tag">KJV</span>
+                </div>
+                <div class="scripture-body">"${s.text}"</div>
+                <div class="scripture-action-row">
+                  <a href="${this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>Read ${s.ref} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            `).join("")}
+          </div>
         `;
       } else if (this.currentTab === "people") {
         html = `
           <div class="feature-card">
             <h3>Biblical Witnesses</h3>
-            <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.45;">
+            <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.55;">
               Participants in this milestone include the Savior Jesus Christ, His Apostles, disciples, and local witnesses recorded across the Gospels and Acts.
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Political & Civic Climate</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              Took place during the era of <strong>${data.era}</strong>. Roman authority was exercised through provincial governors and client kings (such as the Herodians), while Jewish civic and religious life operated under Roman oversight.
             </p>
           </div>
         `;
@@ -475,9 +767,14 @@ class UIController {
             <h4>Era Chronicle</h4>
             <p><strong>Era:</strong> ${data.era}</p>
             <p><strong>Year:</strong> ${window.app.timeline.formatYear(data.year)}</p>
+            <p><strong>Season:</strong> ${data.season}</p>
           </div>
         `;
       }
+
+    // -------------------------------------------------------------------------
+    // EARLY CHRISTIAN CHURCHES
+    // -------------------------------------------------------------------------
     } else if (type === "church") {
       html = `
         <div class="history-block" style="margin-bottom:1rem;">
@@ -492,6 +789,10 @@ class UIController {
           <div class="scripture-body">${data.growthMilestone}</div>
         </div>
       `;
+
+    // -------------------------------------------------------------------------
+    // JEWISH DIASPORA CENTERS
+    // -------------------------------------------------------------------------
     } else if (type === "diaspora") {
       html = `
         <div class="history-block" style="margin-bottom:1rem;">
@@ -507,6 +808,10 @@ class UIController {
           <p style="font-size:0.85rem; color:var(--text-secondary);">${data.scriptureRole}</p>
         </div>
       `;
+
+    // -------------------------------------------------------------------------
+    // PAUL'S MISSIONARY JOURNEYS
+    // -------------------------------------------------------------------------
     } else if (type === "journey") {
       html = `
         <div class="history-block" style="margin-bottom:1rem;">

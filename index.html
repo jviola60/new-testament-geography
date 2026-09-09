@@ -143,6 +143,9 @@
         <button class="filter-chip active" data-filter="provinces">
           <span class="chip-dot dot-provinces"></span>Roman Provinces
         </button>
+        <button class="filter-chip active" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
+          <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
+        </button>
         <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
           <span class="chip-dot dot-modern"></span>Modern Streets Overlay
         </button>
@@ -186,7 +189,7 @@
       <button id="holyLandQuickBtn" class="floating-btn" title="Zoom to Holy Land / Galilee & Judea" aria-label="Zoom to Holy Land">
         <span style="font-weight: 700; font-size: 12px;">HOLY<br>LAND</span>
       </button>
-      <button id="jerusalemQuickBtn" class="floating-btn" title="Zoom to Jerusalem & Passion Week" aria-label="Zoom to Jerusalem">
+      <button id="jerusalemQuickBtn" class="floating-btn" title="Zoom to Jerusalem & Passion Week Inset" aria-label="Zoom to Jerusalem">
         <span style="font-size: 14px;">🏛️</span>
       </button>
     </div>
@@ -200,6 +203,7 @@
       <div class="legend-body" id="legendBody">
         <div class="legend-item"><span class="legend-marker marker-savior"></span> <span>Jesus's Ministry & Miracles</span></div>
         <div class="legend-item"><span class="legend-line line-savior"></span> <span>Savior's Footsteps / Routes</span></div>
+        <div class="legend-item"><span class="legend-marker marker-jerusalem-site"></span> <span>Jerusalem Sacred Sites</span></div>
         <div class="legend-item"><span class="legend-marker marker-diaspora"></span> <span>Jewish Synagogues & Diaspora</span></div>
         <div class="legend-item"><span class="legend-marker marker-church"></span> <span>Christian Congregations</span></div>
         <div class="legend-item"><span class="legend-marker marker-epistle"></span> <span>Seven Churches / Epistle Centers</span></div>
@@ -225,6 +229,7 @@
         <button class="tab-btn active" data-tab="overview">Overview</button>
         <button class="tab-btn" data-tab="scripture">Scriptures</button>
         <button class="tab-btn" data-tab="people">People & Church</button>
+        <button class="tab-btn" data-tab="political">Political Insights</button>
         <button class="tab-btn" data-tab="chronology">Era Events</button>
       </div>
 
@@ -382,6 +387,7 @@
   <!-- Data Scripts -->
   <script src="js/data/regions.js"></script>
   <script src="js/data/cities.js"></script>
+  <script src="js/data/jerusalemSites.js"></script>
   <script src="js/data/saviorEvents.js"></script>
   <script src="js/data/missionaryJourneys.js"></script>
   <script src="js/data/communities.js"></script>

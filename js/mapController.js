@@ -18,7 +18,8 @@ class MapController {
       missionaryJourneys: L.layerGroup(),
       provinces: L.layerGroup(),
       heatmaps: L.layerGroup(),
-      modernOverlay: L.layerGroup()
+      modernOverlay: L.layerGroup(),
+      jerusalemSites: L.layerGroup()
     };
 
     // Tile layers
@@ -38,7 +39,8 @@ class MapController {
       journeys: true,
       heatmaps: false,
       provinces: true,
-      modernOverlay: false
+      modernOverlay: false,
+      jerusalemSites: true
     };
 
     this.currentYear = -6;
@@ -70,9 +72,58 @@ class MapController {
     // Draw Static & Foundational Geographic Layers
     this.drawProvinces();
     this.drawCities();
+    this.drawJerusalemSites();
     this.drawSaviorRoute();
     this.drawMissionaryJourneys();
     this.drawJewishDiaspora();
+
+    // Hide micro-sites on initial Roman world overview (zoom 6)
+    if (this.map.getZoom() < 11) {
+      this.map.removeLayer(this.layers.jerusalemSites);
+    }
+
+    // Dynamic Zoom & Region Adaptations
+    this.map.on("zoomend moveend", () => {
+      const zoom = this.map.getZoom();
+      const center = this.map.getCenter();
+      const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
+
+      // 1. Show granular Jerusalem sites at zoom >= 11
+      if (this.filterState.jerusalemSites) {
+        if (zoom >= 11) {
+          if (!this.map.hasLayer(this.layers.jerusalemSites)) {
+            this.map.addLayer(this.layers.jerusalemSites);
+          }
+        } else {
+          if (this.map.hasLayer(this.layers.jerusalemSites)) {
+            this.map.removeLayer(this.layers.jerusalemSites);
+          }
+        }
+      }
+
+      // 2. Hide macro travel paths and coarse city marker when deeply zoomed into Jerusalem to eliminate line clutter!
+      if (zoom >= 13 && isJerusalemVicinity) {
+        if (this.map.hasLayer(this.layers.saviorRoute)) {
+          this.map.removeLayer(this.layers.saviorRoute);
+        }
+        if (this.map.hasLayer(this.layers.missionaryJourneys)) {
+          this.map.removeLayer(this.layers.missionaryJourneys);
+        }
+        if (this.jerusalemCityMarker && this.layers.cities.hasLayer(this.jerusalemCityMarker)) {
+          this.layers.cities.removeLayer(this.jerusalemCityMarker);
+        }
+      } else {
+        if (this.filterState.savior && !this.map.hasLayer(this.layers.saviorRoute)) {
+          this.map.addLayer(this.layers.saviorRoute);
+        }
+        if (this.filterState.journeys && !this.map.hasLayer(this.layers.missionaryJourneys)) {
+          this.map.addLayer(this.layers.missionaryJourneys);
+        }
+        if (this.jerusalemCityMarker && !this.layers.cities.hasLayer(this.jerusalemCityMarker)) {
+          this.layers.cities.addLayer(this.jerusalemCityMarker);
+        }
+      }
+    });
 
     // Initial update based on starting year (-6 BC)
     this.updateTimelineYear(-6);
@@ -188,7 +239,51 @@ class MapController {
         window.app.ui.showCityDetail(city);
       });
 
+      if (city.id === "jerusalem") {
+        this.jerusalemCityMarker = textMarker;
+      }
+
       this.layers.cities.addLayer(textMarker);
+    });
+  }
+
+  // Draw Granular 1st-Century Sacred Sites Across Jerusalem
+  drawJerusalemSites() {
+    if (typeof JERUSALEM_SITES === "undefined") return;
+
+    JERUSALEM_SITES.forEach(site => {
+      const categoryClass = `cat-${site.category || 'temple'}`;
+      const iconHtml = `
+        <div class="custom-marker-jerusalem ${categoryClass}" title="${site.name}">
+          <div class="jerusalem-icon-inner">${site.icon}</div>
+          <div class="jerusalem-site-label">${site.name}</div>
+        </div>`;
+
+      const marker = L.marker([site.lat, site.lng], {
+        icon: L.divIcon({
+          className: "leaflet-div-jerusalem-site",
+          html: iconHtml,
+          iconSize: [110, 56],
+          iconAnchor: [55, 20]
+        }),
+        zIndexOffset: 1200
+      });
+
+      marker.bindTooltip(`
+        <div class="tooltip-title">${site.icon} ${site.name}</div>
+        <div style="font-size:11px; color:#B45309; font-weight:700; margin:2px 0;">${site.area}</div>
+        <div style="font-size:11px; color:#4B5563; line-height:1.35; margin-bottom:4px;">${site.summary}</div>
+        <div class="tooltip-scripture">📖 ${site.scriptures[0] ? site.scriptures[0].ref : ''}</div>
+      `, { className: "custom-bible-tooltip", direction: "top" });
+
+      marker.on("click", (e) => {
+        if (e && e.originalEvent) {
+          L.DomEvent.stopPropagation(e);
+        }
+        window.app.ui.showJerusalemSiteDetail(site);
+      });
+
+      this.layers.jerusalemSites.addLayer(marker);
     });
   }
 
@@ -449,6 +544,15 @@ class MapController {
       this.layers.modernOverlay.clearLayers();
     }
 
+    if (!this.filterState.jerusalemSites && !this.filterState.all) {
+      this.map.removeLayer(this.layers.jerusalemSites);
+    } else {
+      const zoom = this.map.getZoom();
+      if (zoom >= 12 || this.filterState.jerusalemSites) {
+        this.map.addLayer(this.layers.jerusalemSites);
+      }
+    }
+
     this.updateTimelineYear(this.currentYear);
   }
 
@@ -463,7 +567,14 @@ class MapController {
   focusRegion(regionKey) {
     const preset = REGIONS_DATA.cameraPresets[regionKey];
     if (preset) {
-      this.map.flyTo(preset.center, preset.zoom, { duration: 1.6 });
+      this.map.flyTo(preset.center, preset.zoom, { duration: 1.4 });
+      if (regionKey === "jerusalem" && typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.length > 0) {
+        setTimeout(() => {
+          if (window.app && window.app.ui) {
+            window.app.ui.showJerusalemSiteDetail(JERUSALEM_SITES[0]);
+          }
+        }, 750);
+      }
     }
   }
 

@@ -181,8 +181,13 @@
   box-shadow: 0 0 5px rgba(220, 38, 38, 0.5);
 }
 
+.marker-jerusalem-site {
+  background: #D97706;
+  border: 2px solid #78350F;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.7);
+}
+
 .marker-epistle {
-  background: #9333EA; /* only for reference badge or replaced with gold/crimson */
   background: #C45B38;
   border: 2px solid #7D1B16;
 }
@@ -355,6 +360,106 @@
 
 .custom-marker-revelation:hover .revelation-icon-inner {
   transform: scale(1.3);
+}
+
+/* Jerusalem Landmark Sacred Site Marker */
+.custom-marker-jerusalem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  transition: z-index 0.1s;
+}
+
+.custom-marker-jerusalem:hover {
+  z-index: 9999 !important;
+}
+
+.jerusalem-icon-inner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FEF08A 0%, #D97706 70%, #92400E 100%);
+  border: 2px solid #FFF8EB;
+  color: #451A03;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 10px rgba(217, 119, 6, 0.7);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+}
+
+/* Category Color Accents */
+.custom-marker-jerusalem.cat-temple .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #FEF08A 0%, #D97706 70%, #92400E 100%);
+  border-color: #FEF3C7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 12px rgba(217, 119, 6, 0.8);
+}
+
+.custom-marker-jerusalem.cat-passion .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #FCA5A5 0%, #DC2626 70%, #7F1D1D 100%);
+  border-color: #FEE2E2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 12px rgba(220, 38, 38, 0.8);
+}
+
+.custom-marker-jerusalem.cat-resurrection .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #FFFBEB 0%, #F59E0B 60%, #B45309 100%);
+  border-color: #FEF9C3;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 14px rgba(245, 158, 11, 0.9);
+}
+
+.custom-marker-jerusalem.cat-miracle .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #BAE6FD 0%, #0284C7 70%, #075985 100%);
+  border-color: #E0F2FE;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 12px rgba(2, 132, 199, 0.8);
+}
+
+.custom-marker-jerusalem.cat-roman .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #DDD6FE 0%, #7C3AED 70%, #4C1D95 100%);
+  border-color: #EDE9FE;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 12px rgba(124, 58, 237, 0.8);
+}
+
+.custom-marker-jerusalem.cat-apostolic .jerusalem-icon-inner {
+  background: linear-gradient(135deg, #BBF7D0 0%, #16A34A 70%, #14532D 100%);
+  border-color: #DCFCE7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 12px rgba(22, 163, 74, 0.8);
+}
+
+.custom-marker-jerusalem:hover .jerusalem-icon-inner {
+  transform: scale(1.35);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.95);
+}
+
+.jerusalem-site-label {
+  font-family: var(--font-serif-title);
+  font-size: 11px;
+  font-weight: 700;
+  color: #241408;
+  background: rgba(255, 252, 245, 0.95);
+  border: 1px solid rgba(180, 83, 9, 0.65);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-top: 3px;
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  pointer-events: none;
+  transition: all 0.2s;
+}
+
+.custom-marker-jerusalem:hover .jerusalem-site-label {
+  max-width: 260px;
+  white-space: normal;
+  background: #FFFDF8;
+  border-color: #B45309;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
 }
 
 /* City Text Label Marker */

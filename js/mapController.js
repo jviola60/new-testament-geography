@@ -80,10 +80,12 @@ class MapController {
 
   setupTileLayers() {
     // 1. Parchment base layer: Esri World Shaded Relief
-    // 100% free, requires NO API key, zero watermarks, pure relief topography and natural contours
+    // maxNativeZoom: 13 ensures Leaflet scales tiles smoothly when zooming in beyond level 13,
+    // completely preventing 'Map data not yet available' tiles from ever appearing.
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
+        maxNativeZoom: 13,
         maxZoom: 18,
         opacity: 0.95,
         attribution: "Cartography &copy; Esri World Shaded Relief"
@@ -93,19 +95,19 @@ class MapController {
     // 2. Satellite / Aerial imagery layer (Esri World Imagery)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
+      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
     );
 
     // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      { maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
+      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
     // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      { maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
+      { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
     // Default to parchment

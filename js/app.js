@@ -25,6 +25,11 @@ class App {
     // 4. Initialize 1st Century Satellite Explorer
     this.satelliteExplorer.init();
 
+    if (typeof CITIES_DATA !== "undefined") window.CITIES_DATA = CITIES_DATA;
+    if (typeof REGIONS_DATA !== "undefined") window.REGIONS_DATA = REGIONS_DATA;
+    if (typeof JERUSALEM_SITES !== "undefined") window.JERUSALEM_SITES = JERUSALEM_SITES;
+    if (typeof JERUSALEM_GEOGRAPHY !== "undefined") window.JERUSALEM_GEOGRAPHY = JERUSALEM_GEOGRAPHY;
+
     // 5. Generate Slider Track Tick Marks
     this.generateSliderTicks();
 

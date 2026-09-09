@@ -254,3 +254,41 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Satellite Navigation Header Button */
+.btn-sat-nav {
+  background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 50%, #312E81 100%);
+  color: #FDE68A;
+  border: 1.5px solid #F59E0B;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+  font-family: var(--font-serif-title);
+  font-weight: 700;
+  padding: 0.42rem 0.95rem;
+  letter-spacing: 0.03em;
+}
+
+.btn-sat-nav:hover {
+  background: linear-gradient(135deg, #2E1065 0%, #1E1B4B 50%, #4338CA 100%);
+  border-color: #FCD34D;
+  color: #FFF;
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
+  transform: translateY(-1px);
+}
+
+.sat-nav-icon {
+  font-size: 1.1rem;
+}
+
+.glow-satellite {
+  animation: satellitePulse 2.5s infinite alternate;
+}
+
+@keyframes satellitePulse {
+  0% {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.7), 0 0 25px rgba(99, 102, 241, 0.4);
+  }
+}
+

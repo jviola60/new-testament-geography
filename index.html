@@ -76,6 +76,7 @@
           <button data-region="holy-land" class="dropdown-item">📍 Holy Land (Galilee & Judea)</button>
           <button data-region="galilee" class="dropdown-item">🌊 Sea of Galilee & North</button>
           <button data-region="jerusalem" class="dropdown-item">🏛️ Jerusalem & Inset</button>
+          <button data-region="satellite-explorer" class="dropdown-item" style="color:#F59E0B;font-weight:700;">🛰️ 1st-C. Satellite Reconnaissance</button>
           <button data-region="mediterranean" class="dropdown-item">🌍 Mediterranean / Roman Empire</button>
           <button data-region="asia-minor" class="dropdown-item">🏛️ Asia Minor (Seven Churches)</button>
           <button data-region="greece" class="dropdown-item">🏛️ Greece & Macedonia</button>
@@ -88,6 +89,12 @@
       <button id="storyToursBtn" class="btn btn-primary glow-gold" title="Explore Curated Scripture Tours">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         <span>Guided Tours</span>
+      </button>
+
+      <!-- 1st Century Satellite Reconnaissance Explorer Button -->
+      <button id="openSatelliteExplorerBtn" class="btn btn-sat-nav glow-satellite" title="Open 1st Century High-Resolution Satellite Explorer">
+        <span class="sat-nav-icon">🛰️</span>
+        <span>1st-C. Satellite View</span>
       </button>
 
       <!-- Map Style Mode Dropdown / Toggle -->
@@ -150,6 +157,9 @@
         <button class="filter-chip active" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
           <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
         </button>
+        <button class="filter-chip active" data-filter="firstCenturySatellite" id="firstCenturySatelliteChip" title="1st-Century Satellite & Aerial Reconnaissance Overlays on Map">
+          <span class="chip-dot" style="background:#F59E0B;box-shadow:0 0 5px #F59E0B;"></span>1st-C. Satellite Overlays
+        </button>
         <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
           <span class="chip-dot dot-modern"></span>Modern Streets Overlay
         </button>
@@ -177,6 +187,12 @@
   <main class="app-main-container">
     <!-- Map Container -->
     <div id="map" class="map-viewport" role="region" aria-label="Interactive Map of New Testament Lands"></div>
+
+    <!-- Floating 1st Century Satellite Quick Action Pill -->
+    <button id="floatingSatellitePill" class="floating-satellite-pill" title="Explore 1st Century Satellite Reconnaissance (c. 30 AD)">
+      <span style="font-size:1.1rem;">🛰️</span>
+      <span>1st-C. Satellite Reconnaissance</span>
+    </button>
 
     <!-- Active Era Banner / Watermark (Floating on Map) -->
     <div class="floating-era-badge" id="floatingEraBadge">
@@ -403,6 +419,7 @@
   <script src="js/mapController.js"></script>
   <script src="js/timelineController.js"></script>
   <script src="js/uiController.js"></script>
+  <script src="js/satelliteExplorer.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

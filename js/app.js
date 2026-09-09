@@ -7,6 +7,7 @@ class App {
     this.map = new MapController();
     this.timeline = new TimelineController();
     this.ui = new UIController();
+    this.satelliteExplorer = new SatelliteExplorer();
   }
 
   init() {
@@ -21,7 +22,10 @@ class App {
     // 3. Initialize UI & Search
     this.ui.init();
 
-    // 4. Generate Slider Track Tick Marks
+    // 4. Initialize 1st Century Satellite Explorer
+    this.satelliteExplorer.init();
+
+    // 5. Generate Slider Track Tick Marks
     this.generateSliderTicks();
 
     // 5. Handle Responsive Window Resizing

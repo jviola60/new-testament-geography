@@ -125,7 +125,13 @@ class UIController {
       regionDropdown.querySelectorAll(".dropdown-item").forEach(item => {
         item.addEventListener("click", () => {
           const regionKey = item.dataset.region;
-          window.app.map.focusRegion(regionKey);
+          if (regionKey === "satellite-explorer") {
+            if (window.app && window.app.satelliteExplorer) {
+              window.app.satelliteExplorer.open("holy-land");
+            }
+          } else {
+            window.app.map.focusRegion(regionKey);
+          }
           regionDropdown.classList.remove("open");
         });
       });
@@ -409,9 +415,11 @@ class UIController {
   }
 
   showJerusalemSiteDetail(site) {
+    if (!site) return;
     this.currentActiveItem = { type: "jerusalemSite", data: site };
-    this.sidebarEyebrow.textContent = `1ST-CENTURY JERUSALEM • ${site.area.toUpperCase()}`;
-    this.sidebarTitle.textContent = `${site.icon} ${site.name}`;
+    const area = site.area || "SACRED SITE";
+    this.sidebarEyebrow.textContent = `1ST-CENTURY JERUSALEM • ${area.toUpperCase()}`;
+    this.sidebarTitle.textContent = `${site.icon || "🏛️"} ${site.name}`;
     this.renderActiveItemTabs();
     this.openSidebar();
   }

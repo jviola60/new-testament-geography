@@ -20,7 +20,8 @@ class MapController {
       heatmaps: L.layerGroup(),
       modernOverlay: L.layerGroup(),
       jerusalemSites: L.layerGroup(),
-      jerusalemGeography: L.layerGroup()
+      jerusalemGeography: L.layerGroup(),
+      firstCenturySatellite: L.layerGroup()
     };
 
     // Tile layers
@@ -43,7 +44,8 @@ class MapController {
       provinces: true,
       modernOverlay: false,
       jerusalemSites: true,
-      jerusalemGeography: true
+      jerusalemGeography: true,
+      firstCenturySatellite: true
     };
 
     this.currentYear = -6;
@@ -75,6 +77,7 @@ class MapController {
     // Draw Static & Foundational Geographic Layers
     this.drawProvinces();
     this.drawCities();
+    this.drawFirstCenturySatelliteOverlays();
     this.drawJerusalemGeography();
     this.drawJerusalemSites();
     this.drawSaviorRoute();
@@ -377,6 +380,62 @@ class MapController {
 
       this.layers.jerusalemGeography.addLayer(gateMarker);
     });
+  }
+
+  // Draw 1st-Century High-Resolution Satellite & Aerial Reconnaissance Overlays
+  drawFirstCenturySatelliteOverlays() {
+    // 1. 1st-Century Jerusalem Satellite & Aerial Reconnaissance Overlay
+    // Exact geographic bounding box matching Second Temple Jerusalem
+    const jerusalemBounds = [[31.7680, 35.2220], [31.7865, 35.2450]];
+    const jerusalemOverlay = L.imageOverlay("assets/satellite/jerusalem_satellite_1st_century.jpg", jerusalemBounds, {
+      opacity: 0.94,
+      interactive: true,
+      zIndex: 200,
+      attribution: "1st Century Aerial Satellite Reconnaissance &copy; Jerusalem"
+    });
+
+    jerusalemOverlay.bindTooltip(`
+      <div class="custom-bible-tooltip">
+        <strong>🛰️ 1ST CENTURY JERUSALEM SATELLITE RECONNAISSANCE</strong><br>
+        <small>Temple Mount, Antonia Fortress, Kidron Valley, Mount of Olives, Gethsemane & Upper City</small><br>
+        <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open in Full 1st-C. Satellite Explorer</span>
+      </div>
+    `, { sticky: true });
+
+    jerusalemOverlay.on("click", (e) => {
+      if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+      if (window.app && window.app.satelliteExplorer) {
+        window.app.satelliteExplorer.open("jerusalem");
+      }
+    });
+
+    this.layers.firstCenturySatellite.addLayer(jerusalemOverlay);
+
+    // 2. 1st-Century Sea of Galilee Satellite Reconnaissance Overlay
+    const galileeBounds = [[32.695, 35.472], [32.898, 35.668]];
+    const galileeOverlay = L.imageOverlay("assets/satellite/galilee_satellite_1st_century.jpg", galileeBounds, {
+      opacity: 0.94,
+      interactive: true,
+      zIndex: 200,
+      attribution: "1st Century Satellite Reconnaissance &copy; Sea of Galilee"
+    });
+
+    galileeOverlay.bindTooltip(`
+      <div class="custom-bible-tooltip">
+        <strong>🛰️ 1ST CENTURY SEA OF GALILEE SATELLITE RECONNAISSANCE</strong><br>
+        <small>Capernaum, Bethsaida, Magdala, Tiberias, Mount of Beatitudes & Jordan River</small><br>
+        <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open in Full 1st-C. Satellite Explorer</span>
+      </div>
+    `, { sticky: true });
+
+    galileeOverlay.on("click", (e) => {
+      if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+      if (window.app && window.app.satelliteExplorer) {
+        window.app.satelliteExplorer.open("galilee");
+      }
+    });
+
+    this.layers.firstCenturySatellite.addLayer(galileeOverlay);
   }
 
   // Draw Granular 1st-Century Sacred Sites Across Jerusalem
@@ -694,6 +753,12 @@ class MapController {
       if (zoom >= 12 && isJerusalemVicinity) {
         this.map.addLayer(this.layers.jerusalemGeography);
       }
+    }
+
+    if (!this.filterState.firstCenturySatellite && !this.filterState.all) {
+      this.map.removeLayer(this.layers.firstCenturySatellite);
+    } else {
+      this.map.addLayer(this.layers.firstCenturySatellite);
     }
 
     this.updateTimelineYear(this.currentYear);

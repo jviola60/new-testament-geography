@@ -91,9 +91,12 @@ class UIController {
           } else if (style === "modern") {
             if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
             if (mapStyleText) mapStyleText.textContent = "Modern";
+          } else if (style === "topo") {
+            if (mapStyleIcon) mapStyleIcon.textContent = "⛰️";
+            if (mapStyleText) mapStyleText.textContent = "Topo Relief";
           } else {
             if (mapStyleIcon) mapStyleIcon.textContent = "📜";
-            if (mapStyleText) mapStyleText.textContent = "Parchment";
+            if (mapStyleText) mapStyleText.textContent = "Ancient";
           }
           mapStyleDropdown.classList.remove("open");
         });
@@ -241,6 +244,27 @@ class UIController {
       });
     }
 
+    // Search Jerusalem Topographical Quarters & Sectors
+    if (typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters) {
+      JERUSALEM_GEOGRAPHY.quarters.forEach(quarter => {
+        if (
+          quarter.name.toLowerCase().includes(q) ||
+          quarter.ancientName.toLowerCase().includes(q) ||
+          quarter.summary.toLowerCase().includes(q) ||
+          quarter.overview.toLowerCase().includes(q) ||
+          quarter.topography.toLowerCase().includes(q)
+        ) {
+          results.push({
+            type: "jerusalemQuarter",
+            item: quarter,
+            title: `🏔️ ${quarter.name}`,
+            subtitle: `Topography & Quarter • ${quarter.elevation}`,
+            badge: "Quarter"
+          });
+        }
+      });
+    }
+
     // Search Cities
     CITIES_DATA.forEach(city => {
       if (
@@ -318,6 +342,10 @@ class UIController {
     if (res.type === "jerusalemSite") {
       window.app.map.flyToLocation(res.item.lat, res.item.lng, 16);
       this.showJerusalemSiteDetail(res.item);
+    } else if (res.type === "jerusalemQuarter") {
+      const center = res.item.coordinates[0];
+      window.app.map.flyToLocation(center[0], center[1], 15);
+      this.showJerusalemQuarterDetail(res.item);
     } else if (res.type === "city") {
       window.app.map.flyToLocation(res.item.lat, res.item.lng, 12);
       this.showCityDetail(res.item);
@@ -384,6 +412,14 @@ class UIController {
     this.currentActiveItem = { type: "jerusalemSite", data: site };
     this.sidebarEyebrow.textContent = `1ST-CENTURY JERUSALEM • ${site.area.toUpperCase()}`;
     this.sidebarTitle.textContent = `${site.icon} ${site.name}`;
+    this.renderActiveItemTabs();
+    this.openSidebar();
+  }
+
+  showJerusalemQuarterDetail(quarter) {
+    this.currentActiveItem = { type: "jerusalemQuarter", data: quarter };
+    this.sidebarEyebrow.textContent = `1ST-CENTURY JERUSALEM TOPOGRAPHY • ${quarter.category.toUpperCase()}`;
+    this.sidebarTitle.textContent = `🏔️ ${quarter.name}`;
     this.renderActiveItemTabs();
     this.openSidebar();
   }
@@ -572,6 +608,146 @@ class UIController {
             <div class="demographic-stat-box">
               <span class="demographic-label">Destruction Era</span>
               <span class="demographic-value" style="font-size:0.95rem; color:#DC2626;">70 AD (Siege of Titus)</span>
+            </div>
+          </div>
+        `;
+      }
+
+    // -------------------------------------------------------------------------
+    // 1ST-CENTURY JERUSALEM TOPOGRAPHICAL QUARTERS & SECTORS
+    // -------------------------------------------------------------------------
+    } else if (type === "jerusalemQuarter") {
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-jerusalem-area">${data.category.toUpperCase()}</span>
+            <span class="city-badge badge-elevation">Elevation: ${data.elevation}</span>
+            <span class="city-badge badge-province">1st-Century Jerusalem</span>
+          </div>
+
+          <div class="hero-quote" style="margin-bottom:1rem;">
+            <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif);">
+              ${data.summary}
+            </div>
+            <span class="quote-ref">${data.ancientName}</span>
+          </div>
+
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Historical & Archaeological Overview</h4>
+            <p>${data.overview}</p>
+          </div>
+
+          <div class="feature-card" style="margin-bottom:1rem; border-left:4px solid #D97706;">
+            <h3 style="display:flex; align-items:center; gap:6px;">
+              <span>🏔️</span> Topographical & Geological Formation
+            </h3>
+            <p style="font-size:0.86rem; line-height:1.55; color:var(--text-secondary); margin-top:0.45rem;">
+              ${data.topography}
+            </p>
+            <div class="demographic-stats-grid" style="margin-top:0.75rem; margin-bottom:0;">
+              <div class="demographic-stat-box">
+                <span class="demographic-label">Peak Elevation</span>
+                <span class="demographic-value" style="font-size:0.95rem;">${data.elevation}</span>
+              </div>
+              <div class="demographic-stat-box">
+                <span class="demographic-label">Sector Category</span>
+                <span class="demographic-value" style="font-size:0.85rem; text-transform:capitalize;">${data.category.replace("-", " ")}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <h3>Scriptures Linked to this Sector (${data.scriptures.length})</h3>
+            <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.5rem;">
+              ${data.scriptures.map(s => `
+                <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                  <span>📖 Read ${s.ref} (KJV)</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = `
+          <div class="kjv-translation-notice">
+            <span class="kjv-badge">King James Version (KJV)</span>
+            <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
+            ${data.scriptures.map(s => `
+              <div class="scripture-verse-card">
+                <div class="scripture-card-top">
+                  <span class="scripture-citation">📖 ${s.ref}</span>
+                  <span class="scripture-kjv-tag">KJV</span>
+                </div>
+                <div class="scripture-body">"${s.text}"</div>
+                <div class="scripture-action-row">
+                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>Read Full Chapter on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else if (this.currentTab === "people") {
+        html = `
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">👥</span>
+              <h3 style="margin:0;">Inhabitants, Eyewitnesses & Assembly</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+              ${data.peopleAndChurch}
+            </p>
+          </div>
+
+          <div class="history-block">
+            <h4>Social & Community Demographics</h4>
+            <p>
+              Different quarters of 1st-century Jerusalem reflected sharp socioeconomic divisions—from the palatial Romanized mansions of the Sadducean high priests in the Upper City, to the crowded artisan alleys in the Lower City, and the sacred pilgrim halls of the Temple Mount.
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Roman Administration & Military Strategic Footprint</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              ${data.politicalInsights}
+            </p>
+          </div>
+
+          <div class="history-block">
+            <h4>Tactical Military Geography</h4>
+            <p>
+              Jerusalem's natural ravines (Kidron, Hinnom) made southern and eastern assaults impossible. Every conqueror from the Babylonians to the Roman Legions attacked from the gentler northern plateau (Bezetha), progressively breaching the Third, Second, and First Walls.
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "chronology") {
+        html = `
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Sacred Milestones & Era Chronicle</h4>
+            <p style="font-size:0.9rem; line-height:1.55;">
+              ${data.eraChronology}
+            </p>
+          </div>
+
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Sector Name</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.name}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Fall of Jerusalem</span>
+              <span class="demographic-value" style="font-size:0.88rem; color:#DC2626;">70 AD (Destroyed by Titus)</span>
             </div>
           </div>
         `;

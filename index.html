@@ -98,8 +98,9 @@
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div id="mapStyleDropdown" class="dropdown-menu">
-          <button data-style="parchment" class="dropdown-item">📜 Ancient Biblical Parchment</button>
+          <button data-style="parchment" class="dropdown-item">📜 Ancient Shaded Relief</button>
           <button data-style="satellite" class="dropdown-item">🛰️ Satellite & Physical Terrain</button>
+          <button data-style="topo" class="dropdown-item">⛰️ Topographic Contours & Relief</button>
           <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
         </div>
       </div>
@@ -145,6 +146,9 @@
         </button>
         <button class="filter-chip active" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
           <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
+        </button>
+        <button class="filter-chip active" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
+          <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
         </button>
         <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
           <span class="chip-dot dot-modern"></span>Modern Streets Overlay
@@ -388,6 +392,7 @@
   <script src="js/data/regions.js"></script>
   <script src="js/data/cities.js"></script>
   <script src="js/data/jerusalemSites.js"></script>
+  <script src="js/data/jerusalemGeography.js"></script>
   <script src="js/data/saviorEvents.js"></script>
   <script src="js/data/missionaryJourneys.js"></script>
   <script src="js/data/communities.js"></script>

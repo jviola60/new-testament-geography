@@ -19,12 +19,14 @@ class MapController {
       provinces: L.layerGroup(),
       heatmaps: L.layerGroup(),
       modernOverlay: L.layerGroup(),
-      jerusalemSites: L.layerGroup()
+      jerusalemSites: L.layerGroup(),
+      jerusalemGeography: L.layerGroup()
     };
 
     // Tile layers
     this.tileLayers = {
       parchment: null,
+      shaded: null,
       satellite: null,
       modern: null,
       modernOverlay: null
@@ -40,7 +42,8 @@ class MapController {
       heatmaps: false,
       provinces: true,
       modernOverlay: false,
-      jerusalemSites: true
+      jerusalemSites: true,
+      jerusalemGeography: true
     };
 
     this.currentYear = -6;
@@ -60,7 +63,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: CARTO, Esri & OSM')
+      .addAttribution('New Testament Atlas • Cartography: Esri Topo, Shaded & OSM')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -72,14 +75,18 @@ class MapController {
     // Draw Static & Foundational Geographic Layers
     this.drawProvinces();
     this.drawCities();
+    this.drawJerusalemGeography();
     this.drawJerusalemSites();
     this.drawSaviorRoute();
     this.drawMissionaryJourneys();
     this.drawJewishDiaspora();
 
-    // Hide micro-sites on initial Roman world overview (zoom 6)
+    // Hide micro-sites & city quarters on initial Roman world overview (zoom 6)
     if (this.map.getZoom() < 11) {
       this.map.removeLayer(this.layers.jerusalemSites);
+    }
+    if (this.map.getZoom() < 12) {
+      this.map.removeLayer(this.layers.jerusalemGeography);
     }
 
     // Dynamic Zoom & Region Adaptations
@@ -101,7 +108,20 @@ class MapController {
         }
       }
 
-      // 2. Hide macro travel paths and coarse city marker when deeply zoomed into Jerusalem to eliminate line clutter!
+      // 2. Show 1st-Century Jerusalem Topographical Quarters & Defensive Walls at zoom >= 12
+      if (this.filterState.jerusalemGeography) {
+        if (zoom >= 12 && isJerusalemVicinity) {
+          if (!this.map.hasLayer(this.layers.jerusalemGeography)) {
+            this.map.addLayer(this.layers.jerusalemGeography);
+          }
+        } else {
+          if (this.map.hasLayer(this.layers.jerusalemGeography)) {
+            this.map.removeLayer(this.layers.jerusalemGeography);
+          }
+        }
+      }
+
+      // 3. Hide macro travel paths and coarse city marker when deeply zoomed into Jerusalem to eliminate line clutter!
       if (zoom >= 13 && isJerusalemVicinity) {
         if (this.map.hasLayer(this.layers.saviorRoute)) {
           this.map.removeLayer(this.layers.saviorRoute);
@@ -130,9 +150,7 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Parchment base layer: Esri World Shaded Relief
-    // maxNativeZoom: 13 ensures Leaflet scales tiles smoothly when zooming in beyond level 13,
-    // completely preventing 'Map data not yet available' tiles from ever appearing.
+    // 1. Clean Ancient Shaded Relief (default: pure historical terrain without modern street names or city labels)
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
@@ -143,25 +161,36 @@ class MapController {
       }
     );
 
-    // 2. Satellite / Aerial imagery layer (Esri World Imagery)
+    // 2. High-Resolution Satellite & Physical Terrain (true natural topography, ravines, and ridges)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
     );
 
-    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    // 3. Topographic Contours & Relief (elevation contours, hillshading, mountain names)
+    this.tileLayers.topo = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxNativeZoom: 18,
+        maxZoom: 18,
+        opacity: 0.95,
+        attribution: "Cartography &copy; Esri World Topographic Map"
+      }
+    );
+
+    // 4. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    // 5. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to parchment
+    // Default to clean ancient shaded relief
     this.tileLayers.parchment.addTo(this.map);
   }
 
@@ -171,6 +200,7 @@ class MapController {
 
     // Remove all basemap tiles first
     this.map.removeLayer(this.tileLayers.parchment);
+    if (this.tileLayers.topo) this.map.removeLayer(this.tileLayers.topo);
     this.map.removeLayer(this.tileLayers.satellite);
     this.map.removeLayer(this.tileLayers.modern);
 
@@ -183,6 +213,9 @@ class MapController {
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
+    } else if (theme === "topo") {
+      this.tileLayers.topo.addTo(this.map);
+      body.classList.add("parchment-theme");
     } else {
       this.tileLayers.parchment.addTo(this.map);
       body.classList.add("parchment-theme");
@@ -244,6 +277,105 @@ class MapController {
       }
 
       this.layers.cities.addLayer(textMarker);
+    });
+  }
+
+  // Draw 1st-Century Jerusalem Topographical Quarters, Defensive Walls, and Gates
+  drawJerusalemGeography() {
+    if (typeof JERUSALEM_GEOGRAPHY === "undefined") return;
+
+    // 1. Draw Quarters / Geographic Sectors (Mount Moriah, Kidron, Hinnom, Mount of Olives, Upper City, etc.)
+    JERUSALEM_GEOGRAPHY.quarters.forEach(quarter => {
+      const polygon = L.polygon(quarter.coordinates, {
+        color: quarter.color,
+        weight: 2,
+        dashArray: "4, 6",
+        fillColor: quarter.fillColor,
+        fillOpacity: quarter.fillOpacity,
+        className: `jerusalem-quarter-${quarter.id}`
+      });
+
+      polygon.bindTooltip(`
+        <div class="tooltip-title">${quarter.name}</div>
+        <div style="font-size:11px; color:#B45309; font-weight:700;">${quarter.ancientName} • Elevation: ${quarter.elevation}</div>
+        <div style="font-size:11px; color:#4B5563; margin-top:3px; line-height:1.35;">${quarter.summary}</div>
+        <div style="font-size:10px; color:#92400E; margin-top:4px; font-weight:600;">👆 Click to explore this area's geography & scriptures</div>
+      `, { className: "custom-bible-tooltip", sticky: true });
+
+      polygon.on("mouseover", () => {
+        polygon.setStyle({ fillOpacity: quarter.fillOpacity + 0.22, weight: 3 });
+      });
+
+      polygon.on("mouseout", () => {
+        polygon.setStyle({ fillOpacity: quarter.fillOpacity, weight: 2 });
+      });
+
+      polygon.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        window.app.ui.showJerusalemQuarterDetail(quarter);
+      });
+
+      this.layers.jerusalemGeography.addLayer(polygon);
+
+      // Area Map Label with Elevation
+      const center = polygon.getBounds().getCenter();
+      const labelMarker = L.marker(center, {
+        icon: L.divIcon({
+          className: "leaflet-div-quarter-label",
+          html: `<div class="quarter-map-label" style="border-color:${quarter.color};">
+                   <span class="q-name" style="color:${quarter.color};">${quarter.name}</span>
+                   <span class="q-elev">${quarter.elevation}</span>
+                 </div>`,
+          iconSize: [120, 32],
+          iconAnchor: [60, 16]
+        }),
+        zIndexOffset: 150,
+        interactive: false
+      });
+      this.layers.jerusalemGeography.addLayer(labelMarker);
+    });
+
+    // 2. Draw 1st-Century Herodian Defensive Walls
+    JERUSALEM_GEOGRAPHY.walls.forEach(wall => {
+      const line = L.polyline(wall.coordinates, {
+        color: wall.color,
+        weight: wall.weight,
+        dashArray: wall.dashArray,
+        opacity: 0.9,
+        lineCap: "round",
+        lineJoin: "round",
+        className: `jerusalem-wall-${wall.id}`
+      });
+
+      line.bindTooltip(`
+        <div class="tooltip-title">🧱 ${wall.name}</div>
+        <div style="font-size:11px; color:#4B5563;">${wall.description}</div>
+      `, { className: "custom-bible-tooltip", sticky: true });
+
+      this.layers.jerusalemGeography.addLayer(line);
+    });
+
+    // 3. Draw Ancient Gates
+    JERUSALEM_GEOGRAPHY.gates.forEach(gate => {
+      const gateMarker = L.marker([gate.lat, gate.lng], {
+        icon: L.divIcon({
+          className: "leaflet-div-gate",
+          html: `<div class="custom-marker-gate" title="${gate.name}">
+                   <div class="gate-icon-inner">⛩️</div>
+                   <div class="gate-label">${gate.name}</div>
+                 </div>`,
+          iconSize: [85, 34],
+          iconAnchor: [42, 14]
+        }),
+        zIndexOffset: 950
+      });
+
+      gateMarker.bindTooltip(`
+        <div class="tooltip-title">⛩️ ${gate.name}</div>
+        <div style="font-size:11px; color:#4B5563;">${gate.note}</div>
+      `, { className: "custom-bible-tooltip", direction: "top" });
+
+      this.layers.jerusalemGeography.addLayer(gateMarker);
     });
   }
 
@@ -548,8 +680,19 @@ class MapController {
       this.map.removeLayer(this.layers.jerusalemSites);
     } else {
       const zoom = this.map.getZoom();
-      if (zoom >= 12 || this.filterState.jerusalemSites) {
+      if (zoom >= 11 || this.filterState.jerusalemSites) {
         this.map.addLayer(this.layers.jerusalemSites);
+      }
+    }
+
+    if (!this.filterState.jerusalemGeography && !this.filterState.all) {
+      this.map.removeLayer(this.layers.jerusalemGeography);
+    } else {
+      const zoom = this.map.getZoom();
+      const center = this.map.getCenter();
+      const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
+      if (zoom >= 12 && isJerusalemVicinity) {
+        this.map.addLayer(this.layers.jerusalemGeography);
       }
     }
 

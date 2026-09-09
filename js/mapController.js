@@ -79,15 +79,14 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Parchment base layer: CartoDB Voyager (No Labels)
-    // Pure clean cartographic terrain with zero modern street signs, parking lots, or modern Hebrew/Arabic labels
+    // 1. Parchment base layer: Esri World Shaded Relief
+    // 100% free, requires NO API key, zero watermarks, pure relief topography and natural contours
     this.tileLayers.parchment = L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
         maxZoom: 18,
         opacity: 0.95,
-        subdomains: "abcd",
-        attribution: "Cartography &copy; CARTO, OpenStreetMap"
+        attribution: "Cartography &copy; Esri World Shaded Relief"
       }
     );
 

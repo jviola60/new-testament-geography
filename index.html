@@ -90,11 +90,19 @@
         <span>Guided Tours</span>
       </button>
 
-      <!-- Map Style Mode Toggle -->
-      <button id="mapStyleToggle" class="btn btn-mode-toggle" title="Switch between Ancient Biblical Parchment and Satellite Terrain">
-        <span class="mode-icon parchment-icon">📜</span>
-        <span class="mode-text">Parchment</span>
-      </button>
+      <!-- Map Style Mode Dropdown / Toggle -->
+      <div class="dropdown-container">
+        <button id="mapStyleToggle" class="btn btn-mode-toggle" title="Switch Map Base Style">
+          <span class="mode-icon parchment-icon" id="mapStyleIcon">📜</span>
+          <span class="mode-text" id="mapStyleText">Parchment</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div id="mapStyleDropdown" class="dropdown-menu">
+          <button data-style="parchment" class="dropdown-item">📜 Ancient Biblical Parchment</button>
+          <button data-style="satellite" class="dropdown-item">🛰️ Satellite & Physical Terrain</button>
+          <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
+        </div>
+      </div>
 
       <!-- Ambient Audio Toggle -->
       <button id="ambientAudioBtn" class="btn btn-icon" title="Toggle peaceful ambient biblical harp sounds" aria-label="Toggle ambient audio">
@@ -134,6 +142,9 @@
         </button>
         <button class="filter-chip active" data-filter="provinces">
           <span class="chip-dot dot-provinces"></span>Roman Provinces
+        </button>
+        <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
+          <span class="chip-dot dot-modern"></span>Modern Streets Overlay
         </button>
       </div>
 

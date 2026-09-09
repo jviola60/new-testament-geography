@@ -17,14 +17,16 @@ class MapController {
       revelationChurches: L.layerGroup(),
       missionaryJourneys: L.layerGroup(),
       provinces: L.layerGroup(),
-      heatmaps: L.layerGroup()
+      heatmaps: L.layerGroup(),
+      modernOverlay: L.layerGroup()
     };
 
     // Tile layers
     this.tileLayers = {
       parchment: null,
       satellite: null,
-      topo: null
+      modern: null,
+      modernOverlay: null
     };
 
     // Filter states
@@ -35,7 +37,8 @@ class MapController {
       churches: true,
       journeys: true,
       heatmaps: false,
-      provinces: true
+      provinces: true,
+      modernOverlay: false
     };
 
     this.currentYear = -6;
@@ -48,14 +51,14 @@ class MapController {
       center: [34.5, 31.0],
       zoom: 6,
       minZoom: 4,
-      maxZoom: 17,
+      maxZoom: 18,
       zoomControl: true,
       attributionControl: false
     });
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri & OSM')
+      .addAttribution('New Testament Atlas • Cartography: CARTO, Esri & OSM')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -76,7 +79,7 @@ class MapController {
   }
 
   setupTileLayers() {
-    // Parchment base layer: CartoDB Voyager (No Labels)
+    // 1. Parchment base layer: CartoDB Voyager (No Labels)
     // Pure clean cartographic terrain with zero modern street signs, parking lots, or modern Hebrew/Arabic labels
     this.tileLayers.parchment = L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
@@ -88,10 +91,22 @@ class MapController {
       }
     );
 
-    // Satellite / Aerial imagery layer (Esri World Imagery)
+    // 2. Satellite / Aerial imagery layer (Esri World Imagery)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
+    );
+
+    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    this.tileLayers.modern = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
+    );
+
+    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    this.tileLayers.modernOverlay = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
     // Default to parchment
@@ -102,15 +117,22 @@ class MapController {
     this.currentTheme = theme;
     const body = document.body;
 
+    // Remove all basemap tiles first
+    this.map.removeLayer(this.tileLayers.parchment);
+    this.map.removeLayer(this.tileLayers.satellite);
+    this.map.removeLayer(this.tileLayers.modern);
+
+    // Remove theme classes
+    body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
+
     if (theme === "satellite") {
-      this.map.removeLayer(this.tileLayers.parchment);
       this.tileLayers.satellite.addTo(this.map);
-      body.classList.remove("parchment-theme");
       body.classList.add("satellite-theme");
+    } else if (theme === "modern") {
+      this.tileLayers.modern.addTo(this.map);
+      body.classList.add("modern-theme");
     } else {
-      this.map.removeLayer(this.tileLayers.satellite);
       this.tileLayers.parchment.addTo(this.map);
-      body.classList.remove("satellite-theme");
       body.classList.add("parchment-theme");
     }
   }
@@ -414,6 +436,16 @@ class MapController {
       this.map.removeLayer(this.layers.heatmaps);
     } else {
       this.map.addLayer(this.layers.heatmaps);
+    }
+
+    if (this.filterState.modernOverlay) {
+      if (!this.layers.modernOverlay.hasLayer(this.tileLayers.modernOverlay)) {
+        this.layers.modernOverlay.addLayer(this.tileLayers.modernOverlay);
+      }
+      this.map.addLayer(this.layers.modernOverlay);
+    } else {
+      this.map.removeLayer(this.layers.modernOverlay);
+      this.layers.modernOverlay.clearLayers();
     }
 
     this.updateTimelineYear(this.currentYear);

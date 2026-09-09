@@ -64,23 +64,39 @@ class UIController {
       });
     });
 
-    // Map Mode Toggle (Parchment <-> Satellite)
+    // Map Style Mode Dropdown (Parchment / Satellite / Modern Streets)
     const mapStyleBtn = document.getElementById("mapStyleToggle");
-    if (mapStyleBtn) {
-      mapStyleBtn.addEventListener("click", () => {
-        const isParchment = window.app.map.currentTheme === "parchment";
-        const nextTheme = isParchment ? "satellite" : "parchment";
-        window.app.map.setMapStyle(nextTheme);
+    const mapStyleDropdown = document.getElementById("mapStyleDropdown");
+    const mapStyleIcon = document.getElementById("mapStyleIcon");
+    const mapStyleText = document.getElementById("mapStyleText");
 
-        const icon = mapStyleBtn.querySelector(".mode-icon");
-        const text = mapStyleBtn.querySelector(".mode-text");
-        if (nextTheme === "satellite") {
-          icon.textContent = "🛰️";
-          text.textContent = "Satellite";
-        } else {
-          icon.textContent = "📜";
-          text.textContent = "Parchment";
-        }
+    if (mapStyleBtn && mapStyleDropdown) {
+      mapStyleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        mapStyleDropdown.classList.toggle("open");
+      });
+
+      document.addEventListener("click", () => {
+        mapStyleDropdown.classList.remove("open");
+      });
+
+      mapStyleDropdown.querySelectorAll(".dropdown-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const style = item.dataset.style;
+          window.app.map.setMapStyle(style);
+
+          if (style === "satellite") {
+            if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
+            if (mapStyleText) mapStyleText.textContent = "Satellite";
+          } else if (style === "modern") {
+            if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
+            if (mapStyleText) mapStyleText.textContent = "Modern";
+          } else {
+            if (mapStyleIcon) mapStyleIcon.textContent = "📜";
+            if (mapStyleText) mapStyleText.textContent = "Parchment";
+          }
+          mapStyleDropdown.classList.remove("open");
+        });
       });
     }
 

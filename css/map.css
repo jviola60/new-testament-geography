@@ -12,6 +12,10 @@
   filter: saturate(110%) contrast(110%);
 }
 
+.modern-theme .leaflet-tile-pane {
+  filter: none;
+}
+
 /* Map Overlays & Watermarks */
 .floating-era-badge {
   position: absolute;

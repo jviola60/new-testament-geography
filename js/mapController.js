@@ -76,16 +76,22 @@ class MapController {
   }
 
   setupTileLayers() {
-    // Parchment base layer (OSM with custom CSS filter applied to .parchment-theme)
+    // Parchment base layer: CartoDB Voyager (No Labels)
+    // Pure clean cartographic terrain with zero modern street signs, parking lots, or modern Hebrew/Arabic labels
     this.tileLayers.parchment = L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      { maxZoom: 18, opacity: 0.95 }
+      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 18,
+        opacity: 0.95,
+        subdomains: "abcd",
+        attribution: "Cartography &copy; CARTO, OpenStreetMap"
+      }
     );
 
     // Satellite / Aerial imagery layer (Esri World Imagery)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 18, opacity: 1.0 }
+      { maxZoom: 18, opacity: 1.0, attribution: "Esri World Imagery" }
     );
 
     // Default to parchment

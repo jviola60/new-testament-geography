@@ -83,20 +83,30 @@ class UIController {
       mapStyleDropdown.querySelectorAll(".dropdown-item").forEach(item => {
         item.addEventListener("click", () => {
           const style = item.dataset.style;
-          window.app.map.setMapStyle(style);
 
-          if (style === "satellite") {
+          if (style === "first-century-satellite") {
+            // Option 1: 1st-Century Satellite Explorer (Pure ancient orbital satellite reconstructions, no modern buildings)
+            if (window.app && window.app.satelliteExplorer) {
+              window.app.satelliteExplorer.open("holy-land");
+            }
+          } else if (style === "modern-satellite" || style === "satellite") {
+            // Option 2: Modern 21st-Century Satellite (Pure continuous aerial photography across the earth)
+            window.app.map.setMapStyle("satellite");
             if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
-            if (mapStyleText) mapStyleText.textContent = "1st-C. Satellite";
+            if (mapStyleText) mapStyleText.textContent = "Modern Satellite";
           } else if (style === "modern") {
+            window.app.map.setMapStyle("modern");
             if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
-            if (mapStyleText) mapStyleText.textContent = "Modern";
+            if (mapStyleText) mapStyleText.textContent = "Modern Streets";
           } else if (style === "topo") {
+            window.app.map.setMapStyle("topo");
             if (mapStyleIcon) mapStyleIcon.textContent = "⛰️";
             if (mapStyleText) mapStyleText.textContent = "Topo Relief";
           } else {
+            // Option 3: Ancient Shaded Relief (1st Century Parchment Map)
+            window.app.map.setMapStyle("parchment");
             if (mapStyleIcon) mapStyleIcon.textContent = "📜";
-            if (mapStyleText) mapStyleText.textContent = "Ancient";
+            if (mapStyleText) mapStyleText.textContent = "Ancient Relief";
           }
           mapStyleDropdown.classList.remove("open");
         });

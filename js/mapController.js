@@ -45,7 +45,7 @@ class MapController {
       modernOverlay: false,
       jerusalemSites: true,
       jerusalemGeography: true,
-      firstCenturySatellite: true
+      firstCenturySatellite: false
     };
 
     this.currentYear = -6;
@@ -71,8 +71,12 @@ class MapController {
     // Setup Tile Layers
     this.setupTileLayers();
 
-    // Attach All Layer Groups to Map
-    Object.values(this.layers).forEach(layer => layer.addTo(this.map));
+    // Attach Base Layer Groups to Map (excluding separate 1st-c satellite image overlays)
+    Object.entries(this.layers).forEach(([k, layer]) => {
+      if (k !== "firstCenturySatellite") {
+        layer.addTo(this.map);
+      }
+    });
 
     // Draw Static & Foundational Geographic Layers
     this.drawProvinces();
@@ -153,13 +157,7 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. High-Resolution Satellite & Physical Terrain (Default: true natural topography, orbital satellite imagery)
-    this.tileLayers.satellite = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
-    );
-
-    // 2. Clean Ancient Shaded Relief
+    // 1. Clean Ancient Shaded Relief (Default: pure historical terrain without modern street names or city labels)
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
@@ -168,6 +166,12 @@ class MapController {
         opacity: 0.95,
         attribution: "Cartography &copy; Esri World Shaded Relief"
       }
+    );
+
+    // 2. Pure Modern 21st-Century Satellite Imagery (Separate Option: continuous global aerial photography)
+    this.tileLayers.satellite = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
     );
 
     // 3. Topographic Contours & Relief (elevation contours, hillshading, mountain names)
@@ -193,9 +197,9 @@ class MapController {
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to High-Resolution 1st-Century Satellite Earth Basemap across the whole map
-    this.tileLayers.satellite.addTo(this.map);
-    document.body.classList.add("satellite-theme");
+    // Default to clean ancient shaded relief
+    this.tileLayers.parchment.addTo(this.map);
+    document.body.classList.add("parchment-theme");
   }
 
   setMapStyle(theme) {
@@ -211,9 +215,9 @@ class MapController {
     // Remove theme classes
     body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
 
-    if (theme === "parchment") {
-      this.tileLayers.parchment.addTo(this.map);
-      body.classList.add("parchment-theme");
+    if (theme === "satellite") {
+      this.tileLayers.satellite.addTo(this.map);
+      body.classList.add("satellite-theme");
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
@@ -221,9 +225,8 @@ class MapController {
       this.tileLayers.topo.addTo(this.map);
       body.classList.add("parchment-theme");
     } else {
-      // Default: High-Resolution 1st-Century Satellite
-      this.tileLayers.satellite.addTo(this.map);
-      body.classList.add("satellite-theme");
+      this.tileLayers.parchment.addTo(this.map);
+      body.classList.add("parchment-theme");
     }
   }
 

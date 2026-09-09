@@ -463,10 +463,12 @@
 }
 
 /* City Text Label Marker */
-.custom-city-label {
+.custom-city-label,
+.custom-region-label {
   background: none;
   border: none;
   box-shadow: none;
+  pointer-events: auto !important;
 }
 
 .city-label-text {
@@ -477,7 +479,21 @@
   text-shadow: 0 0 3px #FDF8ED, 0 0 6px #FDF8ED, 0 1px 2px rgba(255,255,255,0.9);
   white-space: nowrap;
   letter-spacing: 0.04em;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.region-label-text {
+  font-family: var(--font-serif-title);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: rgba(92, 58, 26, 0.72);
+  text-shadow: 0 0 4px #FDF8ED, 0 1px 2px rgba(253, 248, 237, 0.95);
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .city-label-major {

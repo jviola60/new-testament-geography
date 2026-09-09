@@ -141,6 +141,26 @@ class UIController {
             }
           } else {
             window.app.map.focusRegion(regionKey);
+            const presetToRegion = {
+              galilee: "galilee",
+              jerusalem: "judea",
+              "holy-land": "judea",
+              "asia-minor": "asia",
+              greece: "achaia",
+              rome: "italia",
+              egypt: "egypt"
+            };
+            const regionId = presetToRegion[regionKey];
+            if (regionId && typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions) {
+              const region = REGIONS_DATA.regions.find(r => r.id === regionId);
+              if (region && window.app.ui) {
+                if (regionKey === "jerusalem") {
+                  // keep existing Jerusalem site opener in focusRegion
+                } else {
+                  window.app.ui.showRegionDetail(region);
+                }
+              }
+            }
           }
           regionDropdown.classList.remove("open");
         });
@@ -302,14 +322,34 @@ class UIController {
     }
 
     // Search Cities
-    CITIES_DATA.forEach(city => {
+    this.citiesList().forEach(city => {
       if (
         city.name.toLowerCase().includes(q) ||
-        city.ancientName.toLowerCase().includes(q) ||
-        city.region.toLowerCase().includes(q) ||
-        city.significance.toLowerCase().includes(q)
+        (city.ancientName && city.ancientName.toLowerCase().includes(q)) ||
+        (city.region && city.region.toLowerCase().includes(q)) ||
+        (city.significance && city.significance.toLowerCase().includes(q)) ||
+        (city.overview && city.overview.toLowerCase().includes(q))
       ) {
         results.push({ type: "city", item: city, title: city.name, subtitle: `${city.region} • ${city.ancientName}`, badge: "City" });
+      }
+    });
+
+    // Search landscape features (Sea of Galilee, Jordan, Hermon, etc.)
+    const geoList = (typeof GEO_FEATURES !== "undefined" && GEO_FEATURES) || window.GEO_FEATURES || [];
+    geoList.forEach(feature => {
+      if (
+        feature.name.toLowerCase().includes(q) ||
+        (feature.ancientName && feature.ancientName.toLowerCase().includes(q)) ||
+        (feature.summary && feature.summary.toLowerCase().includes(q)) ||
+        (feature.overview && feature.overview.toLowerCase().includes(q))
+      ) {
+        results.push({
+          type: "geo",
+          item: feature,
+          title: `🌊 ${feature.name}`,
+          subtitle: `${feature.region || "Holy Land"} • ${feature.category || "Geography"}`,
+          badge: "Place"
+        });
       }
     });
 
@@ -403,6 +443,9 @@ class UIController {
         window.app.map.flyToLocation(centerLat, centerLng, 8);
       }
       this.showRegionDetail(res.item);
+    } else if (res.type === "geo") {
+      window.app.map.flyToLocation(res.item.lat, res.item.lng, 11);
+      this.showGeoFeatureDetail(res.item);
     }
   }
 
@@ -410,10 +453,10 @@ class UIController {
   // DETAIL VIEWS (Cities, Events, Churches, Diaspora, Journeys)
   // =========================================================================
 
-  // Helper to construct ChurchofJesusChrist.org scripture links
+  // Helper to construct ChurchofJesusChrist.org scripture links (NT and OT)
   getChurchScriptureLink(citation) {
     if (!citation) return "https://www.churchofjesuschrist.org/study/scriptures/nt?lang=eng";
-    const bookMap = {
+    const ntBooks = {
       "matthew": "matt", "matt": "matt",
       "mark": "mark",
       "luke": "luke",
@@ -442,16 +485,343 @@ class UIController {
       "jude": "jude",
       "revelation": "rev", "rev": "rev"
     };
+    const otBooks = {
+      "genesis": "gen", "gen": "gen",
+      "exodus": "ex", "ex": "ex",
+      "leviticus": "lev", "lev": "lev",
+      "numbers": "num", "num": "num",
+      "deuteronomy": "deut", "deut": "deut",
+      "joshua": "josh", "josh": "josh",
+      "judges": "judg",
+      "ruth": "ruth",
+      "1 samuel": "1-sam", "1 sam": "1-sam",
+      "2 samuel": "2-sam", "2 sam": "2-sam",
+      "1 kings": "1-kgs", "1 kgs": "1-kgs",
+      "2 kings": "2-kgs", "2 kgs": "2-kgs",
+      "ezra": "ezra",
+      "nehemiah": "neh", "neh": "neh",
+      "esther": "esth",
+      "job": "job",
+      "psalm": "ps", "psalms": "ps", "ps": "ps",
+      "proverbs": "prov", "prov": "prov",
+      "isaiah": "isa", "isa": "isa",
+      "jeremiah": "jer", "jer": "jer",
+      "lamentations": "lam",
+      "ezekiel": "ezek", "ezek": "ezek",
+      "daniel": "dan", "dan": "dan",
+      "hosea": "hosea",
+      "joel": "joel",
+      "amos": "amos",
+      "obadiah": "obad",
+      "jonah": "jonah",
+      "micah": "micah",
+      "nahum": "nahum",
+      "habakkuk": "hab",
+      "zephaniah": "zeph",
+      "haggai": "hag",
+      "zechariah": "zech",
+      "malachi": "mal"
+    };
 
-    const match = citation.match(/^([\d\s]*[A-Za-z]+)\s+(\d+)(?::(\d+))?/);
+    const cleaned = String(citation).replace(/&/g, " ").split(/[;,—]/)[0].trim();
+    const match = cleaned.match(/^([\d]?\s*[A-Za-z]+)\s+(\d+)(?::(\d+))?/);
     if (!match) return "https://www.churchofjesuschrist.org/study/scriptures/nt?lang=eng";
 
     const rawBook = match[1].trim().toLowerCase();
     const chapter = match[2];
     const verse = match[3] || "1";
-    const bookSlug = bookMap[rawBook] || rawBook;
-
+    if (otBooks[rawBook]) {
+      return `https://www.churchofjesuschrist.org/study/scriptures/ot/${otBooks[rawBook]}/${chapter}?lang=eng#${verse}`;
+    }
+    const bookSlug = ntBooks[rawBook] || rawBook;
     return `https://www.churchofjesuschrist.org/study/scriptures/nt/${bookSlug}/${chapter}?lang=eng#${verse}`;
+  }
+
+  asScriptureList(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw.map((s) => {
+        if (!s) return null;
+        if (typeof s === "string") {
+          return { ref: s, text: "", churchLink: this.getChurchScriptureLink(s) };
+        }
+        return {
+          ref: s.ref || "",
+          text: s.text || "",
+          churchLink: s.churchLink || this.getChurchScriptureLink(s.ref)
+        };
+      }).filter((s) => s && s.ref);
+    }
+    if (typeof raw === "string") {
+      return [{ ref: raw, text: "", churchLink: this.getChurchScriptureLink(raw) }];
+    }
+    return [];
+  }
+
+  gatherRelatedScriptures(data) {
+    const existing = this.asScriptureList(data && data.scriptures);
+    const names = [
+      data && data.name,
+      data && data.city,
+      data && data.ancientName,
+      data && data.locationName,
+      data && data.title
+    ].filter(Boolean).map((n) => String(n).toLowerCase());
+    const tokens = names.flatMap((n) => n.split(/[(),/]/).map((p) => p.trim()).filter((p) => p.length > 3));
+    const seen = new Set(existing.map((s) => s.ref));
+    const addFrom = (list) => {
+      if (!list) return;
+      list.forEach((item) => {
+        const hay = `${item.locationName || ""} ${item.title || ""} ${item.name || ""} ${item.description || ""}`.toLowerCase();
+        if (!tokens.some((t) => hay.includes(t))) return;
+        this.asScriptureList(item.scriptures).forEach((s) => {
+          if (s.ref && !seen.has(s.ref)) {
+            seen.add(s.ref);
+            existing.push(s);
+          }
+        });
+      });
+    };
+    if (typeof SAVIOR_EVENTS !== "undefined") addFrom(SAVIOR_EVENTS);
+    if (typeof TIMELINE_EVENTS !== "undefined") addFrom(TIMELINE_EVENTS);
+    if (typeof JERUSALEM_SITES !== "undefined") addFrom(JERUSALEM_SITES);
+    return existing;
+  }
+
+  getRelatedRegion(data) {
+    if (typeof REGIONS_DATA === "undefined" || !REGIONS_DATA.regions) return null;
+    const needle = String((data && (data.region || data.name || data.city)) || "").toLowerCase();
+    if (!needle) return null;
+    return REGIONS_DATA.regions.find((r) =>
+      needle.includes(r.id) ||
+      r.name.toLowerCase().includes(needle.split(/[,(]/)[0].trim()) ||
+      needle.includes(r.name.toLowerCase().split(" ")[0])
+    ) || null;
+  }
+
+  polygonCenter(coordinates) {
+    if (!coordinates || !coordinates.length) return null;
+    const lats = coordinates.map((c) => c[0]);
+    const lngs = coordinates.map((c) => c[1]);
+    return [
+      (Math.min(...lats) + Math.max(...lats)) / 2,
+      (Math.min(...lngs) + Math.max(...lngs)) / 2
+    ];
+  }
+
+  renderScriptureCards(scriptures) {
+    const list = this.asScriptureList(scriptures);
+    if (!list.length) {
+      return `<div class="history-block"><p>Referenced across the New Testament Gospels, Acts, and Epistles. Use search to open related events and read full KJV chapters on ChurchofJesusChrist.org.</p></div>`;
+    }
+    return `
+      <div class="kjv-translation-notice">
+        <span class="kjv-badge">King James Version (KJV)</span>
+        <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
+        ${list.map((s) => `
+          <div class="scripture-verse-card">
+            <div class="scripture-card-top">
+              <span class="scripture-citation">📖 ${s.ref}</span>
+              <span class="scripture-kjv-tag">KJV</span>
+            </div>
+            ${s.text ? `<div class="scripture-body">"${s.text}"</div>` : ""}
+            <div class="scripture-action-row">
+              <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                <span>Read ${s.ref} on ChurchofJesusChrist.org</span>
+                <span class="btn-arrow">↗</span>
+              </a>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  normalizeDossier(type, data) {
+    const region = this.getRelatedRegion(data);
+    const name = data.name || data.city || data.title || "Selected Place";
+    const scriptures = this.gatherRelatedScriptures(data);
+    return {
+      name,
+      ancientName: data.ancientName || "",
+      summary: data.summary || data.significance || data.description || data.history || "",
+      overview: data.overview || data.significance || data.description || data.history || data.summary || "",
+      scriptures,
+      peopleAndChurch: data.peopleAndChurch || [data.jewishDiasporaInfo, data.christianChurchInfo, data.founders, data.companions].filter(Boolean).join(" "),
+      politicalInsights: data.politicalInsights || (region && region.politicalInsights) || "",
+      eraChronology: data.eraChronology || data.growthMilestone || "",
+      region: data.region || (region && region.name) || "",
+      capital: data.capital || "",
+      governor: data.governor || "",
+      elevation: data.elevation || data.elev || "",
+      population: data.population || data.estimatedPopulation || "",
+      epistles: data.epistles || [],
+      extra: data
+    };
+  }
+
+  citiesList() {
+    if (typeof CITIES_DATA === "undefined") return [];
+    return Array.isArray(CITIES_DATA) ? CITIES_DATA : (CITIES_DATA.cities || []);
+  }
+
+  fuzzyMatch(hay, needle) {
+    if (!hay || !needle) return false;
+    const h = String(hay).toLowerCase();
+    const n = String(needle).toLowerCase().trim();
+    if (h === n || h.includes(n) || n.includes(h)) return true;
+    const compact = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const hc = compact(hay);
+    const nc = compact(needle);
+    return !!(hc && nc && (hc === nc || hc.includes(nc) || nc.includes(hc)));
+  }
+
+  findCityByName(name) {
+    const needle = (name || "").toLowerCase().trim();
+    if (!needle) return null;
+    return this.citiesList().find((c) =>
+      c.id === needle ||
+      c.name.toLowerCase() === needle ||
+      this.fuzzyMatch(c.name, needle) ||
+      this.fuzzyMatch(c.ancientName, needle)
+    ) || null;
+  }
+
+  findQuarterById(id, name) {
+    if (typeof JERUSALEM_GEOGRAPHY === "undefined" || !JERUSALEM_GEOGRAPHY.quarters) return null;
+    const needle = (id || name || "").toLowerCase();
+    return JERUSALEM_GEOGRAPHY.quarters.find((q) =>
+      q.id === id ||
+      q.id === `area-${id}` ||
+      (id && q.id.replace(/^area-/, "") === id.replace(/^area-/, "").replace(/-valley$/, "").replace(/^hinnom.*/, "valley-of-hinnom")) ||
+      this.fuzzyMatch(q.id, needle) ||
+      this.fuzzyMatch(q.name, name || id)
+    ) || null;
+  }
+
+  findSiteById(id, name) {
+    if (typeof JERUSALEM_SITES === "undefined") return null;
+    const needle = (id || name || "").toLowerCase();
+    return JERUSALEM_SITES.find((s) =>
+      s.id === id ||
+      s.id === `jer-${id}` ||
+      (id && s.id.includes(id)) ||
+      this.fuzzyMatch(s.name, name || id) ||
+      (name && name.toLowerCase().includes((s.name || "").toLowerCase()))
+    ) || null;
+  }
+
+  findGeoFeature(query) {
+    const list = (typeof GEO_FEATURES !== "undefined" && GEO_FEATURES) || window.GEO_FEATURES || [];
+    const needle = (query || "").toLowerCase();
+    return list.find((g) =>
+      g.id === query ||
+      this.fuzzyMatch(g.name, query) ||
+      this.fuzzyMatch(g.ancientName, query) ||
+      (g.category && needle.includes(g.category.toLowerCase()))
+    ) || null;
+  }
+
+  openPlaceFromQuery(query) {
+    if (!query) return false;
+    const q = String(query).trim();
+
+    const city = this.findCityByName(q);
+    if (city) {
+      if (window.app && window.app.map) window.app.map.flyToLocation(city.lat, city.lng, 12);
+      this.showCityDetail(city);
+      return true;
+    }
+
+    if (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions) {
+      const region = REGIONS_DATA.regions.find((r) =>
+        r.id === q.toLowerCase() || this.fuzzyMatch(r.name, q) || this.fuzzyMatch(r.ancientName, q)
+      );
+      if (region) {
+        this.showRegionDetail(region);
+        if (region.bounds && window.app && window.app.map) {
+          const b = region.bounds;
+          window.app.map.flyToLocation((b[0][0] + b[1][0]) / 2, (b[0][1] + b[1][1]) / 2, 8);
+        }
+        return true;
+      }
+    }
+
+    const site = this.findSiteById(null, q);
+    if (site) {
+      if (window.app && window.app.map) window.app.map.flyToLocation(site.lat, site.lng, 16);
+      this.showJerusalemSiteDetail(site);
+      return true;
+    }
+
+    const quarter = this.findQuarterById(null, q);
+    if (quarter) {
+      const center = this.polygonCenter(quarter.coordinates);
+      if (center && window.app && window.app.map) window.app.map.flyToLocation(center[0], center[1], 15);
+      this.showJerusalemQuarterDetail(quarter);
+      return true;
+    }
+
+    const geo = this.findGeoFeature(q);
+    if (geo) {
+      if (window.app && window.app.map) window.app.map.flyToLocation(geo.lat, geo.lng, 11);
+      this.showGeoFeatureDetail(geo);
+      return true;
+    }
+
+    if (typeof SAVIOR_EVENTS !== "undefined") {
+      const event = SAVIOR_EVENTS.find((e) =>
+        this.fuzzyMatch(e.title, q) || this.fuzzyMatch(e.locationName, q)
+      );
+      if (event) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(event.lat, event.lng, 13);
+        this.showEventDetail(event);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  openPlaceFromPin(pin) {
+    if (!pin) return false;
+    if (pin.linkType === "view" && pin.viewTarget) return false;
+
+    if (pin.linkType === "city" || !pin.linkType) {
+      const city = this.findCityByName(pin.linkName || pin.name);
+      if (city) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(city.lat, city.lng, 13);
+        this.showCityDetail(city);
+        return true;
+      }
+    }
+
+    if (pin.linkType === "quarter" || pin.linkQuarterId) {
+      const quarter = this.findQuarterById(pin.linkQuarterId, pin.name);
+      if (quarter) {
+        const center = this.polygonCenter(quarter.coordinates);
+        if (center && window.app && window.app.map) window.app.map.flyToLocation(center[0], center[1], 15);
+        this.showJerusalemQuarterDetail(quarter);
+        return true;
+      }
+    }
+
+    if (pin.linkType === "site" || pin.linkSiteId) {
+      const site = this.findSiteById(pin.linkSiteId || pin.id, pin.name);
+      if (site) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(site.lat, site.lng, 16);
+        this.showJerusalemSiteDetail(site);
+        return true;
+      }
+    }
+
+    if (pin.linkType === "search" && pin.searchQuery) {
+      return this.openPlaceFromQuery(pin.searchQuery);
+    }
+
+    return this.openPlaceFromQuery(pin.linkName || pin.name);
   }
 
   showJerusalemSiteDetail(site) {
@@ -516,6 +886,14 @@ class UIController {
     this.currentActiveItem = { type: "region", data: region };
     this.sidebarEyebrow.textContent = `ROMAN PROVINCE / REGION`;
     this.sidebarTitle.textContent = region.name;
+    this.renderActiveItemTabs();
+    this.openSidebar();
+  }
+
+  showGeoFeatureDetail(feature) {
+    this.currentActiveItem = { type: "geo", data: feature };
+    this.sidebarEyebrow.textContent = `LANDSCAPE & SACRED GEOGRAPHY • ${(feature.region || "HOLY LAND").toUpperCase()}`;
+    this.sidebarTitle.textContent = feature.name;
     this.renderActiveItemTabs();
     this.openSidebar();
   }
@@ -805,36 +1183,58 @@ class UIController {
     // BIBLICAL CITIES
     // -------------------------------------------------------------------------
     } else if (type === "city") {
+      const dossier = this.normalizeDossier("city", data);
       if (this.currentTab === "overview") {
         html = `
           <div class="city-detail-badge-row">
-            <span class="city-badge badge-province">${data.region}</span>
+            <span class="city-badge badge-province">${data.region || "New Testament World"}</span>
             ${data.hasSynagogue ? '<span class="city-badge badge-synagogue">Synagogue</span>' : ''}
             ${data.hasChurch ? '<span class="city-badge badge-church">Christian Church</span>' : ''}
           </div>
 
+          <div class="hero-quote" style="margin-bottom:1rem;">
+            <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif); color:#451A03;">
+              ${dossier.summary}
+            </div>
+            <span class="quote-ref">${data.ancientName || data.name}</span>
+          </div>
+
           <div class="history-block">
-            <h4>Historical & Scriptural Significance</h4>
-            <p>${data.significance}</p>
+            <h4>Historical & Scriptural Overview</h4>
+            <p>${dossier.overview}</p>
           </div>
 
           <div class="demographic-stats-grid" style="margin-top:1rem;">
             <div class="demographic-stat-box">
               <span class="demographic-label">Ancient Name</span>
-              <span class="demographic-value" style="font-size:0.95rem;">${data.ancientName}</span>
+              <span class="demographic-value" style="font-size:0.95rem;">${data.ancientName || data.name}</span>
             </div>
             <div class="demographic-stat-box">
               <span class="demographic-label">Est. Population</span>
-              <span class="demographic-value" style="font-size:0.95rem;">${data.population}</span>
+              <span class="demographic-value" style="font-size:0.95rem;">${data.population || "Town of the NT era"}</span>
             </div>
           </div>
+
+          ${dossier.scriptures.length ? `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Key Scriptures (${dossier.scriptures.length})</h3>
+              <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.4rem;">
+                ${dossier.scriptures.map(s => `
+                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 ${s.ref} • Read on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
 
           ${data.epistles && data.epistles.length > 0 ? `
             <div style="margin-top:0.75rem;">
               <h4 style="font-family:var(--font-serif-title); font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">Connected New Testament Epistles</h4>
               <div class="epistle-tag-list">
                 ${data.epistles.map(e => `
-                  <a href="${this.getChurchScriptureLink(e + ' 1')}" target="_blank" rel="noopener" class="epistle-tag" title="Study ${e} on ChurchofJesusChrist.org">
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="epistle-tag" title="Study ${e} on ChurchofJesusChrist.org">
                     📜 ${e} ↗
                   </a>
                 `).join("")}
@@ -843,72 +1243,123 @@ class UIController {
           ` : ''}
         `;
       } else if (this.currentTab === "scripture") {
-        html = `
-          <div class="kjv-translation-notice">
-            <span class="kjv-badge">King James Version (KJV)</span>
-            <span>Study scriptures connected to ${data.name} on Church of Jesus Christ.</span>
-          </div>
-
-          <div class="history-block" style="margin:0.85rem 0;">
-            <h4>Scriptural Role in the Early Church</h4>
-            <p>${data.christianChurchInfo}</p>
-          </div>
-          <div class="history-block">
-            <h4>Jewish Community & Old/New Testament Roots</h4>
-            <p>${data.jewishDiasporaInfo}</p>
-          </div>
-
-          ${data.epistles && data.epistles.length > 0 ? `
+        html = this.renderScriptureCards(dossier.scriptures);
+        if (data.epistles && data.epistles.length > 0) {
+          html += `
             <div class="feature-card" style="margin-top:1rem;">
-              <h3>Epistles Addressed to ${data.name}</h3>
+              <h3>Epistles Connected with ${data.name}</h3>
               <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
                 ${data.epistles.map(e => `
-                  <a href="${this.getChurchScriptureLink(e + ' 1')}" target="_blank" rel="noopener" class="church-scripture-btn">
-                    <span>📖 Study Epistle to the ${e} on ChurchofJesusChrist.org</span>
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study ${e} on ChurchofJesusChrist.org</span>
                     <span class="btn-arrow">↗</span>
                   </a>
                 `).join("")}
               </div>
             </div>
-          ` : ''}
-        `;
+          `;
+        }
       } else if (this.currentTab === "people") {
         html = `
-          <div class="feature-card">
-            <h3>Demographics & Communities</h3>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">
-              <strong>Jewish Diaspora Hub:</strong> ${data.jewishDiasporaInfo}
-            </p>
-            <p style="font-size:0.85rem; color:var(--text-secondary);">
-              <strong>Christian Disciples:</strong> ${data.christianChurchInfo}
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">👥</span>
+              <h3 style="margin:0;">Inhabitants, Disciples & Early Church</h3>
+            </div>
+            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+              ${dossier.peopleAndChurch || data.christianChurchInfo || "Disciples, synagogue communities, and households recorded in the New Testament."}
             </p>
           </div>
+          ${data.jewishDiasporaInfo ? `
+            <div class="history-block">
+              <h4>Jewish Community</h4>
+              <p>${data.jewishDiasporaInfo}</p>
+            </div>
+          ` : ''}
+          ${data.christianChurchInfo ? `
+            <div class="history-block">
+              <h4>Christian Congregation</h4>
+              <p>${data.christianChurchInfo}</p>
+            </div>
+          ` : ''}
         `;
       } else if (this.currentTab === "political") {
         html = `
-          <div class="political-insight-card">
+          <div class="political-insight-card" style="margin-bottom:1rem;">
             <div class="insight-header">
               <span class="insight-icon">🏛️</span>
-              <h3 style="margin:0; color:#78350F;">Roman Administrative Standing</h3>
+              <h3 style="margin:0; color:#78350F;">Roman Administration & Civic Setting</h3>
             </div>
             <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
-              Located within the province of <strong>${data.region}</strong>, ${data.name} operated under Roman imperial supervision. Major cities maintained imperial highways (Via Romana), harbors, and garrisons, balancing local municipal councils with Roman governors.
+              ${dossier.politicalInsights || `Located within <strong>${data.region || "the Roman world"}</strong>, ${data.name} lived under imperial roads, harbors, and governors while local councils and synagogues ordered daily life.`}
             </p>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Region / Province</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.region || "Roman world"}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">NT Era Standing</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.hasChurch ? "Church planted" : "Gospel setting"}</span>
+            </div>
           </div>
         `;
       } else if (this.currentTab === "chronology") {
         html = `
-          <div class="history-block">
-            <h4>Timeline Position</h4>
-            <p>Active and inhabited across the entire New Testament era (~6 BC – 100 AD).</p>
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Sacred Era Chronology & Milestones</h4>
+            <p style="font-size:0.9rem; line-height:1.55;">
+              ${dossier.eraChronology || `${data.name} is inhabited across the New Testament era (~6 BC – 100 AD), from the days of Herod and Augustus through the apostolic missions.`}
+            </p>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Biblical Era Span</span>
+              <span class="demographic-value" style="font-size:0.92rem;">~6 BC – 100 AD</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Region</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.region || "Mediterranean"}</span>
+            </div>
           </div>
         `;
+      }
+
+    // -------------------------------------------------------------------------
+    // LANDSCAPE FEATURES (Sea of Galilee, Jordan, Hermon, etc.)
+    // -------------------------------------------------------------------------
+    } else if (type === "geo") {
+      const dossier = this.normalizeDossier("geo", data);
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-province">${data.category || "Sacred Geography"}</span>
+            ${data.elevation ? `<span class="city-badge badge-elevation">${data.elevation}</span>` : ""}
+            <span class="city-badge badge-jerusalem-area">${data.region || "Holy Land"}</span>
+          </div>
+          <div class="hero-quote" style="margin-bottom:1rem;">
+            <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif);">${dossier.summary}</div>
+            <span class="quote-ref">${data.ancientName || data.name}</span>
+          </div>
+          <div class="history-block"><h4>Geographical & Scriptural Overview</h4><p>${dossier.overview}</p></div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = this.renderScriptureCards(dossier.scriptures);
+      } else if (this.currentTab === "people") {
+        html = `<div class="feature-card"><h3>People & Witnesses</h3><p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">${dossier.peopleAndChurch}</p></div>`;
+      } else if (this.currentTab === "political") {
+        html = `<div class="political-insight-card"><div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Setting in the Roman World</h3></div><p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">${dossier.politicalInsights}</p></div>`;
+      } else if (this.currentTab === "chronology") {
+        html = `<div class="history-block"><h4>Era Chronicle</h4><p>${dossier.eraChronology}</p></div>`;
       }
 
     // -------------------------------------------------------------------------
     // SAVIOR'S FOOTSTEPS & EVENTS
     // -------------------------------------------------------------------------
     } else if (type === "event") {
+      const dossier = this.normalizeDossier("event", data);
+      const region = this.getRelatedRegion({ region: data.locationName, name: data.locationName });
       if (this.currentTab === "overview") {
         html = `
           <div class="history-block" style="margin-bottom:1rem;">
@@ -930,7 +1381,7 @@ class UIController {
           <div class="feature-card">
             <h3>Scripture Record (KJV)</h3>
             <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.4rem;">
-              ${data.scriptures.map(s => `
+              ${this.asScriptureList(data.scriptures).map(s => `
                 <a href="${this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
                   <span>📖 Read ${s.ref} on ChurchofJesusChrist.org</span>
                   <span class="btn-arrow">↗</span>
@@ -940,36 +1391,13 @@ class UIController {
           </div>
         `;
       } else if (this.currentTab === "scripture") {
-        html = `
-          <div class="kjv-translation-notice">
-            <span class="kjv-badge">King James Version (KJV)</span>
-            <span>Study scriptures on ChurchofJesusChrist.org</span>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:0.85rem; margin-top:0.75rem;">
-            ${data.scriptures.map(s => `
-              <div class="scripture-verse-card">
-                <div class="scripture-card-top">
-                  <span class="scripture-citation">📖 ${s.ref}</span>
-                  <span class="scripture-kjv-tag">KJV</span>
-                </div>
-                <div class="scripture-body">"${s.text}"</div>
-                <div class="scripture-action-row">
-                  <a href="${this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
-                    <span>Read ${s.ref} on ChurchofJesusChrist.org</span>
-                    <span class="btn-arrow">↗</span>
-                  </a>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        `;
+        html = this.renderScriptureCards(data.scriptures);
       } else if (this.currentTab === "people") {
         html = `
           <div class="feature-card">
             <h3>Biblical Witnesses</h3>
             <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.55;">
-              Participants in this milestone include the Savior Jesus Christ, His Apostles, disciples, and local witnesses recorded across the Gospels and Acts.
+              ${dossier.peopleAndChurch || `Recorded at <strong>${data.locationName}</strong> during <strong>${data.era}</strong>. Witnesses include the Savior Jesus Christ, His Apostles and disciples, and local people named in the Gospels and Acts.`}
             </p>
           </div>
         `;
@@ -981,7 +1409,7 @@ class UIController {
               <h3 style="margin:0; color:#78350F;">Political & Civic Climate</h3>
             </div>
             <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
-              Took place during the era of <strong>${data.era}</strong>. Roman authority was exercised through provincial governors and client kings (such as the Herodians), while Jewish civic and religious life operated under Roman oversight.
+              ${dossier.politicalInsights || (region && region.politicalInsights) || `Took place during the era of <strong>${data.era}</strong> at ${data.locationName}. Roman authority was exercised through provincial governors and Herodian client kings, while Jewish civic and religious life operated under that oversight.`}
             </p>
           </div>
         `;
@@ -989,9 +1417,11 @@ class UIController {
         html = `
           <div class="history-block">
             <h4>Era Chronicle</h4>
+            <p>${dossier.eraChronology || ""}</p>
             <p><strong>Era:</strong> ${data.era}</p>
             <p><strong>Year:</strong> ${window.app.timeline.formatYear(data.year)}</p>
             <p><strong>Season:</strong> ${data.season}</p>
+            <p><strong>Place:</strong> ${data.locationName}</p>
           </div>
         `;
       }
@@ -1000,61 +1430,119 @@ class UIController {
     // EARLY CHRISTIAN CHURCHES
     // -------------------------------------------------------------------------
     } else if (type === "church") {
-      html = `
-        <div class="history-block" style="margin-bottom:1rem;">
-          <h4>The Congregation at ${data.city}</h4>
-          <p><strong>Founded:</strong> ~${data.foundedYear} AD</p>
-          <p><strong>Founders:</strong> ${data.founders}</p>
-          <p style="margin-top:0.5rem;">${data.significance}</p>
-        </div>
-
-        <div class="scripture-verse-card">
-          <div class="scripture-citation">Multiplication Milestone</div>
-          <div class="scripture-body">${data.growthMilestone}</div>
-        </div>
-      `;
+      const dossier = this.normalizeDossier("church", { ...data, name: data.city, scriptures: data.scriptures });
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-church">Christian Church</span>
+            <span class="city-badge badge-province">${data.region || ""}</span>
+          </div>
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>The Congregation at ${data.city}</h4>
+            <p><strong>Founded:</strong> ~${data.foundedYear} AD</p>
+            <p><strong>Founders:</strong> ${data.founders}</p>
+            <p style="margin-top:0.5rem;">${data.significance}</p>
+          </div>
+          <div class="scripture-verse-card">
+            <div class="scripture-citation">Multiplication Milestone</div>
+            <div class="scripture-body">${data.growthMilestone}</div>
+          </div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = this.renderScriptureCards(dossier.scriptures);
+      } else if (this.currentTab === "people") {
+        html = `
+          <div class="feature-card">
+            <h3>Founders & Saints</h3>
+            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+              ${dossier.peopleAndChurch || `Planted by ${data.founders}. ${data.significance}`}
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "political") {
+        html = `
+          <div class="political-insight-card">
+            <div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Civic Setting</h3></div>
+            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+              ${dossier.politicalInsights || `The church at ${data.city} grew in ${data.region || "the Roman world"} under imperial peace, synagogue networks, and local magistrates.`}
+            </p>
+          </div>
+        `;
+      } else if (this.currentTab === "chronology") {
+        html = `
+          <div class="history-block">
+            <h4>Era Chronicle</h4>
+            <p>${dossier.eraChronology || data.growthMilestone}</p>
+            <p><strong>Founded:</strong> ~${data.foundedYear} AD</p>
+          </div>
+        `;
+      }
 
     // -------------------------------------------------------------------------
     // JEWISH DIASPORA CENTERS
     // -------------------------------------------------------------------------
     } else if (type === "diaspora") {
-      html = `
-        <div class="history-block" style="margin-bottom:1rem;">
-          <h4>Jewish Settlement in ${data.city}</h4>
-          <p><strong>Estimated Population:</strong> ${data.estimatedPopulation}</p>
-          <p><strong>Established:</strong> ${data.established}</p>
-          <p><strong>Synagogues:</strong> ${data.synagogues}</p>
-          <p style="margin-top:0.5rem;">${data.history}</p>
-        </div>
-
-        <div class="feature-card">
-          <h3>Role in Apostolic Missions</h3>
-          <p style="font-size:0.85rem; color:var(--text-secondary);">${data.scriptureRole}</p>
-        </div>
-      `;
+      const dossier = this.normalizeDossier("diaspora", { ...data, name: data.city, scriptures: data.scriptures, overview: data.history });
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="city-detail-badge-row">
+            <span class="city-badge badge-synagogue">Jewish Diaspora</span>
+            <span class="city-badge badge-province">${data.region || ""}</span>
+          </div>
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Jewish Settlement in ${data.city}</h4>
+            <p><strong>Estimated Population:</strong> ${data.estimatedPopulation}</p>
+            <p><strong>Established:</strong> ${data.established}</p>
+            <p><strong>Synagogues:</strong> ${data.synagogues}</p>
+            <p style="margin-top:0.5rem;">${data.history}</p>
+          </div>
+          <div class="feature-card">
+            <h3>Role in Apostolic Missions</h3>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">${data.scriptureRole}</p>
+          </div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = this.renderScriptureCards(dossier.scriptures);
+      } else if (this.currentTab === "people") {
+        html = `<div class="feature-card"><h3>Community & Witnesses</h3><p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">${dossier.peopleAndChurch || data.scriptureRole}</p></div>`;
+      } else if (this.currentTab === "political") {
+        html = `<div class="political-insight-card"><div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Diaspora Standing under Rome</h3></div><p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">${dossier.politicalInsights || data.history}</p></div>`;
+      } else if (this.currentTab === "chronology") {
+        html = `<div class="history-block"><h4>Era Chronicle</h4><p>${dossier.eraChronology || `Established ${data.established}; active throughout the New Testament era.`}</p></div>`;
+      }
 
     // -------------------------------------------------------------------------
     // PAUL'S MISSIONARY JOURNEYS
     // -------------------------------------------------------------------------
     } else if (type === "journey") {
-      html = `
-        <div class="history-block" style="margin-bottom:1rem;">
-          <h4>${data.name} (${data.years})</h4>
-          <p><strong>Companions:</strong> ${data.companions}</p>
-          <p><strong>Scripture Record:</strong> ${data.scriptures}</p>
-          <p style="margin-top:0.6rem;">${data.description}</p>
-        </div>
-
-        <h4 style="font-family:var(--font-serif-title); font-size:0.85rem; margin-bottom:0.5rem;">Journey Stations (${data.stops.length} Stops)</h4>
-        <div style="display:flex; flex-direction:column; gap:0.45rem;">
-          ${data.stops.map((stop, i) => `
-            <div style="background:#FFF; border:1px solid var(--border-parchment); border-radius:6px; padding:0.45rem 0.75rem; font-size:0.8rem;">
-              <strong>${i + 1}. ${stop.name}</strong><br>
-              <span style="color:var(--text-muted); font-size:0.75rem;">${stop.note}</span>
-            </div>
-          `).join("")}
-        </div>
-      `;
+      if (this.currentTab === "overview") {
+        html = `
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>${data.name} (${data.years})</h4>
+            <p><strong>Companions:</strong> ${data.companions}</p>
+            <p><strong>Scripture Record:</strong> ${data.scriptures}</p>
+            <p style="margin-top:0.6rem;">${data.description}</p>
+          </div>
+          <h4 style="font-family:var(--font-serif-title); font-size:0.85rem; margin-bottom:0.5rem;">Journey Stations (${data.stops.length} Stops)</h4>
+          <div style="display:flex; flex-direction:column; gap:0.45rem;">
+            ${data.stops.map((stop, i) => `
+              <div style="background:#FFF; border:1px solid var(--border-parchment); border-radius:6px; padding:0.45rem 0.75rem; font-size:0.8rem;">
+                <strong>${i + 1}. ${stop.name}</strong><br>
+                <span style="color:var(--text-muted); font-size:0.75rem;">${stop.note}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else if (this.currentTab === "scripture") {
+        html = this.renderScriptureCards(this.asScriptureList(data.scriptures));
+        html += `<div class="history-block" style="margin-top:1rem;"><h4>Narrative</h4><p>${data.description}</p></div>`;
+      } else if (this.currentTab === "people") {
+        html = `<div class="feature-card"><h3>Companions & Churches</h3><p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary);">${data.companions}. Stations include ${data.stops.map((s) => s.name).slice(0, 8).join(", ")}.</p></div>`;
+      } else if (this.currentTab === "political") {
+        html = `<div class="political-insight-card"><div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Roads, Harbors & Roman Peace</h3></div><p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">${data.name} (${data.years}) used imperial sea lanes and the Via Egnatia / Augustan roads. Local magistrates, synagogue rulers, and proconsuls (as at Paphos and Corinth) decided whether the word would have free course.</p></div>`;
+      } else if (this.currentTab === "chronology") {
+        html = `<div class="history-block"><h4>Era Chronicle</h4><p><strong>${data.years}</strong> — ${data.description}</p><p>Scripture: ${data.scriptures}</p></div>`;
+      }
 
     // -------------------------------------------------------------------------
     // ROMAN PROVINCES & BIBLICAL REGIONS (Judea, Galilee, Samaria, etc.)
@@ -1192,6 +1680,20 @@ class UIController {
           </div>
         `;
       }
+    }
+
+    if (!html) {
+      const dossier = this.normalizeDossier(type, data);
+      html = `
+        <div class="history-block">
+          <h4>${dossier.name}</h4>
+          <p>${dossier.overview || dossier.summary || "This place belongs to the New Testament world (~6 BC – 100 AD). Use the Scriptures tab for KJV passages and ChurchofJesusChrist.org study links."}</p>
+        </div>
+      `;
+      if (this.currentTab === "scripture") html = this.renderScriptureCards(dossier.scriptures);
+      if (this.currentTab === "people") html = `<div class="feature-card"><h3>People & Church</h3><p>${dossier.peopleAndChurch || dossier.overview}</p></div>`;
+      if (this.currentTab === "political") html = `<div class="political-insight-card"><p>${dossier.politicalInsights || dossier.overview}</p></div>`;
+      if (this.currentTab === "chronology") html = `<div class="history-block"><h4>Era Events</h4><p>${dossier.eraChronology || "Active in the New Testament era (~6 BC – 100 AD)."}</p></div>`;
     }
 
     this.sidebarContent.innerHTML = html;

@@ -249,11 +249,31 @@ class MapController {
         { permanent: false, direction: "center", className: "custom-bible-tooltip" }
       );
 
-      rect.on("click", () => {
+      rect.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        window.app.ui.showRegionDetail(region);
+      });
+
+      const centerLat = (bounds[0][0] + bounds[1][0]) / 2;
+      const centerLng = (bounds[0][1] + bounds[1][1]) / 2;
+      const shortName = (region.name.split("(")[0] || region.name).trim().toUpperCase();
+      const regionLabel = L.marker([centerLat, centerLng], {
+        icon: L.divIcon({
+          className: "custom-region-label",
+          html: `<div class="region-label-text">${shortName}</div>`,
+          iconSize: [140, 22],
+          iconAnchor: [70, 11]
+        }),
+        zIndexOffset: 80,
+        interactive: true
+      });
+      regionLabel.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         window.app.ui.showRegionDetail(region);
       });
 
       this.layers.provinces.addLayer(rect);
+      this.layers.provinces.addLayer(regionLabel);
     });
   }
 
@@ -276,7 +296,8 @@ class MapController {
         zIndexOffset: isMajor ? 300 : 100
       });
 
-      textMarker.on("click", () => {
+      textMarker.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
         window.app.ui.showCityDetail(city);
       });
 

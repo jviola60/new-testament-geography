@@ -746,52 +746,16 @@ class SatelliteExplorer {
   }
 
   handlePinClick(pin) {
-    console.log("📍 Satellite Pin Clicked:", pin.name);
-
     if (pin.linkType === "view" && pin.viewTarget) {
       this.switchView(pin.viewTarget);
       return;
     }
 
-    // Close the satellite modal so user can see the 5-tab dossier and fly to it on map
     this.close();
 
-    if (pin.linkType === "city" && window.CITIES_DATA && window.app && window.app.ui) {
-      const city = window.CITIES_DATA.cities.find(c => c.name.toLowerCase() === pin.linkName.toLowerCase());
-      if (city) {
-        window.app.ui.showCityDetail(city);
-        if (window.app.map) {
-          window.app.map.flyToLocation(city.coords, 14);
-        }
-        return;
-      }
-    }
-
-    if (pin.linkType === "quarter" && window.JERUSALEM_GEOGRAPHY && window.app && window.app.ui) {
-      const quarter = window.JERUSALEM_GEOGRAPHY.quarters.find(q => q.id === pin.linkQuarterId);
-      if (quarter) {
-        window.app.ui.showJerusalemQuarterDetail(quarter);
-        if (window.app.map) {
-          window.app.map.flyToLocation(quarter.center, 15);
-        }
-        return;
-      }
-    }
-
-    if (pin.linkType === "site" && window.JERUSALEM_SITES && window.app && window.app.ui) {
-      const site = window.JERUSALEM_SITES.find(s => 
-        s.id === pin.linkSiteId || 
-        s.id.toLowerCase().includes((pin.id || "").toLowerCase()) ||
-        s.name.toLowerCase().includes((pin.name || "").toLowerCase()) ||
-        (pin.name && pin.name.toLowerCase().includes(s.name.toLowerCase()))
-      );
-      if (site) {
-        window.app.ui.showJerusalemSiteDetail(site);
-        if (window.app.map) {
-          window.app.map.flyToLocation([site.lat, site.lng], 16);
-        }
-        return;
-      }
+    if (window.app && window.app.ui && typeof window.app.ui.openPlaceFromPin === "function") {
+      const opened = window.app.ui.openPlaceFromPin(pin);
+      if (opened) return;
     }
 
     if (pin.linkType === "search" && window.app && window.app.ui) {

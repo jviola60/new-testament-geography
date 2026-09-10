@@ -232,9 +232,19 @@ class MapController {
       galileePoly.bindTooltip(`
         <div class="custom-bible-tooltip">
           <strong>🌊 SEA OF GALILEE (Yam Kinneret)</strong><br>
-          <small>Center of Christ's Galilean Ministry, Calming the Sea, and Calling of the Apostles</small>
+          <small>Center of Christ's Galilean Ministry, Calming the Sea, and Calling of the Apostles</small><br>
+          <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & KJV Scriptures</span>
         </div>
       `, { sticky: true });
+
+      galileePoly.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        const geo = window.app && window.app.ui && window.app.ui.findGeoFeature("sea-of-galilee");
+        if (geo && window.app && window.app.ui) {
+          window.app.ui.showGeoFeatureDetail(geo);
+        }
+      });
+
       this.layers.hydrography.addLayer(galileePoly);
     }
 
@@ -250,9 +260,19 @@ class MapController {
       deadSeaPoly.bindTooltip(`
         <div class="custom-bible-tooltip">
           <strong>🌊 THE DEAD SEA (Salt Sea)</strong><br>
-          <small>Lowest elevation on Earth (-430m) • Qumran Dead Sea Scrolls Caves & Ein Gedi</small>
+          <small>Lowest elevation on Earth (-430m) • Qumran Dead Sea Scrolls Caves & Ein Gedi</small><br>
+          <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & KJV Scriptures</span>
         </div>
       `, { sticky: true });
+
+      deadSeaPoly.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        const geo = window.app && window.app.ui && window.app.ui.findGeoFeature("dead-sea");
+        if (geo && window.app && window.app.ui) {
+          window.app.ui.showGeoFeatureDetail(geo);
+        }
+      });
+
       this.layers.hydrography.addLayer(deadSeaPoly);
     }
 
@@ -279,9 +299,19 @@ class MapController {
       jordanStream.bindTooltip(`
         <div class="custom-bible-tooltip">
           <strong>🌊 THE RIVER JORDAN (Yarden)</strong><br>
-          <small>Flowing from Mount Hermon to the Dead Sea • Site of the Baptism of Jesus Christ by John at Bethabara</small>
+          <small>Flowing from Mount Hermon to the Dead Sea • Site of the Baptism of Jesus Christ by John at Bethabara</small><br>
+          <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & KJV Scriptures</span>
         </div>
       `, { sticky: true });
+
+      jordanStream.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        const geo = window.app && window.app.ui && window.app.ui.findGeoFeature("jordan-river");
+        if (geo && window.app && window.app.ui) {
+          window.app.ui.showGeoFeatureDetail(geo);
+        }
+      });
+
       this.layers.hydrography.addLayer(jordanStream);
 
       // Special Baptism Site Water Ripple Marker
@@ -295,9 +325,19 @@ class MapController {
       baptismRipple.bindTooltip(`
         <div class="custom-bible-tooltip">
           <strong>🕊️ BETHABARA (Bethany Beyond Jordan)</strong><br>
-          <small>Waters of the River Jordan • Site of the Baptism of the Savior (Matthew 3:13-17)</small>
+          <small>Waters of the River Jordan • Site of the Baptism of the Savior (Matthew 3:13-17)</small><br>
+          <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open Baptism Scripture Record</span>
         </div>
       `, { sticky: true });
+
+      baptismRipple.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        const geo = window.app && window.app.ui && window.app.ui.findGeoFeature("jordan-river");
+        if (geo && window.app && window.app.ui) {
+          window.app.ui.showGeoFeatureDetail(geo);
+        }
+      });
+
       this.layers.hydrography.addLayer(baptismRipple);
     }
 
@@ -321,6 +361,64 @@ class MapController {
         this.layers.hydrography.addLayer(roadLine);
       });
     }
+  }
+
+  // Draw 1st-Century High-Resolution Satellite & Aerial Reconnaissance Overlays
+  drawFirstCenturySatelliteOverlays() {
+    // 1. Jerusalem Overlay
+    const jerusalemBounds = [[31.7680, 35.2220], [31.7865, 35.2450]];
+    const jerusalemOverlay = L.imageOverlay("assets/satellite/jerusalem_satellite_1st_century.jpg", jerusalemBounds, {
+      opacity: 0.94,
+      interactive: true,
+      zIndex: 200,
+      attribution: "1st Century Aerial Satellite Reconnaissance &copy; Jerusalem"
+    });
+
+    jerusalemOverlay.bindTooltip(`
+      <div class="custom-bible-tooltip">
+        <strong>🛰️ 1ST CENTURY JERUSALEM SATELLITE RECONNAISSANCE</strong><br>
+        <small>Temple Mount, Antonia Fortress, Kidron Valley, Mount of Olives, Gethsemane & Upper City</small><br>
+        <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open in Full 1st-C. Satellite Explorer</span>
+      </div>
+    `, { sticky: true });
+
+    jerusalemOverlay.on("click", (e) => {
+      if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+      if (window.app && window.app.satelliteExplorer) {
+        window.app.satelliteExplorer.open("jerusalem");
+      }
+    });
+
+    this.layers.firstCenturySatellite.addLayer(jerusalemOverlay);
+
+    // 2. Sea of Galilee Overlay
+    const galileeBounds = [[32.695, 35.472], [32.898, 35.668]];
+    const galileeOverlay = L.imageOverlay("assets/satellite/galilee_satellite_1st_century.jpg", galileeBounds, {
+      opacity: 0.94,
+      interactive: true,
+      zIndex: 200,
+      attribution: "1st Century Satellite Reconnaissance &copy; Sea of Galilee"
+    });
+
+    galileeOverlay.bindTooltip(`
+      <div class="custom-bible-tooltip">
+        <strong>🛰️ 1ST CENTURY SEA OF GALILEE SATELLITE RECONNAISSANCE</strong><br>
+        <small>Capernaum, Bethsaida, Magdala, Tiberias, Mount of Beatitudes & Jordan River</small><br>
+        <span style="color:#D97706;font-size:10px;font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & KJV Scriptures</span>
+      </div>
+    `, { sticky: true });
+
+    galileeOverlay.on("click", (e) => {
+      if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+      const geo = window.app && window.app.ui && window.app.ui.findGeoFeature("sea-of-galilee");
+      if (geo && window.app && window.app.ui) {
+        window.app.ui.showGeoFeatureDetail(geo);
+      } else if (window.app && window.app.satelliteExplorer) {
+        window.app.satelliteExplorer.open("galilee");
+      }
+    });
+
+    this.layers.firstCenturySatellite.addLayer(galileeOverlay);
   }
 
   // Draw Roman Provincial Boundaries / Approximate Polygons

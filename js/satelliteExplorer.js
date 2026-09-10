@@ -80,10 +80,10 @@ class SatelliteExplorer {
             x: 60.5,
             y: 22.5,
             elev: "-212 m",
-            scripture: "Matthew 8:23-27; Matthew 14:22-33",
+            scripture: "Matthew 8:23-27; Matthew 14:22-33; John 21",
             desc: "Freshwater rift lake where Jesus walked upon the waves, stilled the tempest, and called fishermen to be fishers of men.",
-            linkType: "view",
-            viewTarget: "galilee"
+            linkType: "geo",
+            linkGeoId: "sea-of-galilee"
           },
           {
             id: "jordan-river",
@@ -337,6 +337,19 @@ class SatelliteExplorer {
         image: "assets/satellite/galilee_satellite_1st_century.jpg",
         geospatialTarget: { lat: 32.82, lng: 35.58, zoom: 12 },
         pins: [
+          {
+            id: "sea-of-galilee",
+            name: "Sea of Galilee",
+            ancientName: "Yam Kinneret / Lake of Gennesaret",
+            category: "Sacred Waters of Christ",
+            x: 52.0,
+            y: 48.0,
+            elev: "-212 m",
+            scripture: "Mark 4:35-41; Matthew 14:22-33; John 21",
+            desc: "Freshwater rift lake where Jesus stilled the tempest, walked upon the waves, called Peter and Andrew, and ate breakfast after the Resurrection.",
+            linkType: "geo",
+            linkGeoId: "sea-of-galilee"
+          },
           {
             id: "capernaum-galilee",
             name: "Capernaum",
@@ -626,15 +639,13 @@ class SatelliteExplorer {
       });
     }
 
-    // Jump to Geospatial Map
-    const jumpBtn = document.getElementById("satJumpToMapBtn");
-    if (jumpBtn) {
-      jumpBtn.addEventListener("click", () => {
-        const currentData = this.views[this.currentView];
-        if (currentData && currentData.geospatialTarget && window.app && window.app.map) {
-          this.close();
-          const target = currentData.geospatialTarget;
-          window.app.map.flyToLocation([target.lat, target.lng], target.zoom);
+    // Click info card to open flyout dossier
+    const satInfoCard = document.getElementById("satInfoCard");
+    if (satInfoCard) {
+      satInfoCard.style.cursor = "pointer";
+      satInfoCard.addEventListener("click", () => {
+        if (this.activePin) {
+          this.handlePinClick(this.activePin);
         }
       });
     }
@@ -733,6 +744,7 @@ class SatelliteExplorer {
   }
 
   showInfoCard(pin, pinElement) {
+    this.activePin = pin;
     const card = document.getElementById("satInfoCard");
     if (!card) return;
 
@@ -746,16 +758,28 @@ class SatelliteExplorer {
   }
 
   handlePinClick(pin) {
-    if (pin.linkType === "view" && pin.viewTarget) {
-      this.switchView(pin.viewTarget);
-      return;
-    }
-
     this.close();
 
+    // 1. Direct Geo Feature lookup (Sea of Galilee, River Jordan, Dead Sea, etc.)
+    const geoId = pin.linkGeoId || (pin.linkType === "geo" ? pin.id : null);
+    if (geoId || pin.linkType === "geo") {
+      const geo = window.app && window.app.ui && window.app.ui.findGeoFeature(geoId || pin.name);
+      if (geo && window.app && window.app.ui) {
+        if (window.app.map) window.app.map.flyToLocation(geo.lat, geo.lng, 12);
+        window.app.ui.showGeoFeatureDetail(geo);
+        return;
+      }
+    }
+
+    // 2. Open via UI Controller place resolver
     if (window.app && window.app.ui && typeof window.app.ui.openPlaceFromPin === "function") {
       const opened = window.app.ui.openPlaceFromPin(pin);
       if (opened) return;
+    }
+
+    if (pin.linkType === "view" && pin.viewTarget) {
+      this.switchView(pin.viewTarget);
+      return;
     }
 
     if (pin.linkType === "search" && window.app && window.app.ui) {

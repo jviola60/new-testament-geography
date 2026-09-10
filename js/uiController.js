@@ -784,7 +784,14 @@ class UIController {
 
   openPlaceFromPin(pin) {
     if (!pin) return false;
-    if (pin.linkType === "view" && pin.viewTarget) return false;
+
+    // 1. Geo Features (Sea of Galilee, River Jordan, Dead Sea, Mount Hermon, etc.)
+    const geo = this.findGeoFeature(pin.linkGeoId || pin.id || pin.name);
+    if (geo) {
+      if (window.app && window.app.map) window.app.map.flyToLocation(geo.lat, geo.lng, 12);
+      this.showGeoFeatureDetail(geo);
+      return true;
+    }
 
     if (pin.linkType === "city" || !pin.linkType) {
       const city = this.findCityByName(pin.linkName || pin.name);

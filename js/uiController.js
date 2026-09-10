@@ -85,25 +85,22 @@ class UIController {
           const style = item.dataset.style;
 
           if (style === "first-century-satellite") {
-            // Option 1: 1st-Century Satellite Explorer (Pure ancient orbital satellite reconstructions, no modern buildings)
+            // 1st-Century Satellite Explorer (Archaeological orbital reconstructions)
             if (window.app && window.app.satelliteExplorer) {
               window.app.satelliteExplorer.open("holy-land");
             }
           } else if (style === "modern-satellite" || style === "satellite") {
-            // Option 2: Modern 21st-Century Satellite (Pure continuous aerial photography across the earth)
+            // Satellite Earth Terrain (Continuous global satellite imagery across whole world)
             window.app.map.setMapStyle("satellite");
             if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
-            if (mapStyleText) mapStyleText.textContent = "Modern Satellite";
+            if (mapStyleText) mapStyleText.textContent = "Satellite Earth";
           } else if (style === "modern") {
+            // Modern Streets & Infrastructure
             window.app.map.setMapStyle("modern");
             if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
             if (mapStyleText) mapStyleText.textContent = "Modern Streets";
-          } else if (style === "topo") {
-            window.app.map.setMapStyle("topo");
-            if (mapStyleIcon) mapStyleIcon.textContent = "⛰️";
-            if (mapStyleText) mapStyleText.textContent = "Topo Relief";
           } else {
-            // Option 3: Ancient Shaded Relief (1st Century Parchment Map)
+            // Ancient Shaded Relief (Biblical Terrain)
             window.app.map.setMapStyle("parchment");
             if (mapStyleIcon) mapStyleIcon.textContent = "📜";
             if (mapStyleText) mapStyleText.textContent = "Ancient Relief";

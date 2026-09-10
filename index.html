@@ -105,10 +105,9 @@
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div id="mapStyleDropdown" class="dropdown-menu">
-          <button data-style="parchment" class="dropdown-item">📜 Ancient Shaded Relief (1st-C. Map)</button>
-          <button data-style="first-century-satellite" class="dropdown-item" style="color:#F59E0B; font-weight:700;">🛰️ 1st-Century Satellite View</button>
-          <button data-style="modern-satellite" class="dropdown-item">🛰️ Modern Satellite (21st-Century Aerials)</button>
-          <button data-style="topo" class="dropdown-item">⛰️ Topographic Contours & Relief</button>
+          <button data-style="parchment" class="dropdown-item">📜 Ancient Shaded Relief (Biblical Terrain)</button>
+          <button data-style="satellite" class="dropdown-item">🛰️ Satellite Earth Terrain (Whole Map)</button>
+          <button data-style="first-century-satellite" class="dropdown-item" style="color:#F59E0B; font-weight:700;">🏛️ 1st-C. Architectural Satellite View</button>
           <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
         </div>
       </div>
@@ -403,6 +402,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
+  <script src="js/data/hydrography.js"></script>
   <script src="js/data/regions.js"></script>
   <script src="js/data/cities.js"></script>
   <script src="js/data/jerusalemSites.js"></script>

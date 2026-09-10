@@ -9,6 +9,7 @@ class MapController {
     
     // Layer Groups
     this.layers = {
+      hydrography: L.layerGroup(),
       saviorMarkers: L.layerGroup(),
       saviorRoute: L.layerGroup(),
       cities: L.layerGroup(),
@@ -27,7 +28,6 @@ class MapController {
     // Tile layers
     this.tileLayers = {
       parchment: null,
-      shaded: null,
       satellite: null,
       modern: null,
       modernOverlay: null
@@ -65,7 +65,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri Topo, Shaded & OSM')
+      .addAttribution('New Testament Atlas • Cartography: Esri Shaded, Imagery & OSM')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -79,6 +79,7 @@ class MapController {
     });
 
     // Draw Static & Foundational Geographic Layers
+    this.drawHydrography();
     this.drawProvinces();
     this.drawCities();
     this.drawFirstCenturySatelliteOverlays();
@@ -88,11 +89,11 @@ class MapController {
     this.drawMissionaryJourneys();
     this.drawJewishDiaspora();
 
-    // Hide micro-sites & city quarters on initial Roman world overview (zoom 6)
-    if (this.map.getZoom() < 11) {
+    // Hide micro-sites & city quarters on initial regional world overview (zoom 6)
+    if (this.map.getZoom() < 14) {
       this.map.removeLayer(this.layers.jerusalemSites);
     }
-    if (this.map.getZoom() < 12) {
+    if (this.map.getZoom() < 13) {
       this.map.removeLayer(this.layers.jerusalemGeography);
     }
 
@@ -102,9 +103,9 @@ class MapController {
       const center = this.map.getCenter();
       const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
 
-      // 1. Show granular Jerusalem sites at zoom >= 11
+      // 1. Show granular Jerusalem sites only when zoomed deeply into the city (zoom >= 14)
       if (this.filterState.jerusalemSites) {
-        if (zoom >= 11) {
+        if (zoom >= 14 && isJerusalemVicinity) {
           if (!this.map.hasLayer(this.layers.jerusalemSites)) {
             this.map.addLayer(this.layers.jerusalemSites);
           }
@@ -115,9 +116,9 @@ class MapController {
         }
       }
 
-      // 2. Show 1st-Century Jerusalem Topographical Quarters & Defensive Walls at zoom >= 12
+      // 2. Show 1st-Century Jerusalem Topographical Quarters & Defensive Walls at zoom >= 13
       if (this.filterState.jerusalemGeography) {
-        if (zoom >= 12 && isJerusalemVicinity) {
+        if (zoom >= 13 && isJerusalemVicinity) {
           if (!this.map.hasLayer(this.layers.jerusalemGeography)) {
             this.map.addLayer(this.layers.jerusalemGeography);
           }
@@ -129,7 +130,7 @@ class MapController {
       }
 
       // 3. Hide macro travel paths and coarse city marker when deeply zoomed into Jerusalem to eliminate line clutter!
-      if (zoom >= 13 && isJerusalemVicinity) {
+      if (zoom >= 14 && isJerusalemVicinity) {
         if (this.map.hasLayer(this.layers.saviorRoute)) {
           this.map.removeLayer(this.layers.saviorRoute);
         }
@@ -168,30 +169,19 @@ class MapController {
       }
     );
 
-    // 2. Pure Modern 21st-Century Satellite Imagery (Separate Option: continuous global aerial photography)
+    // 2. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
     );
 
-    // 3. Topographic Contours & Relief (elevation contours, hillshading, mountain names)
-    this.tileLayers.topo = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxNativeZoom: 18,
-        maxZoom: 18,
-        opacity: 0.95,
-        attribution: "Cartography &copy; Esri World Topographic Map"
-      }
-    );
-
-    // 4. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // 5. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
@@ -208,25 +198,128 @@ class MapController {
 
     // Remove all basemap tiles first
     this.map.removeLayer(this.tileLayers.parchment);
-    if (this.tileLayers.topo) this.map.removeLayer(this.tileLayers.topo);
     this.map.removeLayer(this.tileLayers.satellite);
     this.map.removeLayer(this.tileLayers.modern);
 
     // Remove theme classes
     body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
 
-    if (theme === "satellite") {
+    if (theme === "satellite" || theme === "modern-satellite") {
       this.tileLayers.satellite.addTo(this.map);
       body.classList.add("satellite-theme");
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
-    } else if (theme === "topo") {
-      this.tileLayers.topo.addTo(this.map);
-      body.classList.add("parchment-theme");
     } else {
       this.tileLayers.parchment.addTo(this.map);
       body.classList.add("parchment-theme");
+    }
+  }
+
+  // Draw Biblical Waterways (River Jordan, Sea of Galilee, Dead Sea) and Historic Corridors
+  drawHydrography() {
+    if (typeof HYDROGRAPHY_DATA === "undefined") return;
+
+    // 1. Sea of Galilee (Freshwater Polygon)
+    if (HYDROGRAPHY_DATA.seaOfGalilee) {
+      const galileePoly = L.polygon(HYDROGRAPHY_DATA.seaOfGalilee, {
+        color: "#1E40AF",
+        weight: 2,
+        fillColor: "#3B82F6",
+        fillOpacity: 0.38,
+        smoothFactor: 1.0
+      });
+      galileePoly.bindTooltip(`
+        <div class="custom-bible-tooltip">
+          <strong>🌊 SEA OF GALILEE (Yam Kinneret)</strong><br>
+          <small>Center of Christ's Galilean Ministry, Calming the Sea, and Calling of the Apostles</small>
+        </div>
+      `, { sticky: true });
+      this.layers.hydrography.addLayer(galileePoly);
+    }
+
+    // 2. The Dead Sea (Salt Sea / Lacus Asphaltites Polygon)
+    if (HYDROGRAPHY_DATA.deadSea) {
+      const deadSeaPoly = L.polygon(HYDROGRAPHY_DATA.deadSea, {
+        color: "#0369A1",
+        weight: 2,
+        fillColor: "#0284C7",
+        fillOpacity: 0.32,
+        smoothFactor: 1.0
+      });
+      deadSeaPoly.bindTooltip(`
+        <div class="custom-bible-tooltip">
+          <strong>🌊 THE DEAD SEA (Salt Sea)</strong><br>
+          <small>Lowest elevation on Earth (-430m) • Qumran Dead Sea Scrolls Caves & Ein Gedi</small>
+        </div>
+      `, { sticky: true });
+      this.layers.hydrography.addLayer(deadSeaPoly);
+    }
+
+    // 3. The River Jordan (Yarden)
+    if (HYDROGRAPHY_DATA.jordanRiver) {
+      // Glow/buffer line underneath
+      const jordanGlow = L.polyline(HYDROGRAPHY_DATA.jordanRiver, {
+        color: "#60A5FA",
+        weight: 8,
+        opacity: 0.45,
+        lineCap: "round",
+        lineJoin: "round"
+      });
+      this.layers.hydrography.addLayer(jordanGlow);
+
+      // Main crisp azure stream
+      const jordanStream = L.polyline(HYDROGRAPHY_DATA.jordanRiver, {
+        color: "#1D4ED8",
+        weight: 4,
+        opacity: 0.9,
+        lineCap: "round",
+        lineJoin: "round"
+      });
+      jordanStream.bindTooltip(`
+        <div class="custom-bible-tooltip">
+          <strong>🌊 THE RIVER JORDAN (Yarden)</strong><br>
+          <small>Flowing from Mount Hermon to the Dead Sea • Site of the Baptism of Jesus Christ by John at Bethabara</small>
+        </div>
+      `, { sticky: true });
+      this.layers.hydrography.addLayer(jordanStream);
+
+      // Special Baptism Site Water Ripple Marker
+      const baptismRipple = L.circleMarker([31.8385, 35.5478], {
+        radius: 7,
+        color: "#1E3A8A",
+        fillColor: "#60A5FA",
+        fillOpacity: 0.85,
+        weight: 2
+      });
+      baptismRipple.bindTooltip(`
+        <div class="custom-bible-tooltip">
+          <strong>🕊️ BETHABARA (Bethany Beyond Jordan)</strong><br>
+          <small>Waters of the River Jordan • Site of the Baptism of the Savior (Matthew 3:13-17)</small>
+        </div>
+      `, { sticky: true });
+      this.layers.hydrography.addLayer(baptismRipple);
+    }
+
+    // 4. Historic 1st-Century Roman & Pilgrim Highways
+    if (HYDROGRAPHY_DATA.roads) {
+      HYDROGRAPHY_DATA.roads.forEach(road => {
+        const roadLine = L.polyline(road.coordinates, {
+          color: "#92400E",
+          weight: 2.2,
+          opacity: 0.65,
+          dashArray: "5, 6",
+          lineCap: "round",
+          lineJoin: "round"
+        });
+        roadLine.bindTooltip(`
+          <div class="custom-bible-tooltip">
+            <strong>🛣️ ${road.name}</strong><br>
+            <small>${road.desc}</small>
+          </div>
+        `, { sticky: true });
+        this.layers.hydrography.addLayer(roadLine);
+      });
     }
   }
 
@@ -486,30 +579,103 @@ class MapController {
     });
   }
 
-  // Draw the Savior's Footsteps / Connecting Route
+  // Draw the Savior's Ministry Circuits & Historical Corridors
   drawSaviorRoute() {
-    if (!SAVIOR_EVENTS) return;
+    this.layers.saviorRoute.clearLayers();
 
-    // Filter events chronologically to build Jesus's path
-    const routeCoordinates = SAVIOR_EVENTS
-      .filter(e => e.lat && e.lng)
-      .map(e => [e.lat, e.lng]);
+    const circuits = [
+      {
+        id: "galilee-circuit",
+        name: "Galilean Ministry Circuit",
+        desc: "Capernaum, Cana, Bethsaida, Magdala, and the northern shores of the Sea of Galilee",
+        coords: [
+          [32.702, 35.298], // Nazareth
+          [32.748, 35.338], // Cana of Galilee
+          [32.825, 35.525], // Magdala
+          [32.875, 35.555], // Mount of Beatitudes / Tabgha
+          [32.880, 35.578], // Capernaum
+          [32.885, 35.648]  // Bethsaida
+        ]
+      },
+      {
+        id: "baptism-wilderness",
+        name: "Baptism & Wilderness Route",
+        desc: "Journey from Nazareth down the Jordan Valley to Bethabara and the Mount of Temptation",
+        coords: [
+          [32.702, 35.298], // Nazareth
+          [32.645, 35.560], // Scythopolis (Valley entrance)
+          [32.360, 35.555], // Jordan Valley corridor
+          [31.865, 35.460], // Plains of Jericho
+          [31.8385, 35.5478], // Bethabara (Baptism by John in the Jordan River)
+          [31.8600, 35.4300]  // Mount of Temptation (Judean Wilderness)
+        ]
+      },
+      {
+        id: "jericho-jerusalem",
+        name: "Jerusalem Pilgrim Ascent (Final Journey)",
+        desc: "The steep mountain highway ascending from Jericho through Bethany to the Temple Mount",
+        coords: [
+          [31.865, 35.460], // Jericho
+          [31.835, 35.370], // Ascent of Adummim
+          [31.810, 35.300], // Ma'ale Adummim
+          [31.780, 35.265], // Bethany & Bethphage
+          [31.778, 35.242], // Mount of Olives
+          [31.7775, 35.2355] // Jerusalem (Temple Mount)
+        ]
+      },
+      {
+        id: "bethlehem-jerusalem",
+        name: "Way of the Patriarchs (Nativity Corridor)",
+        desc: "Central ridge highway connecting Bethlehem and Jerusalem",
+        coords: [
+          [31.705, 35.204], // Bethlehem
+          [31.745, 35.218], // Mar Elias ridge
+          [31.7775, 35.2355] // Jerusalem
+        ]
+      },
+      {
+        id: "flight-egypt",
+        name: "Flight into Egypt Corridor",
+        desc: "Joseph and Mary's journey to Egypt to escape Herod the Great",
+        coords: [
+          [31.705, 35.204], // Bethlehem
+          [31.250, 34.790], // Beersheba
+          [31.200, 33.800], // Sinai Coastal Way
+          [31.2001, 29.9187] // Alexandria / Nile Delta
+        ]
+      }
+    ];
 
-    const saviorLine = L.polyline(routeCoordinates, {
-      color: "#D97706",
-      weight: 3.5,
-      opacity: 0.75,
-      lineCap: "round",
-      lineJoin: "round",
-      className: "savior-travel-path"
+    circuits.forEach(circuit => {
+      // Golden luminous underglow
+      const glow = L.polyline(circuit.coords, {
+        color: "#FDE68A",
+        weight: 6,
+        opacity: 0.5,
+        lineCap: "round",
+        lineJoin: "round"
+      });
+      this.layers.saviorRoute.addLayer(glow);
+
+      // Main crisp golden travel path
+      const line = L.polyline(circuit.coords, {
+        color: "#D97706",
+        weight: 3.5,
+        opacity: 0.85,
+        lineCap: "round",
+        lineJoin: "round",
+        className: `savior-corridor-${circuit.id}`
+      });
+
+      line.bindTooltip(`
+        <div class="custom-bible-tooltip">
+          <strong>✝ ${circuit.name}</strong><br>
+          <small>${circuit.desc}</small>
+        </div>
+      `, { sticky: true });
+
+      this.layers.saviorRoute.addLayer(line);
     });
-
-    saviorLine.bindTooltip("Footsteps & Journeys of Jesus Christ (~6 BC - 30 AD)", {
-      className: "custom-bible-tooltip",
-      sticky: true
-    });
-
-    this.layers.saviorRoute.addLayer(saviorLine);
   }
 
   // Draw Jewish Diaspora Centers
@@ -583,7 +749,7 @@ class MapController {
 
     // 2. Render Savior's Events active by current year
     let visibleEventsCount = 0;
-    if (this.filterState.savior || this.filterState.all) {
+    if (this.filterState.savior) {
       SAVIOR_EVENTS.forEach(event => {
         // Show events that have occurred up to the current year
         // Highlight active event if exactly in this year
@@ -624,7 +790,7 @@ class MapController {
 
     // 3. Render Christian Churches that have multiplied by this year
     let activeChurchesCount = 0;
-    if (this.filterState.churches || this.filterState.all) {
+    if (this.filterState.churches) {
       COMMUNITIES_DATA.churchesMultiplication.forEach(church => {
         if (church.foundedYear <= year) {
           activeChurchesCount++;
@@ -686,87 +852,112 @@ class MapController {
 
   // Filter Layer Visibility by Toggle
   setLayerFilter(filterType, isEnabled) {
-    this.filterState[filterType] = isEnabled;
-
     if (filterType === "all") {
-      Object.keys(this.filterState).forEach(k => {
+      this.filterState.all = isEnabled;
+      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+      coreKeys.forEach(k => {
         this.filterState[k] = isEnabled;
       });
+      // Synchronize DOM chip visual states
+      document.querySelectorAll(".filter-chip").forEach(chip => {
+        const k = chip.dataset.filter;
+        if (k === "all" || coreKeys.includes(k)) {
+          chip.classList.toggle("active", isEnabled);
+        }
+      });
+    } else {
+      this.filterState[filterType] = isEnabled;
+      // If any core layer is disabled, "all" is no longer fully active
+      if (!isEnabled) {
+        this.filterState.all = false;
+        const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+        if (allChip) allChip.classList.remove("active");
+      }
     }
 
-    // Manage Layer Group attachments
-    if (!this.filterState.savior && !this.filterState.all) {
+    // Savior's Ministry
+    if (this.filterState.savior) {
+      if (!this.map.hasLayer(this.layers.saviorMarkers)) this.map.addLayer(this.layers.saviorMarkers);
+      if (!this.map.hasLayer(this.layers.saviorRoute)) this.map.addLayer(this.layers.saviorRoute);
+    } else {
       this.map.removeLayer(this.layers.saviorMarkers);
       this.map.removeLayer(this.layers.saviorRoute);
-    } else {
-      this.map.addLayer(this.layers.saviorMarkers);
-      this.map.addLayer(this.layers.saviorRoute);
     }
 
-    if (!this.filterState.diaspora && !this.filterState.all) {
+    // Jewish Diaspora
+    if (this.filterState.diaspora) {
+      if (!this.map.hasLayer(this.layers.diaspora)) this.map.addLayer(this.layers.diaspora);
+    } else {
       this.map.removeLayer(this.layers.diaspora);
-    } else {
-      this.map.addLayer(this.layers.diaspora);
     }
 
-    if (!this.filterState.churches && !this.filterState.all) {
+    // Christian Churches
+    if (this.filterState.churches) {
+      if (!this.map.hasLayer(this.layers.churches)) this.map.addLayer(this.layers.churches);
+    } else {
       this.map.removeLayer(this.layers.churches);
-    } else {
-      this.map.addLayer(this.layers.churches);
     }
 
-    if (!this.filterState.journeys && !this.filterState.all) {
+    // Paul's Journeys
+    if (this.filterState.journeys) {
+      if (!this.map.hasLayer(this.layers.missionaryJourneys)) this.map.addLayer(this.layers.missionaryJourneys);
+    } else {
       this.map.removeLayer(this.layers.missionaryJourneys);
-    } else {
-      this.map.addLayer(this.layers.missionaryJourneys);
     }
 
-    if (!this.filterState.provinces && !this.filterState.all) {
+    // Roman Provinces
+    if (this.filterState.provinces) {
+      if (!this.map.hasLayer(this.layers.provinces)) this.map.addLayer(this.layers.provinces);
+    } else {
       this.map.removeLayer(this.layers.provinces);
-    } else {
-      this.map.addLayer(this.layers.provinces);
     }
 
-    if (!this.filterState.heatmaps) {
+    // Growth Heatmap
+    if (this.filterState.heatmaps) {
+      if (!this.map.hasLayer(this.layers.heatmaps)) this.map.addLayer(this.layers.heatmaps);
+    } else {
       this.map.removeLayer(this.layers.heatmaps);
-    } else {
-      this.map.addLayer(this.layers.heatmaps);
     }
 
+    // Modern Streets & Infrastructure Overlay
     if (this.filterState.modernOverlay) {
       if (!this.layers.modernOverlay.hasLayer(this.tileLayers.modernOverlay)) {
         this.layers.modernOverlay.addLayer(this.tileLayers.modernOverlay);
       }
-      this.map.addLayer(this.layers.modernOverlay);
+      if (!this.map.hasLayer(this.layers.modernOverlay)) this.map.addLayer(this.layers.modernOverlay);
     } else {
       this.map.removeLayer(this.layers.modernOverlay);
       this.layers.modernOverlay.clearLayers();
     }
 
-    if (!this.filterState.jerusalemSites && !this.filterState.all) {
-      this.map.removeLayer(this.layers.jerusalemSites);
-    } else {
-      const zoom = this.map.getZoom();
-      if (zoom >= 11 || this.filterState.jerusalemSites) {
-        this.map.addLayer(this.layers.jerusalemSites);
-      }
-    }
-
-    if (!this.filterState.jerusalemGeography && !this.filterState.all) {
-      this.map.removeLayer(this.layers.jerusalemGeography);
-    } else {
+    // Jerusalem Micro Sites (only show at deep zoom >= 14)
+    if (this.filterState.jerusalemSites) {
       const zoom = this.map.getZoom();
       const center = this.map.getCenter();
       const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
-      if (zoom >= 12 && isJerusalemVicinity) {
-        this.map.addLayer(this.layers.jerusalemGeography);
+      if (zoom >= 14 && isJerusalemVicinity) {
+        if (!this.map.hasLayer(this.layers.jerusalemSites)) this.map.addLayer(this.layers.jerusalemSites);
       }
+    } else {
+      this.map.removeLayer(this.layers.jerusalemSites);
     }
 
-    if (!this.filterState.firstCenturySatellite && !this.filterState.all) {
-      this.map.removeLayer(this.layers.firstCenturySatellite);
+    // Jerusalem Geography & Quarters (zoom >= 13)
+    if (this.filterState.jerusalemGeography) {
+      const zoom = this.map.getZoom();
+      const center = this.map.getCenter();
+      const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
+      if (zoom >= 13 && isJerusalemVicinity) {
+        if (!this.map.hasLayer(this.layers.jerusalemGeography)) this.map.addLayer(this.layers.jerusalemGeography);
+      }
     } else {
-      this.map.addLayer(this.layers.firstCenturySatellite);
+      this.map.removeLayer(this.layers.jerusalemGeography);
+    }
+
+    if (this.filterState.firstCenturySatellite) {
+      if (!this.map.hasLayer(this.layers.firstCenturySatellite)) this.map.addLayer(this.layers.firstCenturySatellite);
+    } else {
+      this.map.removeLayer(this.layers.firstCenturySatellite);
     }
 
     this.updateTimelineYear(this.currentYear);

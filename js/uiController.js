@@ -167,7 +167,10 @@ class UIController {
     // Floating Map Buttons
     const recenterBtn = document.getElementById("recenterBtn");
     if (recenterBtn) {
-      recenterBtn.addEventListener("click", () => window.app.map.recenter());
+      recenterBtn.addEventListener("click", () => {
+        window.app.map.recenter();
+        this.showWelcome();
+      });
     }
 
     const holyLandBtn = document.getElementById("holyLandQuickBtn");
@@ -221,7 +224,27 @@ class UIController {
       });
     }
 
-    // Curated Tour Mini Card Clicks in Welcome Intro
+    // Curated Tour Mini Card Clicks & Era Jumps (Sidebar Event Delegation)
+    if (this.sidebarContent) {
+      this.sidebarContent.addEventListener("click", (e) => {
+        const tourCard = e.target.closest(".tour-mini-card");
+        if (tourCard) {
+          const tourId = tourCard.dataset.tourId;
+          this.startTour(tourId);
+          return;
+        }
+
+        const eraBtn = e.target.closest(".era-jump-btn");
+        if (eraBtn) {
+          const year = parseFloat(eraBtn.dataset.year);
+          if (window.app && window.app.timeline) {
+            window.app.timeline.setYear(year);
+          }
+          return;
+        }
+      });
+    }
+
     document.querySelectorAll(".tour-mini-card").forEach(card => {
       card.addEventListener("click", () => {
         const tourId = card.dataset.tourId;
@@ -828,6 +851,17 @@ class UIController {
     return this.openPlaceFromQuery(pin.linkName || pin.name);
   }
 
+  showWelcome() {
+    this.currentActiveItem = null;
+    this.currentTab = "overview";
+    this.tabButtons.forEach(t => {
+      if (t.dataset.tab === "overview") t.classList.add("active");
+      else t.classList.remove("active");
+    });
+    this.renderWelcomeTabs();
+    this.openSidebar();
+  }
+
   showJerusalemSiteDetail(site) {
     if (!site) return;
     this.currentActiveItem = { type: "jerusalemSite", data: site };
@@ -902,9 +936,253 @@ class UIController {
     this.openSidebar();
   }
 
+  // Render Tabs Content for Default "Welcome to the New Testament Atlas" Flyout
+  renderWelcomeTabs() {
+    let eyebrow = "SELECTION DETAILS";
+    if (this.currentTab === "scripture") eyebrow = "FOUNDATIONAL SCRIPTURES • KJV";
+    else if (this.currentTab === "people") eyebrow = "APOSTOLIC WITNESSES & EARLY CHURCH";
+    else if (this.currentTab === "political") eyebrow = "1ST-CENTURY GEOPOLITICS & PAX ROMANA";
+    else if (this.currentTab === "chronology") eyebrow = "NEW TESTAMENT TIMELINE (~6 BC – 100 AD)";
+
+    if (this.sidebarEyebrow) this.sidebarEyebrow.textContent = eyebrow;
+    if (this.sidebarTitle) this.sidebarTitle.textContent = "Welcome to the New Testament Atlas";
+
+    let html = "";
+
+    if (this.currentTab === "overview") {
+      html = `
+        <div class="sidebar-section welcome-intro">
+          <div class="hero-quote">
+            <p class="quote-text">"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."</p>
+            <span class="quote-ref">— John 3:16</span>
+          </div>
+
+          <div class="feature-card">
+            <h3>How to Explore</h3>
+            <ul class="feature-steps">
+              <li><strong>Scrub the Timeline</strong> at the bottom from <strong>6 BC to 100 AD</strong> to witness history unfold.</li>
+              <li><strong>Click Any Pin, City or Region</strong> to reveal ancient geography, demographics, and biblical references.</li>
+              <li><strong>Switch Map Modes</strong> via the top bar to compare Ancient Biblical Parchment with High-Res Satellite Terrain.</li>
+              <li><strong>Start a Guided Tour</strong> to journey through Jesus's Ministry, Passion Week, or Paul's Travels.</li>
+            </ul>
+          </div>
+
+          <div class="curated-shortcut-grid">
+            <h4>Quick Focus Tours</h4>
+            <div class="tour-mini-cards">
+              <div class="tour-mini-card" data-tour-id="savior-life">
+                <div class="tour-icon">🌟</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Life & Ministry of Jesus</span>
+                  <span class="tour-era">6 BC – 30 AD • 14 Stops</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="passion-week">
+                <div class="tour-icon">✝️</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Passion Week in Jerusalem</span>
+                  <span class="tour-era">Spring 30 AD • 9 Stations</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="acts-early-church">
+                <div class="tour-icon">🔥</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Pentecost & Church Birth</span>
+                  <span class="tour-era">30 AD – 47 AD • 10 Sites</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="paul-journeys">
+                <div class="tour-icon">⛵</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Paul's Missionary Journeys</span>
+                  <span class="tour-era">47 AD – 62 AD • 4 Voyages</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="revelation-churches">
+                <div class="tour-icon">📜</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Seven Churches of Revelation</span>
+                  <span class="tour-era">95 AD • Patmos & Asia</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (this.currentTab === "scripture") {
+      const foundationalVerses = [
+        {
+          ref: "John 1:1, 14",
+          text: "In the beginning was the Word, and the Word was with God, and the Word was God... And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/1?lang=eng&id=p1,p14#p1"
+        },
+        {
+          ref: "Luke 2:10-11",
+          text: "And the angel said unto them, Fear not: for, behold, I bring you good tidings of great joy, which shall be to all people. For unto you is born this day in the city of David a Saviour, which is Christ the Lord.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/2?lang=eng&id=p10-p11#p10"
+        },
+        {
+          ref: "Matthew 28:19-20",
+          text: "Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/28?lang=eng&id=p19-p20#p19"
+        },
+        {
+          ref: "Acts 1:8",
+          text: "But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/1?lang=eng&id=p8#p8"
+        },
+        {
+          ref: "2 Timothy 3:16-17",
+          text: "All scripture is given by inspiration of God, and is profitable for doctrine, for reproof, for correction, for instruction in righteousness: That the man of God may be perfect, thoroughly furnished unto all good works.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/2-tim/3?lang=eng&id=p16-p17#p16"
+        }
+      ];
+
+      html = `
+        <div class="history-block" style="margin-bottom:0.75rem;">
+          <h4>The Word of God in the Apostolic Era</h4>
+          <p>The New Testament scriptures testify of the mortal ministry, atonement, and resurrection of Jesus Christ, and the inspired witness of His Apostles across the ancient Mediterranean world.</p>
+        </div>
+        ${this.renderScriptureCards(foundationalVerses)}
+      `;
+    } else if (this.currentTab === "people") {
+      html = `
+        <div class="feature-card" style="margin-bottom:1rem;">
+          <div class="insight-header">
+            <span class="insight-icon">👥</span>
+            <h3 style="margin:0;">The Apostolic Eyewitnesses</h3>
+          </div>
+          <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+            Jesus called and ordained Twelve Apostles—Simon Peter, Andrew, James and John (the sons of Zebedee), Philip, Bartholomew (Nathanael), Thomas, Matthew the tax collector, James the son of Alphaeus, Simon the Zealot, Judas the brother of James (Thaddaeus), and Matthias (Acts 1:26). Together with Paul of Tarsus (the Apostle to the Gentiles), they bore special witness of Christ's resurrection.
+          </p>
+        </div>
+
+        <div class="history-block" style="margin-bottom:1rem;">
+          <h4>Faithful Women Disciples & Leaders</h4>
+          <p>
+            Women disciples ministered to Jesus of their substance and were the first witnesses of His glorious resurrection: Mary the mother of Jesus, Mary Magdalene, Joanna, Susanna, Martha and Mary of Bethany, and Salome. In the early church, women like Tabitha (Dorcas), Lydia of Philippi, and Priscilla played prominent roles hosting and nurturing congregations.
+          </p>
+        </div>
+
+        <div class="feature-card" style="margin-bottom:1rem;">
+          <div class="insight-header">
+            <span class="insight-icon">🕍</span>
+            <h3 style="margin:0;">The Jewish Diaspora & Synagogue Network</h3>
+          </div>
+          <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+            An estimated 4 to 5 million Jewish people lived outside Judea across Syria, Egypt (Alexandria had over 100,000 Jewish residents), Asia Minor, Greece, and Rome. Their synagogues provided the initial theological foundation and scriptural language for the Apostles' preaching of the Messiah.
+          </p>
+        </div>
+
+        <div class="history-block" style="margin-bottom:1rem;">
+          <h4>Multiplication of the Early Church</h4>
+          <p>
+            From ~120 believers gathered in Jerusalem's upper room (Acts 1:15), the Church grew by 3,000 souls on the day of Pentecost (Acts 2:41) and soon 5,000 men (Acts 4:4). Following Stephen's martyrdom, believers dispersed preaching throughout Samaria, Phoenicia, Cyprus, and Antioch, where disciples were first called Christians (Acts 11:26).
+          </p>
+        </div>
+
+        <div class="demographic-stats-grid">
+          <div class="demographic-stat-box">
+            <span class="demographic-label">Apostles & Witnesses</span>
+            <span class="demographic-value" style="font-size:0.95rem;">12 + Paul & Saints</span>
+          </div>
+          <div class="demographic-stat-box">
+            <span class="demographic-label">First Pentecost Ingathering</span>
+            <span class="demographic-value" style="font-size:0.95rem; color:#B45309;">3,000+ Souls (Acts 2)</span>
+          </div>
+          <div class="demographic-stat-box">
+            <span class="demographic-label">Mediterranean Churches</span>
+            <span class="demographic-value" style="font-size:0.95rem;">40+ Major Hubs</span>
+          </div>
+          <div class="demographic-stat-box">
+            <span class="demographic-label">Diaspora Population</span>
+            <span class="demographic-value" style="font-size:0.95rem;">~4–5 Million</span>
+          </div>
+        </div>
+      `;
+    } else if (this.currentTab === "political") {
+      html = `
+        <div class="political-insight-card" style="margin-bottom:1rem;">
+          <div class="insight-header">
+            <span class="insight-icon">🏛️</span>
+            <h3 style="margin:0; color:#78350F;">The Pax Romana & Imperial Infrastructure</h3>
+          </div>
+          <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
+            The New Testament unfolded entirely within the Roman Empire. The <em>Pax Romana</em> (Roman Peace) instituted by Caesar Augustus cleared maritime piracy and constructed 50,000 miles of paved military highways (such as the Via Egnatia and Via Appia), providing safe passage that enabled the rapid spread of the Gospel.
+          </p>
+        </div>
+
+        <div class="history-block" style="margin-bottom:1rem;">
+          <h4>Roman Emperors of the Biblical Era</h4>
+          <ul style="padding-left:1.2rem; margin:0.4rem 0; font-size:0.85rem; line-height:1.5;">
+            <li><strong>Caesar Augustus (27 BC – 14 AD):</strong> Decreed the empire-wide census that brought Mary and Joseph to Bethlehem (Luke 2:1).</li>
+            <li><strong>Tiberius Caesar (14 – 37 AD):</strong> Reigned during the public ministry, crucifixion, and resurrection of Jesus Christ (Luke 3:1).</li>
+            <li><strong>Claudius (41 – 54 AD):</strong> Expelled Jews from Rome (Acts 18:2), leading Aquila and Priscilla to Corinth.</li>
+            <li><strong>Nero (54 – 68 AD):</strong> Emperor to whom Paul appealed (Acts 25:11); initiated severe persecutions after the Great Fire of Rome.</li>
+            <li><strong>Vespasian & Titus (69 – 81 AD):</strong> Legions under Titus besieged and destroyed Jerusalem and the Second Temple in 70 AD.</li>
+            <li><strong>Domitian (81 – 96 AD):</strong> Exiled the Apostle John to the Isle of Patmos, where he received the Book of Revelation.</li>
+          </ul>
+        </div>
+
+        <div class="feature-card" style="margin-bottom:1rem;">
+          <div class="insight-header">
+            <span class="insight-icon">👑</span>
+            <h3 style="margin:0;">The Herodian Dynasty & Roman Governors</h3>
+          </div>
+          <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
+            Rome ruled Judea through client kings like Herod the Great and his sons (Archelaus, Herod Antipas, and Philip), supplemented after 6 AD by Roman equestrian governors (such as Pontius Pilate, Felix, and Festus). Herod Agrippa I executed James, and Agrippa II heard Paul's defense at Caesarea (Acts 26).
+          </p>
+        </div>
+
+        <div class="history-block">
+          <h4>The Jerusalem Sanhedrin & Jewish Councils</h4>
+          <p>
+            The Supreme Council in Jerusalem comprised 71 members: the Sadducean High Priestly aristocracy (Annas, Caiaphas), elders, and Pharisaic scribes (Gamaliel, Nicodemus). Rome granted the council extensive internal religious jurisdiction, while reserving the ultimate power of capital punishment.
+          </p>
+        </div>
+      `;
+    } else if (this.currentTab === "chronology") {
+      const eras = (window.app && window.app.timeline && window.app.timeline.eras) || [
+        { start: -6, end: -4, tag: "ERA I • 6 BC – 4 BC", title: "Nativity & Infancy of Jesus", desc: "Roman census under Caesar Augustus; birth in Bethlehem, angelic witness, and flight to Egypt." },
+        { start: -4, end: 26, tag: "ERA II • 4 BC – 26 AD", title: "Silent Years in Nazareth", desc: "Jesus grows in wisdom and stature in Galilee; visits the Temple at age twelve." },
+        { start: 26, end: 29, tag: "ERA III • 26 AD – 29 AD", title: "Baptism & Early Ministry", desc: "Baptism by John in the Jordan River, temptation in wilderness, miracle at Cana, and Nicodemus." },
+        { start: 29, end: 30, tag: "ERA IV • 29 AD – 30 AD", title: "Galilean Ministry & Passion Week", desc: "Sermon on the Mount, miracles at Sea of Galilee, Transfiguration, Atonement in Gethsemane, Crucifixion & Resurrection." },
+        { start: 30, end: 47, tag: "ERA V • 30 AD – 47 AD", title: "Pentecost & the Early Church", desc: "Outpouring of the Holy Ghost, 3,000 baptized, martyrdom of Stephen, and Saul's conversion on Damascus road." },
+        { start: 47, end: 57, tag: "ERA VI • 47 AD – 57 AD", title: "Paul's Missionary Journeys", desc: "Three epic apostolic journeys through Cyprus, Galatia, Macedonia, Greece, and Ephesus planting churches." },
+        { start: 58, end: 70, tag: "ERA VII • 58 AD – 70 AD", title: "Rome, Persecution & Fall of Jerusalem", desc: "Paul's voyage and shipwreck at Malta, Roman house arrest, Nero's persecutions, and Titus destroying Jerusalem in 70 AD." },
+        { start: 70, end: 100, tag: "ERA VIII • 70 AD – 100 AD", title: "Close of the Apostolic Era", desc: "Spread of the Four Gospels, John's apocalyptic exile on the Isle of Patmos, and letters to the Seven Churches." }
+      ];
+
+      html = `
+        <div class="history-block" style="margin-bottom:1rem;">
+          <h4>The Eight Major Eras of the New Testament</h4>
+          <p>Journey through history from the Nativity in Bethlehem (~6 BC) to the revelation given to John on the Isle of Patmos (~100 AD). Click any era below to scrub the timeline and map.</p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          ${eras.map(era => `
+            <div class="era-welcome-card" style="background:#FFFDF9; border:1px solid var(--border-parchment); border-left:3px solid var(--color-gold); border-radius:6px; padding:0.8rem 0.9rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--color-crimson); text-transform:uppercase; letter-spacing:0.5px;">${era.tag || `${era.start < 0 ? Math.abs(era.start) + ' BC' : era.start + ' AD'} – ${era.end < 0 ? Math.abs(era.end) + ' BC' : era.end + ' AD'}`}</span>
+                <button class="btn btn-sm btn-outline era-jump-btn" data-year="${era.start}" style="font-size:0.75rem; padding:2px 8px; border-color:var(--color-gold); color:var(--color-crimson); cursor:pointer;">Scrub to Era ▶</button>
+              </div>
+              <h4 style="font-family:var(--font-serif-title); font-size:0.92rem; color:var(--text-primary); margin:0 0 0.3rem 0;">${era.title}</h4>
+              <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.45; margin:0;">${era.desc}</p>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    this.sidebarContent.innerHTML = html;
+  }
+
   // Render Tabs Content based on Active Item and Selected Tab
   renderActiveItemTabs() {
-    if (!this.currentActiveItem) return;
+    if (!this.currentActiveItem) {
+      this.renderWelcomeTabs();
+      return;
+    }
     const { type, data } = this.currentActiveItem;
     let html = "";
 

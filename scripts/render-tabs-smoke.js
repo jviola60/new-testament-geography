@@ -45,7 +45,7 @@ const sandbox = {
 };
 sandbox.window = Object.assign(sandbox.window, sandbox);
 vm.createContext(sandbox);
-let bundle = files.map((f) => fs.readFileSync(path.join("/workspace", f), "utf8")).join("\n;\n");
+let bundle = files.map((f) => fs.readFileSync(path.join(__dirname, "..", f), "utf8")).join("\n;\n");
 bundle = bundle.replace(/^const ([A-Z_][A-Z0-9_]*)/gm, "var $1");
 bundle = bundle.replace(/^class UIController/, "var UIController = class UIController");
 vm.runInContext(bundle, sandbox);
@@ -76,6 +76,22 @@ function assertTabs(label, type, data) {
     }
   });
 }
+
+// Assert Welcome Flyout Tabs
+ui.currentActiveItem = null;
+tabs.forEach((tab) => {
+  ui.currentTab = tab;
+  ui.sidebarContent.innerHTML = "";
+  ui.renderActiveItemTabs();
+  const html = ui.sidebarContent.innerHTML || "";
+  const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  if (text.length < 40) {
+    failures.push(`Welcome / ${tab}: too short (${text.length}) "${text.slice(0, 60)}"`);
+  }
+  if (/undefined/.test(html)) {
+    failures.push(`Welcome / ${tab}: contains undefined`);
+  }
+});
 
 const judea = sandbox.REGIONS_DATA.regions.find((r) => r.id === "judea");
 assertTabs("Judea", "region", judea);

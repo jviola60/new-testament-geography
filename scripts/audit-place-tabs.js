@@ -21,7 +21,7 @@ const files = [
 
 const sandbox = { window: {}, console };
 vm.createContext(sandbox);
-let bundle = files.map((f) => fs.readFileSync(path.join("/workspace", f), "utf8")).join("\n;\n");
+let bundle = files.map((f) => fs.readFileSync(path.join(__dirname, "..", f), "utf8")).join("\n;\n");
 bundle = bundle.replace(/^const ([A-Z_][A-Z0-9_]*)/gm, "var $1");
 vm.runInContext(bundle, sandbox);
 

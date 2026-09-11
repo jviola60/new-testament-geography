@@ -224,9 +224,36 @@ class UIController {
       });
     }
 
-    // Curated Tour Mini Card Clicks & Era Jumps (Sidebar Event Delegation)
+    // Curated Tour Mini Card Clicks, Era Jumps, and Scripture Translation Dropdown (Sidebar Event Delegation)
     if (this.sidebarContent) {
       this.sidebarContent.addEventListener("click", (e) => {
+        // Scripture version menu button toggle (⋮)
+        const menuBtn = e.target.closest(".scripture-card-menu-btn");
+        if (menuBtn) {
+          e.stopPropagation();
+          const dropdown = menuBtn.nextElementSibling;
+          this.sidebarContent.querySelectorAll(".scripture-version-dropdown.open").forEach(d => {
+            if (d !== dropdown) d.classList.remove("open");
+          });
+          if (dropdown) dropdown.classList.toggle("open");
+          return;
+        }
+
+        // Scripture version item selection
+        const versionItem = e.target.closest(".scripture-version-item");
+        if (versionItem) {
+          e.stopPropagation();
+          const card = versionItem.closest(".scripture-verse-card");
+          const version = versionItem.dataset.version;
+          if (card && version) {
+            this.switchScriptureVersion(card, version);
+          }
+          const dropdown = versionItem.closest(".scripture-version-dropdown");
+          if (dropdown) dropdown.classList.remove("open");
+          return;
+        }
+
+        // Tour card clicked
         const tourCard = e.target.closest(".tour-mini-card");
         if (tourCard) {
           const tourId = tourCard.dataset.tourId;
@@ -234,6 +261,7 @@ class UIController {
           return;
         }
 
+        // Era jump button clicked
         const eraBtn = e.target.closest(".era-jump-btn");
         if (eraBtn) {
           const year = parseFloat(eraBtn.dataset.year);
@@ -241,6 +269,20 @@ class UIController {
             window.app.timeline.setYear(year);
           }
           return;
+        }
+
+        // Close any open scripture dropdowns when clicking elsewhere in sidebar
+        this.sidebarContent.querySelectorAll(".scripture-version-dropdown.open").forEach(d => {
+          d.classList.remove("open");
+        });
+      });
+
+      // Close dropdowns if clicked outside sidebar content
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".scripture-card-menu-btn") && !e.target.closest(".scripture-version-dropdown")) {
+          this.sidebarContent.querySelectorAll(".scripture-version-dropdown.open").forEach(d => {
+            d.classList.remove("open");
+          });
         }
       });
     }
@@ -635,27 +677,388 @@ class UIController {
       return `<div class="history-block"><p>Referenced across the New Testament Gospels, Acts, and Epistles. Use search to open related events and read full KJV chapters on ChurchofJesusChrist.org.</p></div>`;
     }
     return `
-      <div class="kjv-translation-notice">
-        <span class="kjv-badge">King James Version (KJV)</span>
-        <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
+      <div class="kjv-translation-notice" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="kjv-badge">Multi-Translation Active</span>
+          <span style="font-size:0.76rem; color:var(--text-secondary); margin-left:6px;">Default: KJV. Tap <strong>⋮</strong> on any card for NIV, Greek & Hebrew.</span>
+        </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
-        ${list.map((s) => `
-          <div class="scripture-verse-card">
-            <div class="scripture-card-top">
-              <span class="scripture-citation">📖 ${s.ref}</span>
-              <span class="scripture-kjv-tag">KJV</span>
+        ${list.map((s, idx) => {
+          const trans = (typeof SCRIPTURE_TRANSLATIONS !== "undefined")
+            ? SCRIPTURE_TRANSLATIONS.get(s.ref, s.text)
+            : { kjv: s.text, niv: s.text, hebrew: "", greek: "" };
+
+          const kjvText = (trans && trans.kjv) ? trans.kjv : (s.text || "");
+          const nivText = (trans && trans.niv) ? trans.niv : kjvText;
+          const hebrewText = (trans && trans.hebrew) ? trans.hebrew : "";
+          const greekText = (trans && trans.greek) ? trans.greek : "";
+
+          const enc = (val) => encodeURIComponent(val || "");
+
+          return `
+            <div class="scripture-verse-card"
+                 id="verseCard_${idx}"
+                 data-ref="${s.ref}"
+                 data-kjv="${enc(kjvText)}"
+                 data-niv="${enc(nivText)}"
+                 data-hebrew="${enc(hebrewText)}"
+                 data-greek="${enc(greekText)}">
+              <div class="scripture-card-top">
+                <span class="scripture-citation">📖 ${s.ref}</span>
+                <div class="scripture-card-top-right">
+                  <span class="scripture-kjv-tag version-badge">KJV</span>
+                  <button class="scripture-card-menu-btn" title="Choose Bible Translation (KJV, NIV, Hebrew, Greek)" aria-label="Version options">⋮</button>
+                  <div class="scripture-version-dropdown">
+                    <button class="scripture-version-item selected" data-version="kjv">
+                      <span>King James (KJV)</span>
+                      <span style="font-size:0.68rem; color:var(--color-crimson); font-weight:700;">DEFAULT</span>
+                    </button>
+                    <button class="scripture-version-item" data-version="niv">
+                      <span>New International (NIV)</span>
+                    </button>
+                    <button class="scripture-version-item" data-version="greek">
+                      <span>Original Greek (Ἑλληνική • Koine)</span>
+                    </button>
+                    <button class="scripture-version-item" data-version="hebrew">
+                      <span>Hebrew Translation (עברית • Delitzsch)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="scripture-body">"${kjvText}"</div>
+              <div class="scripture-action-row">
+                <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                  <span>Read Chapter on ChurchofJesusChrist.org</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              </div>
             </div>
-            ${s.text ? `<div class="scripture-body">"${s.text}"</div>` : ""}
-            <div class="scripture-action-row">
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  switchScriptureVersion(cardEl, version) {
+    if (!cardEl) return;
+    const bodyEl = cardEl.querySelector(".scripture-body");
+    const badgeEl = cardEl.querySelector(".version-badge");
+    const dropdown = cardEl.querySelector(".scripture-version-dropdown");
+    if (!bodyEl) return;
+
+    if (dropdown) {
+      dropdown.querySelectorAll(".scripture-version-item").forEach(item => {
+        if (item.dataset.version === version) item.classList.add("selected");
+        else item.classList.remove("selected");
+      });
+    }
+
+    const dec = (attr) => decodeURIComponent(cardEl.getAttribute(attr) || "");
+    let text = "";
+    bodyEl.classList.remove("hebrew-text", "greek-text");
+
+    if (version === "kjv") {
+      text = dec("data-kjv");
+      if (badgeEl) badgeEl.textContent = "KJV";
+    } else if (version === "niv") {
+      text = dec("data-niv");
+      if (badgeEl) badgeEl.textContent = "NIV";
+    } else if (version === "hebrew") {
+      text = dec("data-hebrew");
+      if (!text) text = `[נוסח עברי לברית החדשה: ${cardEl.dataset.ref}]`;
+      bodyEl.classList.add("hebrew-text");
+      if (badgeEl) badgeEl.textContent = "HEBREW (עברית)";
+    } else if (version === "greek") {
+      text = dec("data-greek");
+      if (!text) text = `[Textus Receptus Koine Greek: ${cardEl.dataset.ref}]`;
+      bodyEl.classList.add("greek-text");
+      if (badgeEl) badgeEl.textContent = "ORIGINAL GREEK (Ἑλληνική)";
+    }
+
+    bodyEl.textContent = text.startsWith("[") ? text : `"${text}"`;
+  }
+
+  normalizeTeachings(type, data) {
+    if (!data) return {
+      teacher: "Jesus Christ & the Apostles",
+      audience: "The Disciples and Multitudes",
+      whatWasTaught: "The Gospel of the Kingdom, repentance, faith in Christ, and the resurrection of the dead.",
+      whyTaught: "To proclaim salvation and call all people into covenant with God.",
+      context: "Recorded in the New Testament Scriptures.",
+      passages: []
+    };
+
+    if (data.teachings && typeof data.teachings === "object") {
+      return {
+        teacher: data.teachings.teacher || "Jesus Christ",
+        audience: data.teachings.audience || "Disciples and Multitudes",
+        whatWasTaught: data.teachings.whatWasTaught || data.teachings.doctrine || data.summary || "",
+        whyTaught: data.teachings.whyTaught || data.teachings.purpose || "To bear testimony of the Son of God.",
+        context: data.teachings.context || data.teachings.setting || data.overview || "",
+        passages: data.teachings.passages || data.scriptures || []
+      };
+    }
+
+    const name = String((data.name || data.city || data.title || "")).toLowerCase();
+    const region = String((data.region || "")).toLowerCase();
+
+    // Jerusalem Sacred Sites
+    if (type === "jerusalemSite" || type === "jerusalemQuarter" || name.includes("jerusalem")) {
+      if (name.includes("gethsemane")) {
+        return {
+          teacher: "Jesus Christ (The Son of God)",
+          audience: "Peter, James, and John (the Inner Apostolic Circle)",
+          whatWasTaught: "Watch and pray that ye enter not into temptation; perfect submission to the Father: 'O my Father, if it be possible, let this cup pass from me: nevertheless not as I will, but as thou wilt.'",
+          whyTaught: "To accomplish the infinite suffering Atonement for the sins of the world and instruct the Apostles on endurance in times of severe spiritual trial.",
+          context: "Late Thursday night of Passion Week in an olive grove across the Brook Kidron, where Jesus was in an agony and sweat drops of blood (Luke 22:44).",
+          passages: data.scriptures || ["Matthew 26:36-46", "Luke 22:39-46", "Mark 14:32-42"]
+        };
+      }
+      if (name.includes("temple") || name.includes("solomon") || name.includes("beautiful gate") || name.includes("antonia")) {
+        return {
+          teacher: "Jesus Christ & the Apostles Peter and John",
+          audience: "Temple Pilgrims, Jewish Worshippers, Pharisees, Sadducees, and Sanhedrin",
+          whatWasTaught: "My house shall be called the house of prayer for all nations; the Light of the World; the Father who sent Me; healing of the lame man in the name of Jesus Christ of Nazareth (Acts 3).",
+          whyTaught: "To declare divine authority over the Temple, condemn hypocritical commercialism, and preach the resurrection through Christ to the rulers of Israel.",
+          context: "The vast marble and gold Second Temple complex rebuilt by Herod the Great during major Jewish pilgrimage festivals (Passover, Tabernacles, Hanukkah).",
+          passages: data.scriptures || ["John 7:37-39", "John 8:12", "Acts 3:1-16", "Matthew 21:12-17"]
+        };
+      }
+      if (name.includes("upper room") || name.includes("zion") || name.includes("caiaphas") || name.includes("last supper")) {
+        return {
+          teacher: "Jesus Christ",
+          audience: "The Twelve Apostles",
+          whatWasTaught: "The Sacrament of the Lord's Supper ('This is my body... this is my blood of the new testament'); foot washing as humble service; the promise of the Holy Ghost (Comforter); 'A new commandment I give unto you, That ye love one another.'",
+          whyTaught: "To institute the holy memorial sacrament of His sacrifice, comfort His disciples before His crucifixion, and establish covenant unity among the Apostles.",
+          context: "A furnished upper room on Mount Zion during the Passover meal on the eve of the Crucifixion (Spring 30 AD).",
+          passages: data.scriptures || ["Luke 22:14-20", "John 13:34-35", "John 14:15-27", "1 Corinthians 11:23-26"]
+        };
+      }
+      if (name.includes("olives") || name.includes("ascension") || name.includes("bethphage")) {
+        return {
+          teacher: "Jesus Christ",
+          audience: "The Apostles & Disciples",
+          whatWasTaught: "The Olivet Discourse on the signs of the Second Coming and the destruction of the Temple; the Great Commission to be witnesses unto the uttermost part of the earth (Acts 1:8).",
+          whyTaught: "To fortify believers against deception in perilous times and empower the Apostles for the universal spread of the Gospel.",
+          context: "The ridge of the Mount of Olives looking down across the Kidron Valley upon the Temple Mount and the Holy City.",
+          passages: data.scriptures || ["Matthew 24:1-14", "Acts 1:6-12", "Luke 21:20-28"]
+        };
+      }
+      if (name.includes("golgotha") || name.includes("calvary") || name.includes("tomb") || name.includes("sepulchre")) {
+        return {
+          teacher: "Jesus Christ & the Angelic Messengers",
+          audience: "Mary the Mother of Jesus, John the Beloved, Mary Magdalene, Roman Soldiers, and Mourning Saints",
+          whatWasTaught: "The Seven Words from the Cross ('Father, forgive them... It is finished') and the proclamation of the Resurrection: 'He is not here: for he is risen, as he said' (Matt 28:6).",
+          whyTaught: "To finish the work of redemption, break the bands of physical death, and usher in the morning of the Resurrection for all mankind.",
+          context: "Outside the walls of Jerusalem at Golgotha and in the nearby garden tomb belonging to Joseph of Arimathea.",
+          passages: data.scriptures || ["Luke 23:33-46", "John 19:25-30", "Matthew 28:1-10", "John 20:11-18"]
+        };
+      }
+      return {
+        teacher: "Jesus Christ & the Apostles",
+        audience: "Inhabitants of Jerusalem, Priests, Levites, and Roman Cohorts",
+        whatWasTaught: "Covenant repentance, fulfillment of the Law in Christ, and salvation through His name.",
+        whyTaught: "Jerusalem was the holy city of God where the Messiah had to accomplish His decease and resurrection.",
+        context: "1st-century Roman Judea under Pontius Pilate and High Priest Caiaphas.",
+        passages: data.scriptures || ["Acts 2:22-36", "Luke 24:44-48"]
+      };
+    }
+
+    // Specific Cities
+    if (name.includes("capernaum")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "Galilean Disciples, Crowds from the Decapolis, Synagogue Elders, and Roman Centurion",
+        whatWasTaught: "The Bread of Life Discourse: 'I am the bread of life: he that cometh to me shall never hunger' (John 6); divine power to forgive sins; kingdom repentance.",
+        whyTaught: "To redirect physical cravings for bread to spiritual sustenance, reveal His divine Sonship, and establish the doctrinal core of eternal life.",
+        context: "The Capernaum synagogue and shoreline homes along the Sea of Galilee after the feeding of the five thousand.",
+        passages: data.scriptures || ["John 6:35-51", "Matthew 4:13-17", "Mark 2:1-12"]
+      };
+    }
+    if (name.includes("nazareth")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "Townsfolk, Childhood Elders, and Synagogue Attendants",
+        whatWasTaught: "Messianic Fulfillment of Isaiah: 'The Spirit of the Lord is upon me, because he hath anointed me to preach the gospel to the poor... This day is this scripture fulfilled in your ears' (Luke 4:18-21).",
+        whyTaught: "To announce the arrival of the Messianic Jubilee and reveal that God's grace extends to the humble rather than the self-righteous.",
+        context: "The local village synagogue in the hills of Lower Galilee on the Sabbath day.",
+        passages: data.scriptures || ["Luke 4:16-30", "Matthew 13:54-58"]
+      };
+    }
+    if (name.includes("beatitudes") || name.includes("mountain")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "The Disciples and Multitudes gathered on the mountain slopes",
+        whatWasTaught: "The Sermon on the Mount (Matthew 5–7): The Beatitudes, the salt and light of the world, fulfillment of the Law, inner purity, loving enemies, and the Golden Rule.",
+        whyTaught: "To reveal the divine character required of citizens of the Kingdom of God and provide the moral law of the New Covenant.",
+        context: "A hillside amphitheater overlooking the tranquil waters of the Sea of Galilee.",
+        passages: data.scriptures || ["Matthew 5:1-12", "Matthew 6:9-13", "Matthew 7:24-27"]
+      };
+    }
+    if (name.includes("sychar") || name.includes("samaria") || name.includes("jacob's well")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "The Samaritan Woman and Townspeople of Sychar",
+        whatWasTaught: "The Living Water springing up into everlasting life; true worship in spirit and truth rather than geographic rivalry on Mount Gerizim vs. Jerusalem.",
+        whyTaught: "To overcome centuries of ethnic hatred and reveal the Messiah to those outside conventional Jewish boundaries.",
+        context: "At midday around the ancient well of Jacob near Mount Gerizim in Samaria.",
+        passages: data.scriptures || ["John 4:5-26", "John 4:39-42"]
+      };
+    }
+    if (name.includes("athens")) {
+      return {
+        teacher: "The Apostle Paul",
+        audience: "Epicurean and Stoic Philosophers and Athenian Citizens at the Areopagus",
+        whatWasTaught: "The Unknown God: God who created heaven and earth dwelleth not in temples made with hands; 'For in him we live, and move, and have our being'; the bodily Resurrection of Christ.",
+        whyTaught: "To turn intellectual pagan idolaters toward the living Creator and call all humanity to repentance before the appointed day of judgment.",
+        context: "Standing upon the limestone rock of Mars' Hill in view of the Parthenon in classical Athens.",
+        passages: data.scriptures || ["Acts 17:22-31"]
+      };
+    }
+    if (name.includes("corinth")) {
+      return {
+        teacher: "The Apostle Paul (with Aquila and Priscilla)",
+        audience: "Synagogue Chief Rulers (Crispus) and Cosmopolitan Gentile Converts",
+        whatWasTaught: "Jesus Christ and Him crucified; spiritual gifts in unity; the supreme virtue of Charity (agape love); the triumphant Resurrection of the Dead (1 Cor 15).",
+        whyTaught: "To correct doctrinal factions, moral laxity, and spiritual pride in a wealthy, commercial Roman seaport city.",
+        context: "A bustling Isthmian trading hub under the Roman governor Gallio.",
+        passages: data.scriptures || ["1 Corinthians 1:18-25", "1 Corinthians 13:1-13", "1 Corinthians 15:20-28"]
+      };
+    }
+    if (name.includes("ephesus")) {
+      return {
+        teacher: "The Apostle Paul & the Apostle John",
+        audience: "Ephesian Disciples, Students at the Hall of Tyrannus, and Asian Saints",
+        whatWasTaught: "The Holy Ghost and true baptism; grace through faith (Ephesians 2:8); the unity of the body of Christ; the Whole Armour of God (Eph 6); letters to the Seven Churches (Rev 2:1-7).",
+        whyTaught: "To anchor believers against idolatrous commercial pressure (the cult of Diana/Artemis) and occult sorcery.",
+        context: "The capital of Roman Asia, where Paul reasoned daily for two years in the lecture hall of Tyrannus.",
+        passages: data.scriptures || ["Acts 19:1-10", "Ephesians 2:8-10", "Ephesians 6:10-18", "Revelation 2:1-7"]
+      };
+    }
+    if (name.includes("rome")) {
+      return {
+        teacher: "The Apostle Paul & the Apostle Peter",
+        audience: "Jewish and Gentile Saints at Rome, Praetorian Guards, and Imperial Inquirers",
+        whatWasTaught: "Justification by faith in Jesus Christ; reconciliation of Jews and Gentiles; 'The just shall live by faith'; no condemnation to them which are in Christ Jesus (Romans 8).",
+        whyTaught: "To establish doctrinal foundations for the central church of the Western Mediterranean and prepare for missions to the ends of the empire.",
+        context: "The imperial capital of the Caesars, where Paul preached under house arrest and both apostles later suffered martyrdom.",
+        passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:30-31"]
+      };
+    }
+    if (name.includes("galilee") || region.includes("galilee")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "Galilean Fishermen, Tax Collectors, Farmers, and Village Disciples",
+        whatWasTaught: "Parables of the Kingdom (the Sower, the Pearl of Great Price, the Mustard Seed); calming the storm; walking upon the water; feeding the multitudes.",
+        whyTaught: "To train His Apostles in unwavering faith and demonstrate His sovereign authority over nature, sickness, and spiritual powers.",
+        context: "Shorelines, fishing boats, and hillside terraces around the Sea of Galilee.",
+        passages: data.scriptures || ["Matthew 13:1-23", "Mark 4:35-41", "Matthew 14:22-33"]
+      };
+    }
+    if (name.includes("antioch")) {
+      return {
+        teacher: "Barnabas, Saul (Paul), and the Prophet Agabus",
+        audience: "The Mixed Congregation of Hellenistic Jews and Greek Believers",
+        whatWasTaught: "The grace of God extended to the Gentiles; discipleship where believers were first called 'Christians' (Acts 11:26); world evangelism.",
+        whyTaught: "To build a welcoming multi-ethnic church and launch the world missionary journeys into Asia Minor and Europe.",
+        context: "The capital of Roman Syria along the Orontes River, the 3rd largest city of the Roman world.",
+        passages: data.scriptures || ["Acts 11:19-26", "Acts 13:1-4"]
+      };
+    }
+    if (name.includes("bethany")) {
+      return {
+        teacher: "Jesus Christ",
+        audience: "Martha, Mary, Lazarus, and Jewish Mourners from Jerusalem",
+        whatWasTaught: "'I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live: And whosoever liveth and believeth in me shall never die' (John 11:25-26); anointing for His burial.",
+        whyTaught: "To give an undeniable foretaste of His power over physical death and prepare His followers for His impending Passion and Resurrection.",
+        context: "The quiet village of Bethany on the eastern slope of the Mount of Olives.",
+        passages: data.scriptures || ["John 11:1-44", "John 12:1-8"]
+      };
+    }
+    if (name.includes("bethlehem")) {
+      return {
+        teacher: "Heavenly Angels & Prophets of Israel",
+        audience: "Shepherds Keeping Watch, Mary, Joseph, and the Magi",
+        whatWasTaught: "The Good Tidings of Great Joy: A Saviour is born in the City of David, Christ the Lord; fulfillment of Micah 5:2.",
+        whyTaught: "To herald the incarnation of the Son of God to the meek of the earth.",
+        context: "Judean hill country during the imperial Roman census ordered by Caesar Augustus.",
+        passages: data.scriptures || ["Luke 2:8-20", "Matthew 2:1-12"]
+      };
+    }
+
+    // General Fallback
+    return {
+      teacher: "Jesus Christ & His Apostles",
+      audience: "Early Believers, Inquirers, and Synagogue Worshippers",
+      whatWasTaught: "The message of the Kingdom of God, repentance, the atonement and resurrection of Christ, and righteous living.",
+      whyTaught: "To establish the Church of God, gather souls to Christ, and bear witness of His gospel.",
+      context: `The 1st-century New Testament world (${data.region || "Roman Empire"}).`,
+      passages: data.scriptures || []
+    };
+  }
+
+  renderTeachingsTab(dossier, type) {
+    const t = dossier.teachings || this.normalizeTeachings(type, dossier);
+    const passages = (t.passages && t.passages.length) ? t.passages : (dossier.scriptures || []);
+
+    return `
+      <div class="teachings-role-grid">
+        <div class="teachings-stat-box" style="border-left: 3px solid var(--color-crimson);">
+          <span class="teachings-stat-label">Who Was Teaching</span>
+          <span class="teachings-stat-value">${t.teacher}</span>
+        </div>
+        <div class="teachings-stat-box" style="border-left: 3px solid var(--color-gold);">
+          <span class="teachings-stat-label">Who Was Being Taught</span>
+          <span class="teachings-stat-value">${t.audience}</span>
+        </div>
+      </div>
+
+      <div class="teachings-card teachings-card-gold">
+        <div class="teachings-card-title">
+          <span>📜</span>
+          <span>What Was Taught</span>
+        </div>
+        <div class="teachings-card-body">
+          ${t.whatWasTaught}
+        </div>
+      </div>
+
+      <div class="teachings-card teachings-card-crimson">
+        <div class="teachings-card-title">
+          <span>🎯</span>
+          <span>Why It Was Taught</span>
+        </div>
+        <div class="teachings-card-body">
+          ${t.whyTaught}
+        </div>
+      </div>
+
+      <div class="teachings-card teachings-card-bronze">
+        <div class="teachings-card-title">
+          <span>🏛️</span>
+          <span>Historical & Cultural Context</span>
+        </div>
+        <div class="teachings-card-body">
+          ${t.context}
+        </div>
+      </div>
+
+      ${passages && passages.length > 0 ? `
+        <div class="feature-card" style="margin-top: 0.5rem;">
+          <h4 style="font-family: var(--font-serif-title); font-size: 0.88rem; margin: 0 0 0.5rem 0; color: var(--color-crimson);">
+            Key Scriptural Passages & Discourses
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            ${this.asScriptureList(passages).map(s => `
               <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
-                <span>Read ${s.ref} on ChurchofJesusChrist.org</span>
+                <span>📖 Read ${s.ref} (KJV)</span>
                 <span class="btn-arrow">↗</span>
               </a>
-            </div>
+            `).join("")}
           </div>
-        `).join("")}
-      </div>
+        </div>
+      ` : ''}
     `;
   }
 
@@ -663,12 +1066,14 @@ class UIController {
     const region = this.getRelatedRegion(data);
     const name = data.name || data.city || data.title || "Selected Place";
     const scriptures = this.gatherRelatedScriptures(data);
+    const teachings = this.normalizeTeachings(type, data);
     return {
       name,
       ancientName: data.ancientName || "",
       summary: data.summary || data.significance || data.description || data.history || "",
       overview: data.overview || data.significance || data.description || data.history || data.summary || "",
       scriptures,
+      teachings,
       peopleAndChurch: data.peopleAndChurch || [data.jewishDiasporaInfo, data.christianChurchInfo, data.founders, data.companions].filter(Boolean).join(" "),
       politicalInsights: data.politicalInsights || (region && region.politicalInsights) || "",
       eraChronology: data.eraChronology || data.growthMilestone || "",
@@ -939,7 +1344,8 @@ class UIController {
   // Render Tabs Content for Default "Welcome to the New Testament Atlas" Flyout
   renderWelcomeTabs() {
     let eyebrow = "SELECTION DETAILS";
-    if (this.currentTab === "scripture") eyebrow = "FOUNDATIONAL SCRIPTURES • KJV";
+    if (this.currentTab === "scripture") eyebrow = "FOUNDATIONAL SCRIPTURES • KJV & MULTI-VERSION";
+    else if (this.currentTab === "teachings") eyebrow = "NEW TESTAMENT DOCTRINE & CONTEXT";
     else if (this.currentTab === "people") eyebrow = "APOSTOLIC WITNESSES & EARLY CHURCH";
     else if (this.currentTab === "political") eyebrow = "1ST-CENTURY GEOPOLITICS & PAX ROMANA";
     else if (this.currentTab === "chronology") eyebrow = "NEW TESTAMENT TIMELINE (~6 BC – 100 AD)";
@@ -1044,6 +1450,77 @@ class UIController {
           <p>The New Testament scriptures testify of the mortal ministry, atonement, and resurrection of Jesus Christ, and the inspired witness of His Apostles across the ancient Mediterranean world.</p>
         </div>
         ${this.renderScriptureCards(foundationalVerses)}
+      `;
+    } else if (this.currentTab === "teachings") {
+      html = `
+        <div class="teachings-role-grid">
+          <div class="teachings-stat-box" style="border-left: 3px solid var(--color-crimson);">
+            <span class="teachings-stat-label">Primary Teachers</span>
+            <span class="teachings-stat-value">Jesus Christ, the Apostles & Evangelists</span>
+          </div>
+          <div class="teachings-stat-box" style="border-left: 3px solid var(--color-gold);">
+            <span class="teachings-stat-label">Primary Audience</span>
+            <span class="teachings-stat-value">Israel, Disciples & All Nations</span>
+          </div>
+        </div>
+
+        <div class="teachings-card teachings-card-gold">
+          <div class="teachings-card-title">
+            <span>📜</span>
+            <span>What Was Taught</span>
+          </div>
+          <div class="teachings-card-body">
+            The Gospel of Jesus Christ: Faith in Him as the Son of God, repentance, baptism for the remission of sins, the gift of the Holy Ghost, the higher law of love (Sermon on the Mount), His infinite Atonement and bodily Resurrection, and the coming of the Kingdom of Heaven.
+          </div>
+        </div>
+
+        <div class="teachings-card teachings-card-crimson">
+          <div class="teachings-card-title">
+            <span>🎯</span>
+            <span>Why It Was Taught</span>
+          </div>
+          <div class="teachings-card-body">
+            To fulfill all the Law and the Prophets, redeem humanity from spiritual and physical death, gather the scattered house of Israel, break down the middle wall of partition between Jews and Gentiles, and offer eternal life to whosoever believeth on Him.
+          </div>
+        </div>
+
+        <div class="teachings-card teachings-card-bronze">
+          <div class="teachings-card-title">
+            <span>🏛️</span>
+            <span>Historical & Cultural Context</span>
+          </div>
+          <div class="teachings-card-body">
+            Proclaimed in 1st-century Roman Judea, Galilee, Samaria, and across the Greco-Roman Mediterranean during the Pax Romana. Teachings took place in synagogues, on hillsides, in temple courtyards, beside public wells, in lecture halls, and before Roman governors and Greek philosophical councils.
+          </div>
+        </div>
+
+        <div class="feature-card" style="margin-top:0.5rem;">
+          <h4 style="font-family: var(--font-serif-title); font-size: 0.88rem; margin: 0 0 0.5rem 0; color: var(--color-crimson);">
+            Key Doctrinal Discourses of the New Testament
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+            <a href="https://www.churchofjesuschrist.org/study/scriptures/nt/matt/5?lang=eng" target="_blank" rel="noopener" class="church-scripture-btn">
+              <span>📖 The Sermon on the Mount (Matthew 5–7)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+            <a href="https://www.churchofjesuschrist.org/study/scriptures/nt/john/6?lang=eng" target="_blank" rel="noopener" class="church-scripture-btn">
+              <span>📖 The Bread of Life Discourse (John 6)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+            <a href="https://www.churchofjesuschrist.org/study/scriptures/nt/john/14?lang=eng" target="_blank" rel="noopener" class="church-scripture-btn">
+              <span>📖 The Upper Room Discourse (John 14–17)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+            <a href="https://www.churchofjesuschrist.org/study/scriptures/nt/acts/2?lang=eng" target="_blank" rel="noopener" class="church-scripture-btn">
+              <span>📖 Peter's Pentecost Sermon (Acts 2)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+            <a href="https://www.churchofjesuschrist.org/study/scriptures/nt/acts/17?lang=eng" target="_blank" rel="noopener" class="church-scripture-btn">
+              <span>📖 Paul at the Areopagus (Acts 17)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+          </div>
+        </div>
       `;
     } else if (this.currentTab === "people") {
       html = `
@@ -1185,6 +1662,15 @@ class UIController {
     }
     const { type, data } = this.currentActiveItem;
     let html = "";
+
+    // -------------------------------------------------------------------------
+    // TEACHINGS & CONTEXT TAB (ALL ENTITY TYPES)
+    // -------------------------------------------------------------------------
+    if (this.currentTab === "teachings") {
+      const dossier = this.normalizeDossier(type, data);
+      this.sidebarContent.innerHTML = this.renderTeachingsTab(dossier, type);
+      return;
+    }
 
     // -------------------------------------------------------------------------
     // 1ST-CENTURY JERUSALEM SACRED SITES & LANDMARKS

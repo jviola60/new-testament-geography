@@ -871,7 +871,7 @@
 
   function mergeFields(target, extra) {
     if (!target || !extra) return;
-    ["overview", "peopleAndChurch", "politicalInsights", "eraChronology", "summary"].forEach((key) => {
+    ["overview", "peopleAndChurch", "politicalInsights", "eraChronology", "summary", "teachings"].forEach((key) => {
       if (extra[key]) target[key] = extra[key];
     });
     if (extra.scriptures && extra.scriptures.length) {

@@ -808,6 +808,7 @@ class UIController {
       whatWasTaught: "The Gospel of the Kingdom, repentance, faith in Christ, and the resurrection of the dead.",
       whyTaught: "To proclaim salvation and call all people into covenant with God.",
       context: "Recorded in the New Testament Scriptures.",
+      howAccepted: "Many humble souls believed and followed the Lord and His apostles, while traditional religious and civil rulers often opposed the word.",
       passages: []
     };
 
@@ -818,6 +819,7 @@ class UIController {
         whatWasTaught: data.teachings.whatWasTaught || data.teachings.doctrine || data.summary || "",
         whyTaught: data.teachings.whyTaught || data.teachings.purpose || "To bear testimony of the Son of God.",
         context: data.teachings.context || data.teachings.setting || data.overview || "",
+        howAccepted: data.teachings.howAccepted || data.teachings.reception || data.teachings.acceptance || "",
         passages: data.teachings.passages || data.scriptures || []
       };
     }
@@ -834,6 +836,7 @@ class UIController {
           whatWasTaught: "Watch and pray that ye enter not into temptation; perfect submission to the Father: 'O my Father, if it be possible, let this cup pass from me: nevertheless not as I will, but as thou wilt.'",
           whyTaught: "To accomplish the infinite suffering Atonement for the sins of the world and instruct the Apostles on endurance in times of severe spiritual trial.",
           context: "Late Thursday night of Passion Week in an olive grove across the Brook Kidron, where Jesus was in an agony and sweat drops of blood (Luke 22:44).",
+          howAccepted: "Overcome with exhaustion and sorrow, the apostles slept; Judas led an armed band to betray Him with a kiss; the disciples initially drew a sword, then all forsook Him and fled as Jesus submitted to His arrest.",
           passages: data.scriptures || ["Matthew 26:36-46", "Luke 22:39-46", "Mark 14:32-42"]
         };
       }
@@ -844,6 +847,7 @@ class UIController {
           whatWasTaught: "My house shall be called the house of prayer for all nations; the Light of the World; the Father who sent Me; healing of the lame man in the name of Jesus Christ of Nazareth (Acts 3).",
           whyTaught: "To declare divine authority over the Temple, condemn hypocritical commercialism, and preach the resurrection through Christ to the rulers of Israel.",
           context: "The vast marble and gold Second Temple complex rebuilt by Herod the Great during major Jewish pilgrimage festivals (Passover, Tabernacles, Hanukkah).",
+          howAccepted: "Multitudes marveled at Jesus's wisdom and Peter's miraculous healing, leading thousands to be baptized into the Church; however, the chief priests and Sadducees were indignant, repeatedly arresting the apostles and commanding them never to speak in Jesus's name.",
           passages: data.scriptures || ["John 7:37-39", "John 8:12", "Acts 3:1-16", "Matthew 21:12-17"]
         };
       }
@@ -854,6 +858,7 @@ class UIController {
           whatWasTaught: "The Sacrament of the Lord's Supper ('This is my body... this is my blood of the new testament'); foot washing as humble service; the promise of the Holy Ghost (Comforter); 'A new commandment I give unto you, That ye love one another.'",
           whyTaught: "To institute the holy memorial sacrament of His sacrifice, comfort His disciples before His crucifixion, and establish covenant unity among the Apostles.",
           context: "A furnished upper room on Mount Zion during the Passover meal on the eve of the Crucifixion (Spring 30 AD).",
+          howAccepted: "The Apostles were filled with sorrow and self-examination, each asking, 'Lord, is it I?' Judas departed into the night to consummate his betrayal, while the Eleven accepted the covenant sacrament and sang an hymn before going to Gethsemane.",
           passages: data.scriptures || ["Luke 22:14-20", "John 13:34-35", "John 14:15-27", "1 Corinthians 11:23-26"]
         };
       }
@@ -864,6 +869,7 @@ class UIController {
           whatWasTaught: "The Olivet Discourse on the signs of the Second Coming and the destruction of the Temple; the Great Commission to be witnesses unto the uttermost part of the earth (Acts 1:8).",
           whyTaught: "To fortify believers against deception in perilous times and empower the Apostles for the universal spread of the Gospel.",
           context: "The ridge of the Mount of Olives looking down across the Kidron Valley upon the Temple Mount and the Holy City.",
+          howAccepted: "The disciples took His warnings to heart—tradition records that early Jerusalem Christians remembered Christ's words and escaped to Pella before the Roman siege of 70 AD; at the Ascension, the apostles returned to Jerusalem with great joy, continually praising God.",
           passages: data.scriptures || ["Matthew 24:1-14", "Acts 1:6-12", "Luke 21:20-28"]
         };
       }
@@ -874,6 +880,7 @@ class UIController {
           whatWasTaught: "The Seven Words from the Cross ('Father, forgive them... It is finished') and the proclamation of the Resurrection: 'He is not here: for he is risen, as he said' (Matt 28:6).",
           whyTaught: "To finish the work of redemption, break the bands of physical death, and usher in the morning of the Resurrection for all mankind.",
           context: "Outside the walls of Jerusalem at Golgotha and in the nearby garden tomb belonging to Joseph of Arimathea.",
+          howAccepted: "A Roman centurion cried, 'Truly this man was the Son of God'; crowds smote their breasts in remorse; on the third day, sorrowing women found the stone rolled away and became the first witnesses of the resurrected Lord, turning apostolic despair into triumph.",
           passages: data.scriptures || ["Luke 23:33-46", "John 19:25-30", "Matthew 28:1-10", "John 20:11-18"]
         };
       }
@@ -883,6 +890,7 @@ class UIController {
         whatWasTaught: "Covenant repentance, fulfillment of the Law in Christ, and salvation through His name.",
         whyTaught: "Jerusalem was the holy city of God where the Messiah had to accomplish His decease and resurrection.",
         context: "1st-century Roman Judea under Pontius Pilate and High Priest Caiaphas.",
+        howAccepted: "On Pentecost, 3,000 were pricked in their hearts and baptized (Acts 2), quickly swelling to over 5,000; however, fierce aristocratic Sanhedrin persecution erupted, resulting in the martyrdom of Stephen and James.",
         passages: data.scriptures || ["Acts 2:22-36", "Luke 24:44-48"]
       };
     }
@@ -895,6 +903,7 @@ class UIController {
         whatWasTaught: "The Bread of Life Discourse: 'I am the bread of life: he that cometh to me shall never hunger' (John 6); divine power to forgive sins; kingdom repentance.",
         whyTaught: "To redirect physical cravings for bread to spiritual sustenance, reveal His divine Sonship, and establish the doctrinal core of eternal life.",
         context: "The Capernaum synagogue and shoreline homes along the Sea of Galilee after the feeding of the five thousand.",
+        howAccepted: "Enthusiastic crowds initially thronged Him for healings and free bread; but when He taught the spiritual necessity of eating His flesh and drinking His blood, many turned back and walked no more with Him. Despite witnessing unmatched miracles, the city largely failed to repent, eliciting Jesus's solemn lament in Matthew 11:23.",
         passages: data.scriptures || ["John 6:35-51", "Matthew 4:13-17", "Mark 2:1-12"]
       };
     }
@@ -905,6 +914,7 @@ class UIController {
         whatWasTaught: "Messianic Fulfillment of Isaiah: 'The Spirit of the Lord is upon me, because he hath anointed me to preach the gospel to the poor... This day is this scripture fulfilled in your ears' (Luke 4:18-21).",
         whyTaught: "To announce the arrival of the Messianic Jubilee and reveal that God's grace extends to the humble rather than the self-righteous.",
         context: "The local village synagogue in the hills of Lower Galilee on the Sabbath day.",
+        howAccepted: "Hearers initially marveled at His gracious speech; but when Jesus pointed out that in times of famine and leprosy God favored Gentile widows and lepers over Israel, the congregation was filled with wrath, rose up, and tried to cast Him headlong from the brow of the hill. He did not many mighty works there because of their unbelief.",
         passages: data.scriptures || ["Luke 4:16-30", "Matthew 13:54-58"]
       };
     }
@@ -915,6 +925,7 @@ class UIController {
         whatWasTaught: "The Sermon on the Mount (Matthew 5–7): The Beatitudes, the salt and light of the world, fulfillment of the Law, inner purity, loving enemies, and the Golden Rule.",
         whyTaught: "To reveal the divine character required of citizens of the Kingdom of God and provide the moral law of the New Covenant.",
         context: "A hillside amphitheater overlooking the tranquil waters of the Sea of Galilee.",
+        howAccepted: "The multitudes were astonished at His doctrine, for He taught them as one having divine authority and not as the scribes; vast crowds followed Him down the mountainside eager to hear more and be healed.",
         passages: data.scriptures || ["Matthew 5:1-12", "Matthew 6:9-13", "Matthew 7:24-27"]
       };
     }
@@ -925,6 +936,7 @@ class UIController {
         whatWasTaught: "The Living Water springing up into everlasting life; true worship in spirit and truth rather than geographic rivalry on Mount Gerizim vs. Jerusalem.",
         whyTaught: "To overcome centuries of ethnic hatred and reveal the Messiah to those outside conventional Jewish boundaries.",
         context: "At midday around the ancient well of Jacob near Mount Gerizim in Samaria.",
+        howAccepted: "Remarkably receptive: the Samaritan woman hurried back to the city testifying of Him; the Samaritans besought Jesus to stay two days, and many believed on Him, declaring: 'We have heard him ourselves, and know that this is indeed the Christ, the Saviour of the world' (John 4:42).",
         passages: data.scriptures || ["John 4:5-26", "John 4:39-42"]
       };
     }
@@ -935,17 +947,19 @@ class UIController {
         whatWasTaught: "The Unknown God: God who created heaven and earth dwelleth not in temples made with hands; 'For in him we live, and move, and have our being'; the bodily Resurrection of Christ.",
         whyTaught: "To turn intellectual pagan idolaters toward the living Creator and call all humanity to repentance before the appointed day of judgment.",
         context: "Standing upon the limestone rock of Mars' Hill in view of the Parthenon in classical Athens.",
-        passages: data.scriptures || ["Acts 17:22-31"]
+        howAccepted: "Mixed and skeptical reception: when Paul spoke of the bodily resurrection of the dead, some mocked, and others delayed saying, 'We will hear thee again of this matter.' Nevertheless, certain persons clave unto him and believed, including Dionysius the Areopagite (a member of the supreme judicial council) and a woman named Damaris.",
+        passages: data.scriptures || ["Acts 17:22-34"]
       };
     }
     if (name.includes("corinth")) {
       return {
-        teacher: "The Apostle Paul (with Aquila and Priscilla)",
-        audience: "Synagogue Chief Rulers (Crispus) and Cosmopolitan Gentile Converts",
-        whatWasTaught: "Jesus Christ and Him crucified; spiritual gifts in unity; the supreme virtue of Charity (agape love); the triumphant Resurrection of the Dead (1 Cor 15).",
-        whyTaught: "To correct doctrinal factions, moral laxity, and spiritual pride in a wealthy, commercial Roman seaport city.",
+        teacher: "The Apostle Paul (with Aquila, Priscilla, Silas, and Timothy; later Apollos)",
+        audience: "Synagogue Chief Rulers (Crispus), Justus, Gaius, Erastus, and Cosmopolitan Gentile Converts",
+        whatWasTaught: "Jesus Christ and Him crucified; the body as a temple of the Holy Ghost; spiritual gifts in unity; the supreme virtue of Charity (agape love); the triumphant physical Resurrection of the Dead (1 Cor 15).",
+        whyTaught: "To correct doctrinal factions, moral laxity, legal disputes, and spiritual pride in a wealthy, commercial Roman seaport city.",
         context: "A bustling Isthmian trading hub under the Roman governor Gallio.",
-        passages: data.scriptures || ["1 Corinthians 1:18-25", "1 Corinthians 13:1-13", "1 Corinthians 15:20-28"]
+        howAccepted: "A vibrant church was established: synagogue leader Crispus believed on the Lord with all his house and was baptized, along with Gaius, Stephanas, and many Corinthians. Unbelieving opponents united against Paul and dragged him before Proconsul Gallio's judgment seat (Bema); when Gallio dismissed the case, Paul enjoyed legal protection to preach for another full year.",
+        passages: data.scriptures || ["1 Corinthians 1:18-25", "1 Corinthians 6:19-20", "1 Corinthians 13:1-13", "1 Corinthians 15:12-22"]
       };
     }
     if (name.includes("ephesus")) {
@@ -955,7 +969,8 @@ class UIController {
         whatWasTaught: "The Holy Ghost and true baptism; grace through faith (Ephesians 2:8); the unity of the body of Christ; the Whole Armour of God (Eph 6); letters to the Seven Churches (Rev 2:1-7).",
         whyTaught: "To anchor believers against idolatrous commercial pressure (the cult of Diana/Artemis) and occult sorcery.",
         context: "The capital of Roman Asia, where Paul reasoned daily for two years in the lecture hall of Tyrannus.",
-        passages: data.scriptures || ["Acts 19:1-10", "Ephesians 2:8-10", "Ephesians 6:10-18", "Revelation 2:1-7"]
+        howAccepted: "Enormous regional harvest: all who dwelt in Asia heard the word; repentant magicians burned occult books worth 50,000 drachmas; Demetrius the silversmith incited a massive 2-hour riot in the 25,000-seat Great Theater shouting 'Great is Diana of the Ephesians!', but the church stood firm and became the apostolic hub of Asia Minor.",
+        passages: data.scriptures || ["Acts 19:1-20", "Acts 19:23-41", "Ephesians 2:8-10", "Ephesians 6:10-18"]
       };
     }
     if (name.includes("rome")) {
@@ -965,7 +980,8 @@ class UIController {
         whatWasTaught: "Justification by faith in Jesus Christ; reconciliation of Jews and Gentiles; 'The just shall live by faith'; no condemnation to them which are in Christ Jesus (Romans 8).",
         whyTaught: "To establish doctrinal foundations for the central church of the Western Mediterranean and prepare for missions to the ends of the empire.",
         context: "The imperial capital of the Caesars, where Paul preached under house arrest and both apostles later suffered martyrdom.",
-        passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:30-31"]
+        howAccepted: "Roman Christians came out along the Appian Way as far as Appii Forum to welcome Paul; local Jewish leaders listened with divided opinions; for two years Paul preached in his rented house unhindered, converting soldiers and members of Caesar's household. Later under Nero (~64 AD), severe persecution broke out, leading to Peter and Paul's martyrdoms.",
+        passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:23-31", "Philippians 4:22"]
       };
     }
     if (name.includes("galilee") || region.includes("galilee")) {
@@ -975,6 +991,7 @@ class UIController {
         whatWasTaught: "Parables of the Kingdom (the Sower, the Pearl of Great Price, the Mustard Seed); calming the storm; walking upon the water; feeding the multitudes.",
         whyTaught: "To train His Apostles in unwavering faith and demonstrate His sovereign authority over nature, sickness, and spiritual powers.",
         context: "Shorelines, fishing boats, and hillside terraces around the Sea of Galilee.",
+        howAccepted: "Fishermen immediately left their nets to follow Him; multitudes brought their sick and glorified God; yet village leaders and Pharisees continually questioned His Sabbath actions and plotted against Him.",
         passages: data.scriptures || ["Matthew 13:1-23", "Mark 4:35-41", "Matthew 14:22-33"]
       };
     }
@@ -985,6 +1002,7 @@ class UIController {
         whatWasTaught: "The grace of God extended to the Gentiles; discipleship where believers were first called 'Christians' (Acts 11:26); world evangelism.",
         whyTaught: "To build a welcoming multi-ethnic church and launch the world missionary journeys into Asia Minor and Europe.",
         context: "The capital of Roman Syria along the Orontes River, the 3rd largest city of the Roman world.",
+        howAccepted: "A great multitude believed and turned unto the Lord; disciples were first called Christians here; the congregation sent generous famine relief to Judean saints and, under the guidance of the Holy Ghost, commissioned Paul and Barnabas on their missionary journeys.",
         passages: data.scriptures || ["Acts 11:19-26", "Acts 13:1-4"]
       };
     }
@@ -995,6 +1013,7 @@ class UIController {
         whatWasTaught: "'I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live: And whosoever liveth and believeth in me shall never die' (John 11:25-26); anointing for His burial.",
         whyTaught: "To give an undeniable foretaste of His power over physical death and prepare His followers for His impending Passion and Resurrection.",
         context: "The quiet village of Bethany on the eastern slope of the Mount of Olives.",
+        howAccepted: "Many Jewish mourners who witnessed Lazarus raised believed on Jesus; but the chief priests took counsel to put both Jesus and Lazarus to death because many were leaving them to believe on Christ.",
         passages: data.scriptures || ["John 11:1-44", "John 12:1-8"]
       };
     }
@@ -1005,6 +1024,7 @@ class UIController {
         whatWasTaught: "The Good Tidings of Great Joy: A Saviour is born in the City of David, Christ the Lord; fulfillment of Micah 5:2.",
         whyTaught: "To herald the incarnation of the Son of God to the meek of the earth.",
         context: "Judean hill country during the imperial Roman census ordered by Caesar Augustus.",
+        howAccepted: "Humble shepherds made known abroad the angelic saying, glorifying God; Persian Magi worshipped the child King with costly gifts; while paranoid King Herod slew the infants of Bethlehem in an attempt to destroy the Messiah.",
         passages: data.scriptures || ["Luke 2:8-20", "Matthew 2:1-12"]
       };
     }
@@ -1016,12 +1036,13 @@ class UIController {
       whatWasTaught: "The message of the Kingdom of God, repentance, the atonement and resurrection of Christ, and righteous living.",
       whyTaught: "To establish the Church of God, gather souls to Christ, and bear witness of His gospel.",
       context: `The 1st-century New Testament world (${data.region || "Roman Empire"}).`,
+      howAccepted: "Wherever the Word was preached, sincere seekers embraced the truth and gathered into house churches, often persevering through civic and familial opposition.",
       passages: data.scriptures || []
     };
   }
 
   renderTeachingsTab(dossier, type) {
-    const t = dossier.teachings || this.normalizeTeachings(type, dossier);
+    const t = this.normalizeTeachings(type, dossier);
     const passages = (t.passages && t.passages.length) ? t.passages : (dossier.scriptures || []);
 
     return `
@@ -1065,6 +1086,18 @@ class UIController {
           ${t.context}
         </div>
       </div>
+
+      ${t.howAccepted ? `
+        <div class="teachings-card teachings-card-sage">
+          <div class="teachings-card-title">
+            <span>🤝</span>
+            <span>How the Teachings Were Accepted & Community Response</span>
+          </div>
+          <div class="teachings-card-body">
+            ${t.howAccepted}
+          </div>
+        </div>
+      ` : ''}
 
       ${passages && passages.length > 0 ? `
         <div class="feature-card" style="margin-top: 0.5rem;">

@@ -713,6 +713,10 @@
   border-left: 4px solid #B45309;
 }
 
+.teachings-card-sage {
+  border-left: 4px solid #047857;
+}
+
 .teachings-card-title {
   display: flex;
   align-items: center;

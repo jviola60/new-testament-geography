@@ -744,35 +744,55 @@ class UIController {
   switchScriptureVersion(cardEl, version) {
     if (!cardEl) return;
     const bodyEl = cardEl.querySelector(".scripture-body");
-    const badgeEl = cardEl.querySelector(".version-badge");
+    const badgeEl = cardEl.querySelector(".version-badge") || cardEl.querySelector(".scripture-kjv-tag");
     const dropdown = cardEl.querySelector(".scripture-version-dropdown");
     if (!bodyEl) return;
 
-    if (dropdown) {
+    if (dropdown && typeof dropdown.querySelectorAll === "function") {
       dropdown.querySelectorAll(".scripture-version-item").forEach(item => {
         if (item.dataset.version === version) item.classList.add("selected");
         else item.classList.remove("selected");
       });
     }
 
+    const ref = cardEl.dataset.ref || "";
     const dec = (attr) => decodeURIComponent(cardEl.getAttribute(attr) || "");
+    const kjvText = dec("data-kjv") || bodyEl.textContent.replace(/^"|"$/g, "");
+
+    // Dynamically retrieve translation to ensure newest translation engine is used
+    const trans = (typeof SCRIPTURE_TRANSLATIONS !== "undefined")
+      ? SCRIPTURE_TRANSLATIONS.get(ref, kjvText)
+      : null;
+
     let text = "";
     bodyEl.classList.remove("hebrew-text", "greek-text");
 
     if (version === "kjv") {
-      text = dec("data-kjv");
+      text = kjvText;
       if (badgeEl) badgeEl.textContent = "KJV";
     } else if (version === "niv") {
-      text = dec("data-niv");
+      // Primary: read from dynamic engine, secondary: attribute
+      if (trans && trans.niv && trans.niv !== kjvText) {
+        text = trans.niv;
+      } else {
+        const attrNiv = dec("data-niv");
+        if (attrNiv && attrNiv !== kjvText) {
+          text = attrNiv;
+        } else if (typeof SCRIPTURE_TRANSLATIONS !== "undefined" && SCRIPTURE_TRANSLATIONS.modernizeToPlainEnglish) {
+          text = SCRIPTURE_TRANSLATIONS.modernizeToPlainEnglish(kjvText);
+        } else {
+          text = kjvText;
+        }
+      }
       if (badgeEl) badgeEl.textContent = "NIV (Easy-to-Read)";
     } else if (version === "hebrew") {
-      text = dec("data-hebrew");
-      if (!text) text = `[נוסח עברי לברית החדשה: ${cardEl.dataset.ref}]`;
+      text = (trans && trans.hebrew) ? trans.hebrew : dec("data-hebrew");
+      if (!text) text = `[נוסח עברי לברית החדשה: ${ref}]`;
       bodyEl.classList.add("hebrew-text");
       if (badgeEl) badgeEl.textContent = "HEBREW (עברית)";
     } else if (version === "greek") {
-      text = dec("data-greek");
-      if (!text) text = `[Textus Receptus Koine Greek: ${cardEl.dataset.ref}]`;
+      text = (trans && trans.greek) ? trans.greek : dec("data-greek");
+      if (!text) text = `[Textus Receptus Koine Greek: ${ref}]`;
       bodyEl.classList.add("greek-text");
       if (badgeEl) badgeEl.textContent = "ORIGINAL GREEK (Ἑλληνική)";
     }
@@ -1795,30 +1815,7 @@ class UIController {
           </div>
         `;
       } else if (this.currentTab === "scripture") {
-        html = `
-          <div class="kjv-translation-notice">
-            <span class="kjv-badge">King James Version (KJV)</span>
-            <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
-            ${data.scriptures.map(s => `
-              <div class="scripture-verse-card">
-                <div class="scripture-card-top">
-                  <span class="scripture-citation">📖 ${s.ref}</span>
-                  <span class="scripture-kjv-tag">KJV</span>
-                </div>
-                <div class="scripture-body">"${s.text}"</div>
-                <div class="scripture-action-row">
-                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn" title="Open full chapter on ChurchofJesusChrist.org">
-                    <span>Read Full Chapter on ChurchofJesusChrist.org</span>
-                    <span class="btn-arrow">↗</span>
-                  </a>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        `;
+        html = this.renderScriptureCards(data.scriptures);
       } else if (this.currentTab === "people") {
         html = `
           <div class="feature-card" style="margin-bottom:1rem;">
@@ -1935,30 +1932,7 @@ class UIController {
           </div>
         `;
       } else if (this.currentTab === "scripture") {
-        html = `
-          <div class="kjv-translation-notice">
-            <span class="kjv-badge">King James Version (KJV)</span>
-            <span>Official Holy Bible translation with direct Church of Jesus Christ study links.</span>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
-            ${data.scriptures.map(s => `
-              <div class="scripture-verse-card">
-                <div class="scripture-card-top">
-                  <span class="scripture-citation">📖 ${s.ref}</span>
-                  <span class="scripture-kjv-tag">KJV</span>
-                </div>
-                <div class="scripture-body">"${s.text}"</div>
-                <div class="scripture-action-row">
-                  <a href="${s.churchLink || this.getChurchScriptureLink(s.ref)}" target="_blank" rel="noopener" class="church-scripture-btn">
-                    <span>Read Full Chapter on ChurchofJesusChrist.org</span>
-                    <span class="btn-arrow">↗</span>
-                  </a>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        `;
+        html = this.renderScriptureCards(data.scriptures);
       } else if (this.currentTab === "people") {
         html = `
           <div class="feature-card" style="margin-bottom:1rem;">

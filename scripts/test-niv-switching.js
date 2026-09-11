@@ -155,11 +155,16 @@ testPlaces.forEach(place => {
       return;
     }
 
-    // Switch to Hebrew
-    ui.switchScriptureVersion(card, "hebrew");
-    const hebText = card.querySelector(".scripture-body").textContent;
-    if (!hebText || hebText.length < 5) {
-      failures.push(`[${place.name} - ${ref}] Hebrew text missing`);
+    // Switch to JST (Joseph Smith Translation)
+    ui.switchScriptureVersion(card, "jst");
+    const jstText = card.querySelector(".scripture-body").textContent;
+    const jstBadge = card.querySelector(".scripture-kjv-tag").textContent;
+    if (!jstText || jstText.length < 5) {
+      failures.push(`[${place.name} - ${ref}] JST text missing`);
+      return;
+    }
+    if (jstBadge !== "JST (Joseph Smith Translation)") {
+      failures.push(`[${place.name} - ${ref}] JST badge wrong: "${jstBadge}"`);
       return;
     }
 
@@ -180,8 +185,9 @@ testPlaces.forEach(place => {
     }
 
     passes++;
-    console.log(`  ✓ ${ref} | KJV -> NIV -> Hebrew -> Greek -> KJV verified.`);
+    console.log(`  ✓ ${ref} | KJV -> NIV -> JST -> Greek -> KJV verified.`);
     console.log(`    NIV Preview: "${nivText.slice(0, 75)}..."`);
+    console.log(`    JST Preview: "${jstText.slice(0, 75)}..."`);
   });
 });
 

@@ -680,18 +680,18 @@ class UIController {
       <div class="kjv-translation-notice" style="display:flex; justify-content:space-between; align-items:center;">
         <div>
           <span class="kjv-badge">Multi-Translation Active</span>
-          <span style="font-size:0.76rem; color:var(--text-secondary); margin-left:6px;">Default: KJV. Tap <strong>⋮</strong> on any card for Easy-to-Read NIV (7th/8th Grade), Greek & Hebrew.</span>
+          <span style="font-size:0.76rem; color:var(--text-secondary); margin-left:6px;">Default: KJV. Tap <strong>⋮</strong> on any card for Easy-to-Read NIV (7th/8th Grade), JST & Greek.</span>
         </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
         ${list.map((s, idx) => {
           const trans = (typeof SCRIPTURE_TRANSLATIONS !== "undefined")
             ? SCRIPTURE_TRANSLATIONS.get(s.ref, s.text)
-            : { kjv: s.text, niv: s.text, hebrew: "", greek: "" };
+            : { kjv: s.text, niv: s.text, jst: s.text, greek: "" };
 
           const kjvText = (trans && trans.kjv) ? trans.kjv : (s.text || "");
           const nivText = (trans && trans.niv) ? trans.niv : kjvText;
-          const hebrewText = (trans && trans.hebrew) ? trans.hebrew : "";
+          const jstText = (trans && trans.jst) ? trans.jst : kjvText;
           const greekText = (trans && trans.greek) ? trans.greek : "";
 
           const enc = (val) => encodeURIComponent(val || "");
@@ -702,13 +702,13 @@ class UIController {
                  data-ref="${s.ref}"
                  data-kjv="${enc(kjvText)}"
                  data-niv="${enc(nivText)}"
-                 data-hebrew="${enc(hebrewText)}"
+                 data-jst="${enc(jstText)}"
                  data-greek="${enc(greekText)}">
               <div class="scripture-card-top">
                 <span class="scripture-citation">📖 ${s.ref}</span>
                 <div class="scripture-card-top-right">
                   <span class="scripture-kjv-tag version-badge">KJV</span>
-                  <button class="scripture-card-menu-btn" title="Choose Bible Translation (KJV, NIV, Hebrew, Greek)" aria-label="Version options">⋮</button>
+                  <button class="scripture-card-menu-btn" title="Choose Bible Translation (KJV, NIV, JST, Greek)" aria-label="Version options">⋮</button>
                   <div class="scripture-version-dropdown">
                     <button class="scripture-version-item selected" data-version="kjv">
                       <span>King James (KJV)</span>
@@ -718,11 +718,12 @@ class UIController {
                       <span>Easy-to-Read (NIV • 7th/8th Grade)</span>
                       <span style="font-size:0.65rem; color:#0284C7; font-weight:700;">EASY ENGLISH</span>
                     </button>
+                    <button class="scripture-version-item" data-version="jst">
+                      <span>Joseph Smith Translation (JST)</span>
+                      <span style="font-size:0.65rem; color:#854D0E; font-weight:700;">CHURCH EDITION</span>
+                    </button>
                     <button class="scripture-version-item" data-version="greek">
                       <span>Original Greek (Ἑλληνική • Koine)</span>
-                    </button>
-                    <button class="scripture-version-item" data-version="hebrew">
-                      <span>Hebrew Translation (עברית • Delitzsch)</span>
                     </button>
                   </div>
                 </div>
@@ -765,7 +766,7 @@ class UIController {
       : null;
 
     let text = "";
-    bodyEl.classList.remove("hebrew-text", "greek-text");
+    bodyEl.classList.remove("jst-text", "greek-text", "hebrew-text");
 
     if (version === "kjv") {
       text = kjvText;
@@ -785,11 +786,11 @@ class UIController {
         }
       }
       if (badgeEl) badgeEl.textContent = "NIV (Easy-to-Read)";
-    } else if (version === "hebrew") {
-      text = (trans && trans.hebrew) ? trans.hebrew : dec("data-hebrew");
-      if (!text) text = `[נוסח עברי לברית החדשה: ${ref}]`;
-      bodyEl.classList.add("hebrew-text");
-      if (badgeEl) badgeEl.textContent = "HEBREW (עברית)";
+    } else if (version === "jst") {
+      text = (trans && trans.jst) ? trans.jst : dec("data-jst");
+      if (!text) text = kjvText;
+      bodyEl.classList.add("jst-text");
+      if (badgeEl) badgeEl.textContent = "JST (Joseph Smith Translation)";
     } else if (version === "greek") {
       text = (trans && trans.greek) ? trans.greek : dec("data-greek");
       if (!text) text = `[Textus Receptus Koine Greek: ${ref}]`;

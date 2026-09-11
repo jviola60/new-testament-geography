@@ -17,6 +17,7 @@ const files = [
   "js/data/tours.js",
   "js/data/placeDossiers.js",
   "js/data/scriptureTranslations.js",
+  "js/data/churchVideos.js",
   "js/uiController.js"
 ];
 
@@ -58,7 +59,7 @@ ui.sidebarEyebrow = mockEl();
 ui.sidebarContent = mockEl();
 ui.tabButtons = [];
 
-const tabs = ["overview", "scripture", "teachings", "people", "political", "chronology"];
+const tabs = ["overview", "scripture", "teachings", "videos", "people", "political", "chronology"];
 const failures = [];
 
 function assertTabs(label, type, data) {

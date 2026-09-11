@@ -680,7 +680,7 @@ class UIController {
       <div class="kjv-translation-notice" style="display:flex; justify-content:space-between; align-items:center;">
         <div>
           <span class="kjv-badge">Multi-Translation Active</span>
-          <span style="font-size:0.76rem; color:var(--text-secondary); margin-left:6px;">Default: KJV. Tap <strong>⋮</strong> on any card for NIV, Greek & Hebrew.</span>
+          <span style="font-size:0.76rem; color:var(--text-secondary); margin-left:6px;">Default: KJV. Tap <strong>⋮</strong> on any card for Easy-to-Read NIV (7th/8th Grade), Greek & Hebrew.</span>
         </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:0.9rem; margin-top:0.75rem;">
@@ -715,7 +715,8 @@ class UIController {
                       <span style="font-size:0.68rem; color:var(--color-crimson); font-weight:700;">DEFAULT</span>
                     </button>
                     <button class="scripture-version-item" data-version="niv">
-                      <span>New International (NIV)</span>
+                      <span>Easy-to-Read (NIV • 7th/8th Grade)</span>
+                      <span style="font-size:0.65rem; color:#0284C7; font-weight:700;">EASY ENGLISH</span>
                     </button>
                     <button class="scripture-version-item" data-version="greek">
                       <span>Original Greek (Ἑλληνική • Koine)</span>
@@ -763,7 +764,7 @@ class UIController {
       if (badgeEl) badgeEl.textContent = "KJV";
     } else if (version === "niv") {
       text = dec("data-niv");
-      if (badgeEl) badgeEl.textContent = "NIV";
+      if (badgeEl) badgeEl.textContent = "NIV (Easy-to-Read)";
     } else if (version === "hebrew") {
       text = dec("data-hebrew");
       if (!text) text = `[נוסח עברי לברית החדשה: ${cardEl.dataset.ref}]`;
@@ -1059,6 +1060,67 @@ class UIController {
           </div>
         </div>
       ` : ''}
+    `;
+  }
+
+  renderVideosTab(data, type) {
+    const list = (typeof findChurchVideosForPlace === "function")
+      ? findChurchVideosForPlace(data, type)
+      : ((typeof CHURCH_BIBLE_VIDEOS !== "undefined" && CHURCH_BIBLE_VIDEOS) ? CHURCH_BIBLE_VIDEOS.slice(0, 4) : []);
+
+    const placeName = (data && (data.name || data.city || data.title)) || "the New Testament World";
+    const isWelcome = !data;
+
+    return `
+      <div class="video-tab-header">
+        <div class="video-tab-title">
+          <span>🎬</span>
+          <span>${isWelcome ? "Official Bible Videos Collection" : `Bible Videos for ${placeName}`}</span>
+        </div>
+        <div class="video-tab-subtitle">
+          Produced by The Church of Jesus Christ of Latter-day Saints. These videos faithfully portray the mortal ministry, miracles, teachings, and Resurrection of Jesus Christ and the Apostles.
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:0.9rem;">
+        ${list.map(v => `
+          <div class="video-card">
+            <div class="video-preview-banner">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="video-category-pill">${v.category || "BIBLE VIDEO"}</span>
+                <span style="font-size:0.72rem; color:#FDE68A; opacity:0.85;">ChurchofJesusChrist.org</span>
+              </div>
+              <div class="video-play-overlay" title="Watch on ChurchofJesusChrist.org">
+                ▶
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                <span style="font-size:0.74rem; color:rgba(255,255,255,0.8); font-style:italic;">${v.thumbnailText || placeName}</span>
+                <span class="video-duration-pill">⏱️ ${v.duration || "Video"}</span>
+              </div>
+            </div>
+
+            <div class="video-card-body">
+              <h4 class="video-title">${v.title}</h4>
+              <div class="video-scripture-ref">
+                <span>📖</span>
+                <span>${v.scriptureRef}</span>
+              </div>
+              <p class="video-description">${v.description}</p>
+
+              <div class="video-action-row">
+                <a href="${v.churchUrl}" target="_blank" rel="noopener" class="video-watch-btn" title="Watch this Bible Video on ChurchofJesusChrist.org">
+                  <span>▶ Watch Video on ChurchofJesusChrist.org</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+                <a href="${this.getChurchScriptureLink(v.scriptureRef)}" target="_blank" rel="noopener" class="church-scripture-btn" style="font-size:0.76rem; padding:0.4rem 0.65rem;">
+                  <span>📖 Read Chapter Context (KJV)</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
     `;
   }
 
@@ -1522,6 +1584,8 @@ class UIController {
           </div>
         </div>
       `;
+    } else if (this.currentTab === "videos") {
+      html = this.renderVideosTab(null, "welcome");
     } else if (this.currentTab === "people") {
       html = `
         <div class="feature-card" style="margin-bottom:1rem;">
@@ -1669,6 +1733,14 @@ class UIController {
     if (this.currentTab === "teachings") {
       const dossier = this.normalizeDossier(type, data);
       this.sidebarContent.innerHTML = this.renderTeachingsTab(dossier, type);
+      return;
+    }
+
+    // -------------------------------------------------------------------------
+    // BIBLE VIDEOS TAB (ALL ENTITY TYPES: CITIES, SITES, WATERS, REGIONS)
+    // -------------------------------------------------------------------------
+    if (this.currentTab === "videos") {
+      this.sidebarContent.innerHTML = this.renderVideosTab(data, type);
       return;
     }
 

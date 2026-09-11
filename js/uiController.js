@@ -1100,12 +1100,18 @@ class UIController {
         <div class="video-tab-subtitle">
           Produced by The Church of Jesus Christ of Latter-day Saints. These videos faithfully portray the mortal ministry, miracles, teachings, and Resurrection of Jesus Christ and the Apostles.
         </div>
+        <div style="margin-top:0.75rem;">
+          <a href="https://www.churchofjesuschrist.org/tools/help/new-testament-videos?lang=eng" target="_blank" rel="noopener" class="video-directory-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 0.85rem; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; color:#1E3A8A; font-size:0.78rem; text-decoration:none; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:all 0.15s ease;">
+            <span>🎬 Browse Full New Testament Videos Index (ChurchofJesusChrist.org)</span>
+            <span class="btn-arrow" style="font-size:0.85rem;">↗</span>
+          </a>
+        </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:0.9rem;">
         ${list.map(v => `
           <div class="video-card">
-            <div class="video-preview-banner">
+            <a href="${v.churchUrl}" target="_blank" rel="noopener" class="video-preview-banner" style="text-decoration:none; cursor:pointer;" title="Watch this Bible Video on ChurchofJesusChrist.org">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="video-category-pill">${v.category || "BIBLE VIDEO"}</span>
                 <span style="font-size:0.72rem; color:#FDE68A; opacity:0.85;">ChurchofJesusChrist.org</span>
@@ -1117,7 +1123,7 @@ class UIController {
                 <span style="font-size:0.74rem; color:rgba(255,255,255,0.8); font-style:italic;">${v.thumbnailText || placeName}</span>
                 <span class="video-duration-pill">⏱️ ${v.duration || "Video"}</span>
               </div>
-            </div>
+            </a>
 
             <div class="video-card-body">
               <h4 class="video-title">${v.title}</h4>

@@ -893,5 +893,10 @@
   box-shadow: 0 2px 8px rgba(136, 26, 26, 0.4);
 }
 
-
-
+.video-directory-btn:hover {
+  background: #EFF6FF !important;
+  border-color: #93C5FD !important;
+  color: #1D4ED8 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+}

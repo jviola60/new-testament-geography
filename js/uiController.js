@@ -1184,27 +1184,58 @@ class UIController {
     `;
   }
 
+  formatParagraphs(text) {
+    if (!text) return "";
+    if (text.includes("<p>") || text.includes("<div") || text.includes("<ul>")) return text;
+    return text.split(/\n\n+/).map(p => `<p style="font-size:0.88rem; line-height:1.6; color:inherit; margin-top:0.5rem; margin-bottom:0.5rem;">${p.replace(/\n/g, '<br>')}</p>`).join("");
+  }
+
   normalizeDossier(type, data) {
-    const region = this.getRelatedRegion(data);
-    const name = data.name || data.city || data.title || "Selected Place";
+    const matchingCity = (type === "diaspora" || type === "church")
+      ? this.findCityByName(data.city || data.name)
+      : null;
+
+    const region = this.getRelatedRegion(data) || (matchingCity && this.getRelatedRegion(matchingCity));
+    const name = data.name || data.city || data.title || (matchingCity && matchingCity.name) || "Selected Place";
     const scriptures = this.gatherRelatedScriptures(data);
-    const teachings = this.normalizeTeachings(type, data);
+
+    if (matchingCity && matchingCity.scriptures) {
+      const seenRefs = new Set(scriptures.map(s => s.ref));
+      this.asScriptureList(matchingCity.scriptures).forEach(s => {
+        if (!seenRefs.has(s.ref)) {
+          seenRefs.add(s.ref);
+          scriptures.push(s);
+        }
+      });
+    }
+
+    const epistles = (data.epistles && data.epistles.length)
+      ? data.epistles
+      : (matchingCity && matchingCity.epistles ? matchingCity.epistles : []);
+
+    const teachings = this.normalizeTeachings(type, {
+      ...data,
+      name,
+      region: data.region || (matchingCity && matchingCity.region),
+      scriptures
+    });
+
     return {
       name,
-      ancientName: data.ancientName || "",
-      summary: data.summary || data.significance || data.description || data.history || "",
-      overview: data.overview || data.significance || data.description || data.history || data.summary || "",
+      ancientName: data.ancientName || (matchingCity && matchingCity.ancientName) || "",
+      summary: data.summary || data.significance || data.description || data.history || (matchingCity && matchingCity.summary) || "",
+      overview: data.overview || data.significance || data.description || data.history || data.summary || (matchingCity && matchingCity.overview) || "",
       scriptures,
       teachings,
-      peopleAndChurch: data.peopleAndChurch || [data.jewishDiasporaInfo, data.christianChurchInfo, data.founders, data.companions].filter(Boolean).join(" "),
-      politicalInsights: data.politicalInsights || (region && region.politicalInsights) || "",
-      eraChronology: data.eraChronology || data.growthMilestone || "",
-      region: data.region || (region && region.name) || "",
-      capital: data.capital || "",
-      governor: data.governor || "",
-      elevation: data.elevation || data.elev || "",
-      population: data.population || data.estimatedPopulation || "",
-      epistles: data.epistles || [],
+      peopleAndChurch: data.peopleAndChurch || (matchingCity && matchingCity.peopleAndChurch) || [data.jewishDiasporaInfo, data.christianChurchInfo, data.founders, data.companions].filter(Boolean).join(" "),
+      politicalInsights: data.politicalInsights || (matchingCity && matchingCity.politicalInsights) || (region && region.politicalInsights) || "",
+      eraChronology: data.eraChronology || (matchingCity && matchingCity.eraChronology) || data.growthMilestone || "",
+      region: data.region || (region && region.name) || (matchingCity && matchingCity.region) || "",
+      capital: data.capital || (matchingCity && matchingCity.capital) || "",
+      governor: data.governor || (matchingCity && matchingCity.governor) || "",
+      elevation: data.elevation || data.elev || (matchingCity && matchingCity.elevation) || "",
+      population: data.population || data.estimatedPopulation || (matchingCity && matchingCity.population) || "",
+      epistles,
       extra: data
     };
   }
@@ -2301,33 +2332,94 @@ class UIController {
             <div class="scripture-citation">Multiplication Milestone</div>
             <div class="scripture-body">${data.growthMilestone}</div>
           </div>
+          ${dossier.epistles && dossier.epistles.length > 0 ? `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Connected New Testament Epistles</h3>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                ${dossier.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study ${e} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
         `;
       } else if (this.currentTab === "scripture") {
         html = this.renderScriptureCards(dossier.scriptures);
+        if (dossier.epistles && dossier.epistles.length > 0) {
+          html += `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Epistles Connected with ${dossier.name}</h3>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                ${dossier.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study ${e} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
       } else if (this.currentTab === "people") {
         html = `
-          <div class="feature-card">
-            <h3>Founders & Saints</h3>
-            <p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">
-              ${dossier.peopleAndChurch || `Planted by ${data.founders}. ${data.significance}`}
-            </p>
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">👥</span>
+              <h3 style="margin:0;">Founders, Witnesses & Early Church</h3>
+            </div>
+            <div style="color:var(--text-secondary); margin-top:0.5rem;">
+              ${this.formatParagraphs(dossier.peopleAndChurch || `Planted by ${data.founders}. ${data.significance}`)}
+            </div>
           </div>
+          ${data.founders && !dossier.peopleAndChurch.includes(data.founders) ? `
+            <div class="history-block">
+              <h4>Apostolic Leadership</h4>
+              <p>Planted under the direction of <strong>${data.founders}</strong> (~${data.foundedYear || "50"} AD).</p>
+            </div>
+          ` : ''}
         `;
       } else if (this.currentTab === "political") {
         html = `
-          <div class="political-insight-card">
-            <div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Civic Setting</h3></div>
-            <p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">
-              ${dossier.politicalInsights || `The church at ${data.city} grew in ${data.region || "the Roman world"} under imperial peace, synagogue networks, and local magistrates.`}
-            </p>
+          <div class="political-insight-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Civic Setting & Roman Governance</h3>
+            </div>
+            <div style="color:#451A03; margin-top:0.6rem;">
+              ${this.formatParagraphs(dossier.politicalInsights || `The church at ${data.city} grew in ${data.region || "the Roman world"} under imperial peace, synagogue networks, and local magistrates.`)}
+            </div>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Province / Region</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.region || "Roman Empire"}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">First Church Planted</span>
+              <span class="demographic-value" style="font-size:0.88rem;">~${data.foundedYear || "50"} AD</span>
+            </div>
           </div>
         `;
       } else if (this.currentTab === "chronology") {
         html = `
-          <div class="history-block">
-            <h4>Era Chronicle</h4>
-            <p>${dossier.eraChronology || data.growthMilestone}</p>
-            <p><strong>Founded:</strong> ~${data.foundedYear} AD</p>
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Era Chronicle & Growth Milestones</h4>
+            <div style="font-size:0.9rem; line-height:1.55;">
+              ${this.formatParagraphs(dossier.eraChronology || data.growthMilestone)}
+            </div>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Congregation Founded</span>
+              <span class="demographic-value" style="font-size:0.88rem;">~${data.foundedYear || "50"} AD</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Apostolic Era Span</span>
+              <span class="demographic-value" style="font-size:0.88rem;">~30 AD – 100 AD</span>
+            </div>
           </div>
         `;
       }
@@ -2354,15 +2446,96 @@ class UIController {
             <h3>Role in Apostolic Missions</h3>
             <p style="font-size:0.85rem; color:var(--text-secondary);">${data.scriptureRole}</p>
           </div>
+          ${dossier.epistles && dossier.epistles.length > 0 ? `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Connected New Testament Epistles</h3>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                ${dossier.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study ${e} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
         `;
       } else if (this.currentTab === "scripture") {
         html = this.renderScriptureCards(dossier.scriptures);
+        if (dossier.epistles && dossier.epistles.length > 0) {
+          html += `
+            <div class="feature-card" style="margin-top:1rem;">
+              <h3>Epistles Connected with ${dossier.name}</h3>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                ${dossier.epistles.map(e => `
+                  <a href="${this.getChurchScriptureLink(e)}" target="_blank" rel="noopener" class="church-scripture-btn">
+                    <span>📖 Study ${e} on ChurchofJesusChrist.org</span>
+                    <span class="btn-arrow">↗</span>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
       } else if (this.currentTab === "people") {
-        html = `<div class="feature-card"><h3>Community & Witnesses</h3><p style="font-size:0.88rem; line-height:1.55; color:var(--text-secondary); margin-top:0.5rem;">${dossier.peopleAndChurch || data.scriptureRole}</p></div>`;
+        html = `
+          <div class="feature-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">👥</span>
+              <h3 style="margin:0;">Community, Witnesses & Named Figures</h3>
+            </div>
+            <div style="color:var(--text-secondary); margin-top:0.5rem;">
+              ${this.formatParagraphs(dossier.peopleAndChurch || data.scriptureRole)}
+            </div>
+          </div>
+          ${data.scriptureRole && !dossier.peopleAndChurch.includes(data.scriptureRole) ? `
+            <div class="history-block">
+              <h4>Role in Apostolic Missions</h4>
+              <p>${data.scriptureRole}</p>
+            </div>
+          ` : ''}
+        `;
       } else if (this.currentTab === "political") {
-        html = `<div class="political-insight-card"><div class="insight-header"><span class="insight-icon">🏛️</span><h3 style="margin:0; color:#78350F;">Diaspora Standing under Rome</h3></div><p style="font-size:0.88rem; line-height:1.55; color:#451A03; margin-top:0.6rem;">${dossier.politicalInsights || data.history}</p></div>`;
+        html = `
+          <div class="political-insight-card" style="margin-bottom:1rem;">
+            <div class="insight-header">
+              <span class="insight-icon">🏛️</span>
+              <h3 style="margin:0; color:#78350F;">Diaspora Standing under Rome (~6 BC – 100 AD)</h3>
+            </div>
+            <div style="color:#451A03; margin-top:0.6rem;">
+              ${this.formatParagraphs(dossier.politicalInsights || data.history)}
+            </div>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Province / Region</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.region || "Roman Empire"}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Legal Charter</span>
+              <span class="demographic-value" style="font-size:0.88rem;">Collegium Licitum</span>
+            </div>
+          </div>
+        `;
       } else if (this.currentTab === "chronology") {
-        html = `<div class="history-block"><h4>Era Chronicle</h4><p>${dossier.eraChronology || `Established ${data.established}; active throughout the New Testament era.`}</p></div>`;
+        html = `
+          <div class="history-block" style="margin-bottom:1rem;">
+            <h4>Era Chronicle & Historical Milestones</h4>
+            <div style="font-size:0.9rem; line-height:1.55;">
+              ${this.formatParagraphs(dossier.eraChronology || `Established ${data.established}; active throughout the New Testament era.`)}
+            </div>
+          </div>
+          <div class="demographic-stats-grid">
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Settlement Established</span>
+              <span class="demographic-value" style="font-size:0.88rem;">${data.established || "Antiquity"}</span>
+            </div>
+            <div class="demographic-stat-box">
+              <span class="demographic-label">Biblical Era Span</span>
+              <span class="demographic-value" style="font-size:0.88rem;">~6 BC – 100 AD</span>
+            </div>
+          </div>
+        `;
       }
 
     // -------------------------------------------------------------------------

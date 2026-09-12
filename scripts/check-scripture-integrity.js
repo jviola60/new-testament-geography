@@ -114,6 +114,14 @@ const bethTeacher = bethlehem && bethlehem.teachings && bethlehem.teachings.teac
 ok(bethTeacher && !/Micah|Wise Men|Magi/i.test(bethTeacher), `Bethlehem teacher still lists Micah or Magi: "${bethTeacher}"`);
 ok(bethlehem && /angel/i.test(bethlehem.teachings.teacher), "Bethlehem teacher should be the angelic announcement");
 
+const magdalaTeacher = cities.find((c) => c.id === "magdala");
+ok(magdalaTeacher && !/^Jesus Christ$/.test(magdalaTeacher.teachings.teacher), `Magdala teacher still invents a local office: "${magdalaTeacher && magdalaTeacher.teachings && magdalaTeacher.teachings.teacher}"`);
+ok(magdalaTeacher && /Matthew 15:39/.test(magdalaTeacher.teachings.teacher) && /no synagogue sermon/i.test(magdalaTeacher.teachings.teacher), "Magdala teacher should mirror Malta-style honesty (coasts recorded; no narrated synagogue sermon)");
+
+const capernaumContext = cities.find((c) => c.id === "capernaum");
+ok(capernaumContext && /Archaeological color \(not a verse\)/.test(capernaumContext.teachings.context), "Capernaum context should label basalt/Peter's house as archaeological color, not a verse");
+ok(capernaumContext && /Mark 1:21/.test(capernaumContext.teachings.context), "Capernaum context should keep the synagogue on a verse (Mark 1:21)");
+
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);
   fails.forEach((f) => console.error(" -", f));

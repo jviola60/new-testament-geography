@@ -230,8 +230,10 @@ async function measureOverflow(page) {
   await page.screenshot({ path: path.join(OUT, "phone_tours.png"), fullPage: false });
   await page.locator("#closeTourModalBtn").click();
 
+  await page.locator("#closeSidebarBtn").click();
+  await page.waitForTimeout(250);
   await page.evaluate(() => window.app.map.focusRegion("holy-land"));
-  await page.waitForTimeout(1600);
+  await page.waitForTimeout(1800);
   const holy = await page.evaluate(() => {
     const zoom = document.querySelector(".leaflet-control-zoom");
     const fabs = document.querySelector(".map-floating-actions");

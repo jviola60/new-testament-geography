@@ -277,10 +277,10 @@
   }
 
   html.layout-mobile .map-floating-actions {
-    top: auto;
+    top: 48px;
     right: auto;
     left: 8px;
-    bottom: 52px;
+    bottom: auto;
   }
 
   html.layout-mobile #holyLandQuickBtn {
@@ -300,9 +300,14 @@
   html.layout-mobile .city-label-text.city-label-major {
     font-size: 9px;
     letter-spacing: 0.02em;
-    max-width: 72px;
+    max-width: 96px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  html.layout-mobile .city-label-text.city-label-primary {
+    max-width: none;
+    font-size: 10px;
   }
 
   html.layout-mobile:not(.mobile-zoomed) .city-label-text {
@@ -315,8 +320,8 @@
 
   html.layout-mobile .map-legend-box {
     bottom: 12px;
-    left: 10px;
-    max-width: min(200px, 62vw);
+    left: 52px;
+    max-width: min(200px, 58vw);
     max-height: 36%;
     overflow: hidden;
   }

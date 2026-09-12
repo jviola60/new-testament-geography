@@ -34,7 +34,7 @@
     --header-height: 48px;
     --filterbar-height: 52px;
     --citybar-height: 52px;
-    --footer-height: 160px;
+    --footer-height: 176px;
     --tap: 44px;
   }
 
@@ -546,7 +546,7 @@
   /* Timeline: keep era chips, enlarge controls */
   html.layout-mobile .app-timeline-footer {
     height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
-    padding: 0.45rem 0.7rem max(22px, calc(16px + env(safe-area-inset-bottom, 0px)));
+    padding: 0.45rem 0.7rem max(28px, calc(20px + env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
     overflow: visible;
   }
@@ -624,7 +624,7 @@
   html.layout-mobile .timeline-slider-track-wrap {
     margin-top: 0.35rem;
     margin-bottom: 0;
-    padding: 10px 2px 14px;
+    padding: 10px 2px 18px;
     box-sizing: border-box;
   }
 

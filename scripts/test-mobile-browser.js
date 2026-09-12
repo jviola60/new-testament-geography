@@ -98,7 +98,7 @@ async function measureOverflow(page) {
       footerPad: getComputedStyle(footer).paddingBottom
     };
   });
-  if (thumbFit.sliderBottom > thumbFit.viewH - 8) {
+  if (thumbFit.sliderBottom > thumbFit.viewH - 16) {
     fail(`Timeline track is clipped at the viewport: bottom=${thumbFit.sliderBottom} view=${thumbFit.viewH}`);
   }
   if (thumbFit.footerBottom > thumbFit.viewH + 1) {

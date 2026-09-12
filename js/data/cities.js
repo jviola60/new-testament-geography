@@ -478,14 +478,14 @@ const CITIES_DATA = [
     region: "Aegean Sea",
     lat: 37.3090,
     lng: 26.5460,
-    isMajor: true,
+    isMajor: false,
     hasSynagogue: false,
     hasChurch: true,
     population: "~500 (Penal colony)",
     jewishDiasporaInfo: "Rocky penal exile island in the Dodecanese archipelago where the Apostle John was banished.",
-    christianChurchInfo: "The Apostle John was exiled here under Emperor Domitian (~95 AD) 'for the word of God, and for the testimony of Jesus Christ' (Revelation 1:9).",
+    christianChurchInfo: "The Apostle John was exiled here under Emperor Domitian (~95 AD) 'for the word of God, and for the testimony of Jesus Christ' (Revelation 1:9), where he wrote the Book of Revelation.",
     epistles: ["Revelation"],
-    significance: "Site where John beheld the resurrected Christ in celestial majesty, receiving the apocalyptic visions of Revelation and messages to the Seven Churches of Asia."
+    significance: "The holy island where the Book of Revelation was written by the Apostle John in the Cave of the Apocalypse, recording the cosmic visions of the resurrected Savior and prophetic letters to the Seven Churches of Asia."
   },
 
   // --- MACEDONIA & GREECE ---

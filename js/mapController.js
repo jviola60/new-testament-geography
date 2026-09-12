@@ -444,40 +444,6 @@ class MapController {
     if (!CITIES_DATA) return;
 
     CITIES_DATA.forEach(city => {
-      // Special prominent representation for the Isle of Patmos (Apostle John's Exile)
-      if (city.id === "patmos") {
-        const patmosMarker = L.marker([city.lat, city.lng], {
-          icon: L.divIcon({
-            className: "custom-patmos-marker",
-            html: `
-              <div class="patmos-pin-wrap" title="Isle of Patmos • Apostle John's Exile & Revelation">
-                <span class="patmos-pin-icon">📜</span>
-                <span class="patmos-pin-label">Patmos <small>(Apostle John)</small></span>
-              </div>
-            `,
-            iconSize: [124, 30],
-            iconAnchor: [62, 15]
-          }),
-          zIndexOffset: 1500
-        });
-
-        patmosMarker.bindTooltip(`
-          <div class="custom-bible-tooltip">
-            <strong>📜 ISLE OF PATMOS (Pathomis)</strong><br>
-            <span style="color:#D97706; font-weight:700;">Aegean Sea • Exile of the Apostle John (~95 AD)</span><br>
-            <small>"I John, who also am your brother... was in the isle that is called Patmos, for the word of God, and for the testimony of Jesus Christ." (Rev 1:9)</small><br>
-            <span style="color:#B91C1C; font-size:10px; font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & Revelation Scriptures</span>
-          </div>
-        `, { className: "custom-bible-tooltip", sticky: true, direction: "top" });
-
-        patmosMarker.on("click", (e) => {
-          if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
-          window.app.ui.showCityDetail(city);
-        });
-
-        this.layers.cities.addLayer(patmosMarker);
-        return;
-      }
 
       // Create custom HTML label
       const isMajor = city.isMajor;

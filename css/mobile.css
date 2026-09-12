@@ -26,7 +26,7 @@
 
   /* Hide the desktop drawer on first paint, before JS adds layout-mobile */
   .detail-sidebar:not(.sheet-half):not(.sheet-full):not(.sheet-peek) {
-    transform: translateY(110%);
+    transform: translateY(100vh);
   }
 
   html.layout-mobile {
@@ -369,9 +369,11 @@
     box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28);
   }
 
-  html.layout-mobile .detail-sidebar.closed {
-    transform: translateY(110%);
+  html.layout-mobile .detail-sidebar.closed,
+  html.layout-mobile .detail-sidebar:not(.sheet-half):not(.sheet-full):not(.sheet-peek) {
+    transform: translateY(100vh);
     pointer-events: none;
+    box-shadow: none;
   }
 
   html.layout-mobile.sheet-open {

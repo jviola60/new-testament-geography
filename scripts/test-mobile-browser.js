@@ -66,6 +66,14 @@ async function measureOverflow(page) {
   const active = await page.locator(".filter-chip.active").count();
   if (active < 3) fail("Layer chips did not activate");
 
+  const closedSheet = await page.evaluate(() => {
+    const el = document.getElementById("detailSidebar");
+    const r = el.getBoundingClientRect();
+    return { top: r.top, height: r.height, viewH: window.innerHeight };
+  });
+  if (closedSheet.top < closedSheet.viewH - 4) {
+    fail(`Closed details sheet still visible at top=${closedSheet.top} in ${closedSheet.viewH}px viewport`);
+  }
   await page.screenshot({ path: path.join(OUT, "phone_layers.png"), fullPage: false });
 
   await page.evaluate(() => window.app.ui.openSidebar());
@@ -208,8 +216,39 @@ async function measureOverflow(page) {
   });
   if (tourOverlap.count < 4) fail(`Expected 4+ tour cards, found ${tourOverlap.count}`);
   if (tourOverlap.overlap) fail("Tour picker cards overlap");
+  await page.locator("#tourModalBody").evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await page.waitForTimeout(200);
+  const lastCard = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll(".tour-select-card")];
+    const last = cards[cards.length - 1];
+    const r = last.getBoundingClientRect();
+    const title = last.querySelector(".tour-card-title")?.textContent || "";
+    return { title, top: r.top, bottom: r.bottom, height: r.height };
+  });
+  if (!/Seven Churches/i.test(lastCard.title)) fail(`Last tour card should be Seven Churches, got ${lastCard.title}`);
+  if (lastCard.height < 70) fail("Last tour card is collapsed/clipped");
   await page.screenshot({ path: path.join(OUT, "phone_tours.png"), fullPage: false });
   await page.locator("#closeTourModalBtn").click();
+
+  await page.evaluate(() => window.app.map.focusRegion("holy-land"));
+  await page.waitForTimeout(1600);
+  const holy = await page.evaluate(() => {
+    const zoom = document.querySelector(".leaflet-control-zoom");
+    const fabs = document.querySelector(".map-floating-actions");
+    const labels = [...document.querySelectorAll(".city-label-text")].filter(el => {
+      const s = getComputedStyle(el);
+      return s.display !== "none" && s.visibility !== "hidden" && el.offsetParent !== null;
+    }).map(el => el.textContent.trim());
+    return {
+      zoomLeft: zoom ? zoom.getBoundingClientRect().left : -1,
+      fabLeft: fabs.getBoundingClientRect().left,
+      labels,
+      zoomClass: document.documentElement.classList.contains("mobile-zoomed")
+    };
+  });
+  if (holy.zoomLeft > 120) fail(`Zoom control should be bottom-left on Holy Land, left=${holy.zoomLeft}`);
+  if (holy.labels.some(n => /smyrna/i.test(n))) fail("Smyrna label should stay hidden at Holy Land zoom");
+  await page.screenshot({ path: path.join(OUT, "phone_holy_land.png"), fullPage: false });
 
   // Tablet width
   const tablet = await browser.newContext({

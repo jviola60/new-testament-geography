@@ -24,11 +24,17 @@ class MobileShell {
     this.searchBtn = document.getElementById("mobileSearchBtn");
     this.toursBtn = document.getElementById("mobileToursBtn");
     this.moreBtn = document.getElementById("mobileMoreBtn");
+    this.filterBtn = document.getElementById("mobileFilterBtn");
+    this.filterLabel = document.getElementById("mobileFilterLabel");
+    this.filterDot = document.getElementById("mobileFilterDot");
+    this.filterMenu = document.getElementById("mobileFilterMenu");
+    this.cityBar = document.getElementById("mobileCityBar");
 
     this.applyLayout();
     this.bindViewport();
     this.bindHeader();
     this.bindSheet();
+    this.bindFilterDropdown();
     this.bindCityPicker();
     this.bindMoreSheet();
     this.bindBasemapToggle();
@@ -57,8 +63,9 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open");
-      body.classList.remove("search-open", "sheet-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open");
+      body.classList.remove("search-open", "sheet-open", "filter-menu-open");
+      if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
       if (this.sidebar) {
         this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging", "closed");
@@ -210,6 +217,7 @@ class MobileShell {
         document.documentElement.classList.toggle("search-open", open);
         this.searchBtn.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
+          this.closeFilterMenu();
           const input = document.getElementById("globalSearchInput");
           if (input) input.focus();
         }
@@ -219,6 +227,7 @@ class MobileShell {
     if (this.toursBtn) {
       this.toursBtn.addEventListener("click", () => {
         this.closeSearch();
+        this.closeFilterMenu();
         this.closeOverlays();
         const desktopTours = document.getElementById("storyToursBtn");
         if (desktopTours) desktopTours.click();
@@ -229,6 +238,7 @@ class MobileShell {
       this.moreBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         this.closeSearch();
+        this.closeFilterMenu();
         this.openMoreSheet();
       });
     }
@@ -330,6 +340,8 @@ class MobileShell {
     const sheetOpen = this.isPhone() && mode !== "hidden";
     document.documentElement.classList.toggle("sheet-open", sheetOpen);
     document.body.classList.toggle("sheet-open", sheetOpen);
+    if (this.cityBar) this.cityBar.setAttribute("aria-hidden", sheetOpen ? "true" : "false");
+    if (sheetOpen) this.closeFilterMenu();
     if (!opts.silent) this.invalidateMap(320);
   }
 
@@ -361,11 +373,95 @@ class MobileShell {
     }, 400);
   }
 
+  bindFilterDropdown() {
+    if (!this.filterBtn) return;
+
+    this.filterBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.closeSearch();
+      if (this.isFilterMenuOpen()) this.closeFilterMenu();
+      else this.openFilterMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!this.isFilterMenuOpen()) return;
+      if (e.target.closest("#mobileFilterBtn") || e.target.closest("#mobileFilterMenu")) return;
+      this.closeFilterMenu();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.isFilterMenuOpen()) this.closeFilterMenu();
+    });
+
+    document.querySelectorAll(".filter-chip").forEach((chip) => {
+      chip.addEventListener("click", () => this.syncFilterLabel());
+    });
+
+    this.syncFilterLabel();
+  }
+
+  isFilterMenuOpen() {
+    return document.documentElement.classList.contains("filter-menu-open");
+  }
+
+  openFilterMenu() {
+    if (this.citySheet && this.citySheet.classList.contains("open")) this.closeOverlays();
+    document.documentElement.classList.add("filter-menu-open");
+    document.body.classList.add("filter-menu-open");
+    this.filterBtn.setAttribute("aria-expanded", "true");
+    if (this.filterMenu) this.filterMenu.setAttribute("role", "listbox");
+  }
+
+  closeFilterMenu() {
+    document.documentElement.classList.remove("filter-menu-open");
+    document.body.classList.remove("filter-menu-open");
+    if (this.filterBtn) this.filterBtn.setAttribute("aria-expanded", "false");
+  }
+
+  syncFilterLabel() {
+    const chips = [...document.querySelectorAll(".filter-chip")];
+    const active = chips.filter((chip) => chip.classList.contains("active"));
+    const names = active.map((chip) => (chip.textContent || "").replace(/\s+/g, " ").trim());
+    let label = "Layers";
+    let dotClass = "";
+
+    if (active.some((chip) => chip.dataset.filter === "all") || names.includes("All Visible")) {
+      label = "All Visible";
+      dotClass = "dot-all";
+    } else if (names.length === 1) {
+      label = names[0];
+      const key = active[0].dataset.filter;
+      const mapped = {
+        savior: "dot-savior",
+        diaspora: "dot-diaspora",
+        churches: "dot-church",
+        journeys: "dot-journey",
+        heatmaps: "dot-heatmap",
+        provinces: "dot-provinces",
+        jerusalemSites: "dot-jerusalem",
+        jerusalemGeography: "dot-jerusalem-geo"
+      };
+      dotClass = mapped[key] || "";
+    } else if (names.length > 1) {
+      label = `${names[0]} +${names.length - 1}`;
+      dotClass = "dot-all";
+    }
+
+    if (this.filterLabel) this.filterLabel.textContent = label;
+    if (this.filterDot) {
+      this.filterDot.className = `mobile-filter-dot ${dotClass}`.trim();
+    }
+    if (this.filterBtn) {
+      this.filterBtn.setAttribute("aria-label", `Map layers, ${label}`);
+    }
+  }
+
   bindCityPicker() {
     if (!this.cityBtn) return;
 
     this.cityBtn.addEventListener("click", () => {
       this.closeSearch();
+      this.closeFilterMenu();
       this.openCityPicker();
     });
 
@@ -432,6 +528,7 @@ class MobileShell {
     this.closeOverlays();
     if (this.cityCurrent && label) {
       this.cityCurrent.textContent = label;
+      if (this.cityBar) this.cityBar.classList.add("has-place");
     }
     if (window.app && window.app.ui) {
       window.app.ui.jumpToQuickJumpValue(value);
@@ -550,5 +647,6 @@ class MobileShell {
     }
     if (this.cityBtn) this.cityBtn.setAttribute("aria-expanded", "false");
     if (this.moreBtn) this.moreBtn.setAttribute("aria-expanded", "false");
+    this.closeFilterMenu();
   }
 }

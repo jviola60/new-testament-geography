@@ -6,6 +6,7 @@
    ========================================================================== */
 
 .mobile-header-actions,
+.mobile-filter-trigger,
 .mobile-city-bar,
 .mobile-backdrop,
 .mobile-picker-sheet,
@@ -32,9 +33,9 @@
 
   html.layout-mobile {
     --header-height: 48px;
-    --filterbar-height: 52px;
+    --filterbar-height: 0px;
     --citybar-height: 52px;
-    --footer-height: 176px;
+    --footer-height: 168px;
     --tap: 44px;
   }
 
@@ -125,24 +126,30 @@
     min-width: var(--tap);
   }
 
-  /* Layer chips: two thumb-scrollable rows */
+  /* Desktop chip bar collapses; chips reappear in the filter dropdown */
   html.layout-mobile .layer-filter-bar {
-    height: var(--filterbar-height);
+    position: absolute;
+    width: 0;
+    height: 0;
+    min-height: 0;
     padding: 0;
-    align-items: stretch;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    background: transparent;
+    pointer-events: none;
   }
 
   html.layout-mobile .filter-scroll-track {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
+    position: static;
+    width: auto;
+    height: 0;
+    overflow: visible;
     gap: 0;
-    overflow: hidden;
-    height: 100%;
   }
 
   html.layout-mobile .filter-group-layers {
-    width: 100%;
+    width: auto;
     min-width: 0;
   }
 
@@ -151,23 +158,91 @@
     display: none;
   }
 
-  html.layout-mobile .filter-chip-rows {
+  html.layout-mobile .mobile-filter-trigger {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
     align-items: center;
-    width: 100%;
     gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0 12px;
-    scroll-padding-inline: 12px;
+    flex: 0 1 42%;
+    min-width: 0;
+    max-width: 48%;
+    min-height: var(--tap);
+    height: var(--tap);
+    padding: 0 10px;
+    border: 1.5px solid var(--border-parchment-dark);
+    border-radius: 10px;
+    background: #FFFDF8;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   }
 
-  html.layout-mobile .filter-chip-rows::-webkit-scrollbar {
+  html.layout-mobile .mobile-filter-dot {
+    flex: 0 0 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #A3937C;
+  }
+
+  html.layout-mobile .mobile-filter-dot.dot-all { background: #A3937C; }
+  html.layout-mobile .mobile-filter-dot.dot-savior { background: #EAB308; }
+  html.layout-mobile .mobile-filter-dot.dot-diaspora { background: #3B82F6; }
+  html.layout-mobile .mobile-filter-dot.dot-church { background: #DC2626; }
+  html.layout-mobile .mobile-filter-dot.dot-journey { background: #16A34A; }
+  html.layout-mobile .mobile-filter-dot.dot-heatmap { background: #F97316; }
+  html.layout-mobile .mobile-filter-dot.dot-provinces { background: #854D0E; }
+  html.layout-mobile .mobile-filter-dot.dot-jerusalem,
+  html.layout-mobile .mobile-filter-dot.dot-jerusalem-geo { background: #B45309; }
+
+  html.layout-mobile .mobile-filter-label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile .mobile-filter-caret {
+    color: #B45309;
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  html.layout-mobile.filter-menu-open .mobile-filter-trigger {
+    border-color: #D97706;
+    background: #FFF8EB;
+  }
+
+  html.layout-mobile .filter-chip-rows {
     display: none;
+    position: fixed;
+    top: calc(var(--header-height) + env(safe-area-inset-top) + var(--citybar-height) + 4px);
+    left: 8px;
+    right: 8px;
+    z-index: 1550;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 4px;
+    max-height: min(56vh, 420px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding: 6px;
+    background: #FFFDF8;
+    border: 1.5px solid var(--border-parchment-dark);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  }
+
+  html.layout-mobile.filter-menu-open .filter-chip-rows {
+    display: flex;
+    pointer-events: auto;
   }
 
   html.layout-mobile .filter-chip-row {
@@ -176,21 +251,20 @@
 
   html.layout-mobile .filter-chip {
     flex: 0 0 auto;
+    width: 100%;
+    justify-content: flex-start;
     min-height: var(--tap);
     padding: 0.35rem 0.8rem;
     font-size: 0.78rem;
     box-sizing: border-box;
+    border-radius: 8px;
   }
 
-  html.layout-mobile .filter-chip-rows::after {
-    content: "";
-    flex: 0 0 12px;
-  }
-
-  /* City / region picker bar */
+  /* One compact command row: filter dropdown + city/region jump */
   html.layout-mobile .mobile-city-bar {
     display: flex;
     align-items: center;
+    gap: 6px;
     height: var(--citybar-height);
     padding: 0 8px;
     background: #F4EBDA;
@@ -202,10 +276,13 @@
   html.layout-mobile .mobile-city-picker-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
+    gap: 6px;
+    flex: 1 1 58%;
+    width: auto;
+    min-width: 0;
     min-height: var(--tap);
-    padding: 0 10px;
+    height: var(--tap);
+    padding: 0 8px 0 10px;
     border: 1.5px solid #D97706;
     border-radius: 10px;
     background: #FFFDF8;
@@ -217,7 +294,8 @@
   }
 
   html.layout-mobile .mobile-city-picker-icon {
-    font-size: 1.1rem;
+    flex: 0 0 auto;
+    font-size: 1rem;
     line-height: 1;
   }
 
@@ -230,7 +308,7 @@
 
   html.layout-mobile .mobile-city-picker-label {
     font-family: var(--font-serif-title);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #451A03;
     white-space: nowrap;
@@ -240,6 +318,23 @@
 
   html.layout-mobile .mobile-city-picker-current {
     display: none;
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile .mobile-city-bar.has-place .mobile-city-picker-label {
+    display: none;
+  }
+
+  html.layout-mobile .mobile-city-bar.has-place .mobile-city-picker-current {
+    display: block;
+    font-family: var(--font-serif-title);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #451A03;
   }
 
   html.layout-mobile .mobile-city-picker-caret {
@@ -448,6 +543,13 @@
 
   html.layout-mobile.sheet-open .mobile-city-bar {
     display: none;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  html.layout-mobile.sheet-open.filter-menu-open .filter-chip-rows {
+    display: none;
+    pointer-events: none;
   }
 
   html.layout-mobile .detail-sidebar.sheet-half,
@@ -547,50 +649,61 @@
     overflow-y: auto;
   }
 
-  /* Timeline: keep era chips, enlarge controls */
+  /* Timeline: denser chrome, same core controls, thumb above safe-area */
   html.layout-mobile .app-timeline-footer {
     height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
-    padding: 0.45rem 0.7rem max(28px, calc(20px + env(safe-area-inset-bottom, 0px)));
+    padding: 4px 8px max(28px, calc(20px + env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
     overflow: visible;
+    justify-content: flex-start;
+    gap: 2px;
   }
 
   html.layout-mobile .timeline-control-bar {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: minmax(0, auto) minmax(72px, 1fr);
     grid-template-areas:
       "playback date"
       "eras eras";
-    gap: 0.35rem 0.6rem;
+    gap: 2px 6px;
     align-items: center;
+    min-width: 0;
   }
 
   html.layout-mobile .playback-controls {
     grid-area: playback;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  html.layout-mobile .speed-selector {
+    margin-left: 0.05rem;
+    padding: 1px;
+    flex: 0 0 auto;
   }
 
   html.layout-mobile .current-date-badge {
     grid-area: date;
     min-width: 0;
     width: 100%;
-    padding: 0.2rem 0.55rem;
+    padding: 1px 6px;
   }
 
   html.layout-mobile .badge-year {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
 
   html.layout-mobile .badge-season {
     font-size: 0.64rem;
-    max-width: none;
+    max-width: 100%;
   }
 
   html.layout-mobile .era-selector-tabs {
     grid-area: eras;
     display: flex;
     width: 100%;
-    padding: 0 12px;
-    scroll-padding-inline: 12px;
+    padding: 0 8px;
+    scroll-padding-inline: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -598,7 +711,7 @@
 
   html.layout-mobile .era-selector-tabs::after {
     content: "";
-    flex: 0 0 12px;
+    flex: 0 0 8px;
   }
 
   html.layout-mobile .btn-ctrl {
@@ -607,26 +720,26 @@
   }
 
   html.layout-mobile .btn-play {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 
   html.layout-mobile .speed-btn {
     min-height: var(--tap);
     min-width: var(--tap);
-    padding: 4px 10px;
-    font-size: 0.78rem;
+    padding: 2px 6px;
+    font-size: 0.72rem;
   }
 
   html.layout-mobile .era-tab {
     min-height: var(--tap);
-    padding: 0.4rem 0.85rem;
-    font-size: 0.72rem;
+    padding: 3px 10px;
+    font-size: 0.68rem;
     border-radius: 999px;
   }
 
   html.layout-mobile .timeline-slider-track-wrap {
-    margin-top: 0.35rem;
+    margin-top: 2px;
     margin-bottom: 0;
     padding: 10px 2px 18px;
     box-sizing: border-box;
@@ -934,13 +1047,14 @@ html.layout-mobile .mobile-picker-empty {
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) and (max-height: 500px) {
   html.layout-mobile {
-    --filterbar-height: 52px;
+    --filterbar-height: 0px;
     --citybar-height: 52px;
     --footer-height: 120px;
   }
 
-  html.layout-mobile .filter-chip-rows {
-    flex-direction: row;
+  html.layout-mobile.filter-menu-open .filter-chip-rows {
+    flex-direction: column;
+    max-height: min(48vh, 280px);
   }
 
   html.layout-mobile .filter-chip-row {

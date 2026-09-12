@@ -188,19 +188,86 @@ async function measureOverflow(page) {
   }
 
   const cityBar = page.locator("#mobileCityPickerBtn");
+  const filterBtn = page.locator("#mobileFilterBtn");
   if (!(await cityBar.isVisible())) fail("City picker bar not visible on phone");
+  if (!(await filterBtn.isVisible())) fail("Filter dropdown trigger not visible on phone");
 
+  const commandRow = await page.evaluate(() => {
+    const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
+    const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
+    const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    const chipRows = document.querySelector(".filter-chip-rows");
+    const chipOpen = getComputedStyle(chipRows).display !== "none";
+    return {
+      filter: { top: filter.top, bottom: filter.bottom, left: filter.left, right: filter.right, height: filter.height, width: filter.width },
+      city: { top: city.top, bottom: city.bottom, left: city.left, right: city.right, height: city.height, width: city.width },
+      barHeight: bar.height,
+      sameRow: Math.abs(filter.top - city.top) < 8,
+      sideBySide: filter.right <= city.left + 1,
+      chipMenuOpen: chipOpen
+    };
+  });
+  console.log("Command row:", commandRow);
+  if (!commandRow.sameRow) fail("Filter dropdown and city jump must share one row");
+  if (!commandRow.sideBySide) fail("City jump must sit beside the filter dropdown, not underneath");
+  if (commandRow.barHeight > 56) fail(`Command row should be one compact strip, height=${commandRow.barHeight}`);
+  if (commandRow.chipMenuOpen) fail("Filter list should stay closed until the dropdown is opened");
+  assertTap("mobile-filter-trigger", commandRow.filter);
+  assertTap("mobile-city-picker-btn", commandRow.city);
+
+  const mapChrome = await page.evaluate(() => {
+    const main = document.querySelector(".app-main-container").getBoundingClientRect();
+    const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
+    const header = document.querySelector(".app-header").getBoundingClientRect();
+    const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    return {
+      viewH: window.innerHeight,
+      viewW: window.innerWidth,
+      mapH: main.height,
+      headerH: header.height,
+      commandH: bar.height,
+      footerH: footer.height,
+      chromeH: header.height + bar.height + footer.height,
+      footerTokens: getComputedStyle(document.documentElement).getPropertyValue("--footer-height").trim()
+    };
+  });
+  console.log("Phone map chrome:", mapChrome);
+  // main stacked two 52px bars + 176px footer = 328px chrome with 48px header.
+  // Compact row + PR #4 footer clearance (~168px) should still free the stacked chip row.
+  const mainChrome = 48 + 52 + 52 + 176;
+  const gain = mainChrome - mapChrome.chromeH;
+  console.log(`Map viewport ${mapChrome.mapH}px; chrome ${mapChrome.chromeH}px; gain vs main chrome ≈ ${gain}px`);
+  if (mapChrome.mapH < mapChrome.viewH - 280) {
+    fail(`Map viewport too short: ${mapChrome.mapH}px in ${mapChrome.viewH}px view (chrome=${mapChrome.chromeH})`);
+  }
+  if (gain < 52) fail(`Expected ≥52px chrome savings vs main (collapsed chip row), got ${gain}px`);
+  if (mapChrome.footerH > 176) fail(`Timeline footer grew past main's 176px: ${mapChrome.footerH}px`);
+  const footerPad = await page.evaluate(() => getComputedStyle(document.querySelector(".app-timeline-footer")).paddingBottom);
+  const padPx = parseFloat(footerPad);
+  if (!(padPx >= 27.5)) fail(`Footer padding-bottom ${footerPad} must restore PR #4's 28px clearance`);
+
+  await page.locator("#mobileFilterBtn").click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
   const rows = await page.locator(".filter-chip-row").count();
   if (rows !== 2) fail(`Expected 2 chip rows, found ${rows}`);
   const chips = await page.locator(".filter-chip").count();
   if (chips < 8) fail(`Expected 8+ chips, found ${chips}`);
 
+  const openChip = await page.locator('.filter-chip[data-filter="savior"]').boundingBox();
+  assertTap("filter-chip", openChip);
   await page.locator('.filter-chip[data-filter="savior"]').click();
   await page.locator('.filter-chip[data-filter="journeys"]').click();
   await page.locator('.filter-chip[data-filter="heatmaps"]').click();
   await page.waitForTimeout(300);
   const active = await page.locator(".filter-chip.active").count();
   if (active < 3) fail("Layer chips did not activate");
+  const filterLabel = (await page.locator("#mobileFilterLabel").innerText()).trim();
+  if (!/Savior|Journey|Heatmap|\+\d/i.test(filterLabel)) {
+    fail(`Filter trigger should show current selection, got "${filterLabel}"`);
+  }
+  await page.screenshot({ path: path.join(OUT, "phone_filter_dropdown.png"), fullPage: false });
+  await page.locator("#mobileFilterBtn").click();
+  await page.waitForTimeout(150);
 
   const closedSheet = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
@@ -240,6 +307,25 @@ async function measureOverflow(page) {
   if (!/God so loved/i.test(welcomeOverlap.quoteText)) fail("John 3:16 welcome quote missing");
   if (welcomeOverlap.quoteCovered) fail("John 3:16 is still covered by the timeline");
 
+  const sheetChrome = await page.evaluate(() => {
+    const bar = document.getElementById("mobileCityBar");
+    const filter = document.getElementById("mobileFilterBtn");
+    const city = document.getElementById("mobileCityPickerBtn");
+    const barStyle = getComputedStyle(bar);
+    return {
+      display: barStyle.display,
+      pointerEvents: barStyle.pointerEvents,
+      ariaHidden: bar.getAttribute("aria-hidden"),
+      filterH: filter.getBoundingClientRect().height,
+      cityH: city.getBoundingClientRect().height
+    };
+  });
+  if (sheetChrome.display !== "none") fail(`Command row must hide when sheet is open, display=${sheetChrome.display}`);
+  if (sheetChrome.filterH > 0 || sheetChrome.cityH > 0) {
+    fail(`Layers/Jump still painting while sheet is open: filter=${sheetChrome.filterH} city=${sheetChrome.cityH}`);
+  }
+  if (sheetChrome.ariaHidden !== "true") fail("Command row should be aria-hidden while the sheet is open");
+
   const taps = await page.evaluate(() => {
     const box = (sel) => {
       const el = document.querySelector(sel);
@@ -249,7 +335,6 @@ async function measureOverflow(page) {
     };
     const label = document.querySelector(".city-label-text.city-label-primary");
     return {
-      chip: box(".filter-chip"),
       tab: box(".tab-btn"),
       era: box(".era-tab"),
       fab: box(".map-floating-actions .floating-btn"),
@@ -258,7 +343,6 @@ async function measureOverflow(page) {
       labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : null
     };
   });
-  assertTap("filter-chip", taps.chip);
   assertTap("tab-btn", taps.tab);
   assertTap("era-tab", taps.era);
   assertTap("floating-btn", taps.fab);
@@ -340,15 +424,14 @@ async function measureOverflow(page) {
   await page.locator("#mobileMoreClose").click();
 
   const chrome = await page.evaluate(() => {
-    const chips = document.querySelector(".filter-chip-rows");
+    const bar = document.getElementById("mobileCityBar");
     const tabs = document.querySelector(".sidebar-tabs");
     const eras = document.querySelector(".era-selector-tabs");
     const fabs = document.querySelector(".map-floating-actions");
-    const chipRect = chips.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
     const tabRect = tabs.getBoundingClientRect();
     return {
-      chipHeight: chipRect.height,
-      chipScroll: chips.scrollWidth > chips.clientWidth - 1,
+      commandHeight: barRect.height,
       tabHeight: tabRect.height,
       tabScroll: tabs.scrollWidth > tabs.clientWidth - 4,
       eraOverflow: getComputedStyle(eras).overflowX,
@@ -356,7 +439,7 @@ async function measureOverflow(page) {
       labelsHiddenAtDefault: !document.documentElement.classList.contains("mobile-zoomed")
     };
   });
-  if (chrome.chipHeight > 64) fail(`Layer chips should be a single row, height=${chrome.chipHeight}`);
+  if (chrome.commandHeight > 56) fail(`Command row should be a single strip, height=${chrome.commandHeight}`);
   if (chrome.tabHeight > 68) fail(`Place tabs should be a single row, height=${chrome.tabHeight}`);
   if (chrome.eraOverflow !== "auto" && chrome.eraOverflow !== "scroll") fail(`Era pills overflow-x=${chrome.eraOverflow}`);
   if (chrome.fabLeft > 80) fail(`Map FABs should sit on the left, left=${chrome.fabLeft}`);
@@ -428,6 +511,57 @@ async function measureOverflow(page) {
   }
   await page.screenshot({ path: path.join(OUT, "phone_holy_land.png"), fullPage: false });
 
+  // Narrow phone + large text: command row and footer must still fit
+  const narrow = await browser.newContext({
+    viewport: { width: 360, height: 640 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true
+  });
+  const npage = await narrow.newPage();
+  await npage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await npage.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
+  await npage.addStyleTag({ content: "html { font-size: 20px; }" });
+  await npage.waitForTimeout(400);
+  const narrowState = await npage.evaluate(() => {
+    const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
+    const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
+    const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
+    const slider = document.getElementById("timelineSlider").getBoundingClientRect();
+    const play = document.getElementById("playPauseBtn").getBoundingClientRect();
+    const era = document.querySelector(".era-tab").getBoundingClientRect();
+    const main = document.querySelector(".app-main-container").getBoundingClientRect();
+    return {
+      overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      sameRow: Math.abs(filter.top - city.top) < 10,
+      sideBySide: filter.right <= city.left + 2,
+      barHeight: bar.height,
+      filterH: filter.height,
+      cityH: city.height,
+      playH: play.height,
+      eraH: era.height,
+      footerH: footer.height,
+      sliderBottom: slider.bottom,
+      footerBottom: footer.bottom,
+      viewH: window.innerHeight,
+      mapH: main.height
+    };
+  });
+  console.log("360 large-text chrome:", narrowState);
+  if (narrowState.overflowX > 2) fail(`Horizontal overflow at 360px large text: ${narrowState.overflowX}px`);
+  if (!narrowState.sameRow || !narrowState.sideBySide) fail("360px large text must keep filter + jump on one row");
+  if (narrowState.filterH + 0.5 < 44) fail(`360 filter tap ${narrowState.filterH}px < 44`);
+  if (narrowState.cityH + 0.5 < 44) fail(`360 city tap ${narrowState.cityH}px < 44`);
+  if (narrowState.playH + 0.5 < 44) fail(`360 play tap ${narrowState.playH}px < 44`);
+  if (narrowState.eraH + 0.5 < 44) fail(`360 era tap ${narrowState.eraH}px < 44`);
+  if (narrowState.sliderBottom > narrowState.viewH - 12) {
+    fail(`360px scrubber clipped: bottom=${narrowState.sliderBottom} view=${narrowState.viewH}`);
+  }
+  if (narrowState.mapH < 300) fail(`360px map viewport too short: ${narrowState.mapH}px`);
+  await npage.screenshot({ path: path.join(OUT, "phone_360_large_text.png"), fullPage: false });
+  await narrow.close();
+
   // Tablet width
   const tablet = await browser.newContext({
     viewport: { width: 768, height: 1024 },
@@ -454,6 +588,7 @@ async function measureOverflow(page) {
   const deskState = await dpage.evaluate(() => ({
     layout: document.body.className,
     cityBar: getComputedStyle(document.getElementById("mobileCityBar")).display,
+    filterBtn: getComputedStyle(document.getElementById("mobileFilterBtn")).display,
     basemap: getComputedStyle(document.getElementById("mobileBasemapToggle")).display,
     sidebar: getComputedStyle(document.getElementById("detailSidebar")).width,
     headerRight: getComputedStyle(document.querySelector(".header-right")).display
@@ -461,6 +596,7 @@ async function measureOverflow(page) {
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
+  if (deskState.filterBtn !== "none") fail("Mobile filter dropdown should be hidden on desktop");
   if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();

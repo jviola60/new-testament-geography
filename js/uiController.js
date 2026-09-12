@@ -1235,7 +1235,7 @@ class UIController {
         audience: "Jewish elders summoned to Paul's hired house, Gentile saints, Praetorian guards, and members of Caesar's household",
         whatWasTaught: "Justification by faith in Jesus Christ; reconciliation of Jews and Gentiles; 'The just shall live by faith'; no condemnation to them which are in Christ Jesus (Romans 8).",
         whyTaught: "To establish doctrinal foundations for the central church of the Western Mediterranean and prepare for missions to the ends of the empire.",
-        context: "The imperial capital, where Paul preached two years in his own hired house (Acts 28:30–31). Peter's presence and martyrdom in Rome are early-church testimony, not an Acts narrative.",
+        context: "The imperial capital, where Paul preached two years in his own hired house (Acts 28:30–31). He called the chief of the Jews to that lodging (Acts 28:17)—not a synagogue sermon. Peter's presence and martyrdom in Rome are early-church testimony, not an Acts narrative.",
         howAccepted: "Roman Christians came out along the Appian Way as far as Appii Forum to welcome Paul; local Jewish leaders listened with divided opinions; for two years Paul preached in his rented house unhindered, converting soldiers and members of Caesar's household. Later under Nero (~64 AD), severe persecution broke out, leading to Peter and Paul's martyrdoms.",
         passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:23-31", "Philippians 4:22"]
       };
@@ -1290,12 +1290,12 @@ class UIController {
     }
     if (name.includes("bethlehem")) {
       return {
-        teacher: "Heavenly Angels & Prophets of Israel",
-        audience: "Shepherds Keeping Watch, Mary, Joseph, and the Magi",
-        whatWasTaught: "The Good Tidings of Great Joy: A Saviour is born in the City of David, Christ the Lord; fulfillment of Micah 5:2.",
-        whyTaught: "To herald the incarnation of the Son of God to the meek of the earth.",
-        context: "Judean hill country during the imperial Roman census ordered by Caesar Augustus.",
-        howAccepted: "Humble shepherds made known abroad the angelic saying, glorifying God; Persian Magi worshipped the child King with costly gifts; while paranoid King Herod slew the infants of Bethlehem in an attempt to destroy the Messiah.",
+        teacher: "The angel of the Lord and the heavenly host (Luke 2:9–14)",
+        audience: "Shepherds keeping watch by night (Luke 2:8–18). The Magi worshiped; they did not preach.",
+        whatWasTaught: "Good tidings of great joy: a Saviour is born in the city of David, Christ the Lord (Luke 2:10–11). Micah 5:2 is a prior prophecy, not an on-site teacher.",
+        whyTaught: "To announce the birth of Christ the Lord to the shepherds.",
+        context: "Fields near Bethlehem and the manger (Luke 2:8–16).",
+        howAccepted: "The shepherds made known abroad the saying and glorified God (Luke 2:17–20). The Magi later worshiped and offered gifts (Matthew 2:11). Herod slew the infants of Bethlehem (Matthew 2:16).",
         passages: data.scriptures || ["Luke 2:8-20", "Matthew 2:1-12"]
       };
     }

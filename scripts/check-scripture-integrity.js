@@ -93,7 +93,8 @@ paulineNoJesus.forEach((id) => {
 const synagogueFalse = [
   "philippi", "paphos-cyprus", "bethlehem", "bethsaida", "jericho", "joppa",
   "tarsus", "colossae", "miletus", "cyrene", "laodicea", "pergamum",
-  "smyrna", "philadelphia", "malta", "magdala", "tiberias", "bethany"
+  "smyrna", "philadelphia", "malta", "magdala", "tiberias", "bethany",
+  "sardis", "rome"
 ];
 synagogueFalse.forEach((id) => {
   const city = cities.find((c) => c.id === id);
@@ -102,6 +103,16 @@ synagogueFalse.forEach((id) => {
 ok(cities.find((c) => c.id === "athens")?.hasSynagogue === true, "Athens synagogue badge should stay true");
 ok(cities.find((c) => c.id === "salamis-cyprus")?.hasSynagogue === true, "Salamis synagogue badge should stay true");
 ok(cities.find((c) => c.id === "pisidian-antioch")?.hasSynagogue === true, "Pisidian Antioch synagogue badge should stay true");
+
+const pisidianCity = cities.find((c) => c.id === "pisidian-antioch");
+const pisidianPassages = JSON.stringify(pisidianCity && pisidianCity.teachings && pisidianCity.teachings.passages);
+ok(pisidianPassages.includes("Acts 13"), "Pisidian Antioch lost Acts 13 passages");
+ok(!/Galatians 2/.test(pisidianPassages), "Pisidian Antioch still cites Galatians 2 (Syrian Antioch)");
+
+const bethlehem = cities.find((c) => c.id === "bethlehem");
+const bethTeacher = bethlehem && bethlehem.teachings && bethlehem.teachings.teacher;
+ok(bethTeacher && !/Micah|Wise Men|Magi/i.test(bethTeacher), `Bethlehem teacher still lists Micah or Magi: "${bethTeacher}"`);
+ok(bethlehem && /angel/i.test(bethlehem.teachings.teacher), "Bethlehem teacher should be the angelic announcement");
 
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);

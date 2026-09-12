@@ -16,13 +16,18 @@ assert(html.includes('css/mobile.css'), "index.html should load mobile.css");
 assert(html.includes("js/mobileShell.js"), "index.html should load mobileShell.js");
 assert(html.includes('id="mobileCityPickerBtn"'), "Expected mobile city picker button");
 assert(html.includes('id="mobileFilterBtn"'), "Expected mobile filter dropdown trigger");
+assert(html.includes('id="mobilePeriodBtn"'), "Expected mobile period dropdown trigger");
 assert(html.includes('id="mobileFilterMenu"'), "Expected existing filter chips to back the dropdown");
+assert(html.includes('id="eraTabs"'), "Expected existing era tabs to back the period dropdown");
+assert(html.includes("Jump to place"), "Jump idle label should be the short 'Jump to place' copy");
+assert(!/Jump to any city or region/i.test(html), "Jump idle label must not keep the long city/region sentence");
 assert(html.includes('id="mobileCityPickerSheet"'), "Expected searchable city picker sheet");
 assert(html.includes('id="mobileCitySearch"'), "Expected city picker search input");
 assert(html.includes('id="filterRowPrimary"') && html.includes('id="filterRowSecondary"'), "Expected two filter chip rows");
 assert(
-  html.indexOf('id="mobileFilterBtn"') < html.indexOf('id="mobileCityPickerBtn"'),
-  "Filter dropdown should sit beside (before) the city jump control"
+  html.indexOf('id="mobileFilterBtn"') < html.indexOf('id="mobilePeriodBtn"') &&
+    html.indexOf('id="mobilePeriodBtn"') < html.indexOf('id="mobileCityPickerBtn"'),
+  "Command row should be Layers, then Period, then Jump"
 );
 assert(html.includes("sidebar-tab-row"), "Expected two place-detail tab rows");
 assert((html.match(/class="tab-btn/g) || []).length >= 7, "Expected all seven place-detail tabs");
@@ -36,7 +41,7 @@ assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mo
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
 assert(mobileCss.includes("--tap: 44px"), "Expected --tap token at 44px");
-["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "speed-btn", "sheet-handle"].forEach(sel => {
+["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "mobile-period-trigger", "speed-btn", "sheet-handle"].forEach(sel => {
   const re = new RegExp(`html\\.layout-mobile \\.${sel}(?:[\\s,:][^{]*)?\\{([\\s\\S]{0,240})`);
   const match = mobileCss.match(re);
   assert(match, `Expected mobile rule for .${sel}`);
@@ -47,7 +52,7 @@ assert(!mobileCss.includes("min-height: 32px"), "Speed buttons must not stay at 
 assert(mobileCss.includes("font-size: 12px"), "Primary zoomed city labels should be at least 12px");
 assert(mobileCss.includes("@media (max-width: 768px)"), "Expected phone breakpoint at 768px");
 assert(mobileCss.includes("z-index: 1400"), "Details sheet must stack above the timeline");
-assert(mobileCss.includes("overflow-x: auto"), "Chips/tabs/eras must be horizontally scrollable");
+assert(mobileCss.includes("overflow-x: auto"), "Place tabs must stay horizontally scrollable");
 assert(mobileCss.includes("contain: layout paint") || mobileCss.includes("isolation: isolate"), "Tour cards must not paint over each other");
 assert(!mobileCss.includes("CORINTHS"), "No CORINTHS typo in mobile CSS");
 
@@ -62,7 +67,12 @@ assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell should stack left FA
 assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the period-title height");
 assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the compact filter dropdown");
 assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
+assert(mobileJs.includes("bindPeriodDropdown"), "Mobile shell should wire the compact period dropdown");
+assert(mobileJs.includes("syncPeriodLabel"), "Period trigger should show Period · current era");
+assert(mobileJs.includes("Period ·"), "Period trigger copy should use the Period · current pattern");
 assert(mobileJs.includes("jumpToQuickJumpValue"), "City jump must keep using existing catalog logic");
+assert(!mobileJs.includes("speed dropdown") && !/bindSpeedDropdown/.test(mobileJs), "This PR must not add a Speed dropdown");
+assert(!/timeline-collapsed|collapseTimeline|collapsible Timeline/i.test(mobileJs + mobileCss), "This PR must not collapse the Timeline");
 assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
 assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
 assert(mobileCss.includes("calc(8px + var(--tap) + 10px)"), "Zoom stack should clear the Map|Satellite chip");
@@ -74,13 +84,15 @@ assert(uiJs.includes("jumpToQuickJumpValue"), "uiController should expose shared
 assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile shell");
 
 assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
-assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should restore era tabs below 768px");
+assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should reuse era tabs as the period menu");
 assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
-assert(/--footer-height:\s*168px/.test(mobileCss), "Mobile footer should stay denser than the 176px stacked chrome");
-assert(/--citybar-height:\s*52px/.test(mobileCss), "Filter + jump should share one 52px command row");
+assert(/--footer-height:\s*124px/.test(mobileCss), "Mobile footer should drop the period-chip row");
+assert(/--citybar-height:\s*52px/.test(mobileCss), "Layers + Period + Jump should share one 52px command row");
 assert(/--filterbar-height:\s*0px/.test(mobileCss), "Stacked desktop chip bar must not consume a second mobile row");
 assert(mobileCss.includes("filter-menu-open"), "Filter chips should open from the compact dropdown");
+assert(mobileCss.includes("period-menu-open"), "Era tabs should open from the compact period dropdown");
 assert(!mobileCss.includes("--footer-height: 176px"), "Old 176px mobile footer must not remain the phone default");
+assert(!mobileCss.includes("--footer-height: 168px"), "PR #6 168px footer must shrink after period chips leave the footer");
 assert(
   /max\(28px,\s*calc\(20px \+ env\(safe-area-inset-bottom/.test(mobileCss),
   "Footer must restore PR #4 safe-area padding-bottom"
@@ -93,8 +105,9 @@ assert(
   /sheet-open \.mobile-city-bar[\s\S]{0,120}display:\s*none/.test(mobileCss),
   "Command row must be display:none while the place sheet is open"
 );
-assert(/badge-season[\s\S]{0,80}0\.64rem/.test(mobileCss), "Season label should stay near 0.64rem");
+assert(/badge-season[\s\S]{0,220}clip:\s*rect\(0,\s*0,\s*0,\s*0\)/.test(mobileCss), "Season subtitle must be visually hidden on phone");
 assert(mobileJs.includes('aria-hidden'), "Sheet-open should aria-hide the command row");
+assert(mobileJs.includes("syncYearBadgeAria"), "Year badge should keep season in aria-label");
 
 const chips = html.match(/<button class="filter-chip[^"]*"/g) || [];
 assert(chips.length >= 8, `Expected at least 8 filter chips, found ${chips.length}`);

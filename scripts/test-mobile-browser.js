@@ -189,31 +189,54 @@ async function measureOverflow(page) {
 
   const cityBar = page.locator("#mobileCityPickerBtn");
   const filterBtn = page.locator("#mobileFilterBtn");
+  const periodBtn = page.locator("#mobilePeriodBtn");
   if (!(await cityBar.isVisible())) fail("City picker bar not visible on phone");
   if (!(await filterBtn.isVisible())) fail("Filter dropdown trigger not visible on phone");
+  if (!(await periodBtn.isVisible())) fail("Period dropdown trigger not visible on phone");
 
   const commandRow = await page.evaluate(() => {
     const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
+    const period = document.getElementById("mobilePeriodBtn").getBoundingClientRect();
     const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
     const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
     const chipRows = document.querySelector(".filter-chip-rows");
+    const eras = document.querySelector(".era-selector-tabs");
+    const jumpLabel = (document.querySelector(".mobile-city-picker-label") || {}).textContent || "";
+    const periodLabel = (document.getElementById("mobilePeriodLabel") || {}).textContent || "";
     const chipOpen = getComputedStyle(chipRows).display !== "none";
+    const eraOpen = getComputedStyle(eras).display !== "none";
     return {
       filter: { top: filter.top, bottom: filter.bottom, left: filter.left, right: filter.right, height: filter.height, width: filter.width },
+      period: { top: period.top, bottom: period.bottom, left: period.left, right: period.right, height: period.height, width: period.width },
       city: { top: city.top, bottom: city.bottom, left: city.left, right: city.right, height: city.height, width: city.width },
       barHeight: bar.height,
-      sameRow: Math.abs(filter.top - city.top) < 8,
-      sideBySide: filter.right <= city.left + 1,
-      chipMenuOpen: chipOpen
+      sameRow: Math.abs(filter.top - period.top) < 8 && Math.abs(period.top - city.top) < 8,
+      sideBySide: filter.right <= period.left + 1 && period.right <= city.left + 1,
+      chipMenuOpen: chipOpen,
+      periodMenuOpen: eraOpen,
+      jumpLabel: jumpLabel.trim(),
+      periodLabel: periodLabel.trim()
     };
   });
   console.log("Command row:", commandRow);
-  if (!commandRow.sameRow) fail("Filter dropdown and city jump must share one row");
-  if (!commandRow.sideBySide) fail("City jump must sit beside the filter dropdown, not underneath");
+  if (!commandRow.sameRow) fail("Layers, Period, and Jump must share one row");
+  if (!commandRow.sideBySide) fail("Period must sit between Layers and Jump, not underneath");
   if (commandRow.barHeight > 56) fail(`Command row should be one compact strip, height=${commandRow.barHeight}`);
   if (commandRow.chipMenuOpen) fail("Filter list should stay closed until the dropdown is opened");
+  if (commandRow.periodMenuOpen) fail("Period list should stay closed until the dropdown is opened");
+  if (!/^Jump to place$/i.test(commandRow.jumpLabel)) {
+    fail(`Jump idle label should be "Jump to place", got "${commandRow.jumpLabel}"`);
+  }
+  if (/JUMP TO ANY CITY OR REGION/i.test(commandRow.jumpLabel)) {
+    fail("Jump idle label must not use the long all-caps city/region sentence");
+  }
+  if (!/^Period · /i.test(commandRow.periodLabel)) {
+    fail(`Period trigger should read Period · {current}, got "${commandRow.periodLabel}"`);
+  }
   assertTap("mobile-filter-trigger", commandRow.filter);
+  assertTap("mobile-period-trigger", commandRow.period);
   assertTap("mobile-city-picker-btn", commandRow.city);
+  await page.screenshot({ path: path.join(OUT, "phone_home_compact.png"), fullPage: false });
 
   const mapChrome = await page.evaluate(() => {
     const main = document.querySelector(".app-main-container").getBoundingClientRect();
@@ -232,16 +255,15 @@ async function measureOverflow(page) {
     };
   });
   console.log("Phone map chrome:", mapChrome);
-  // main stacked two 52px bars + 176px footer = 328px chrome with 48px header.
-  // Compact row + PR #4 footer clearance (~168px) should still free the stacked chip row.
-  const mainChrome = 48 + 52 + 52 + 176;
+  // Current main (PR #6): 48 header + 52 command + 168 footer = 268.
+  const mainChrome = 48 + 52 + 168;
   const gain = mainChrome - mapChrome.chromeH;
   console.log(`Map viewport ${mapChrome.mapH}px; chrome ${mapChrome.chromeH}px; gain vs main chrome ≈ ${gain}px`);
-  if (mapChrome.mapH < mapChrome.viewH - 280) {
+  if (mapChrome.mapH < mapChrome.viewH - 240) {
     fail(`Map viewport too short: ${mapChrome.mapH}px in ${mapChrome.viewH}px view (chrome=${mapChrome.chromeH})`);
   }
-  if (gain < 52) fail(`Expected ≥52px chrome savings vs main (collapsed chip row), got ${gain}px`);
-  if (mapChrome.footerH > 176) fail(`Timeline footer grew past main's 176px: ${mapChrome.footerH}px`);
+  if (gain < 36) fail(`Expected ≥36px chrome savings vs PR #6 main (collapsed period chips), got ${gain}px`);
+  if (mapChrome.footerH > 168) fail(`Timeline footer grew past main's 168px: ${mapChrome.footerH}px`);
   const footerPad = await page.evaluate(() => getComputedStyle(document.querySelector(".app-timeline-footer")).paddingBottom);
   const padPx = parseFloat(footerPad);
   if (!(padPx >= 27.5)) fail(`Footer padding-bottom ${footerPad} must restore PR #4's 28px clearance`);
@@ -268,6 +290,68 @@ async function measureOverflow(page) {
   await page.screenshot({ path: path.join(OUT, "phone_filter_dropdown.png"), fullPage: false });
   await page.locator("#mobileFilterBtn").click();
   await page.waitForTimeout(150);
+
+  const yearBadge = await page.evaluate(() => {
+    const year = document.getElementById("displayYear");
+    const season = document.getElementById("displaySeason");
+    const badge = document.getElementById("currentDateBadge");
+    const play = document.getElementById("playPauseBtn");
+    const back = document.getElementById("stepBackBtn");
+    const fwd = document.getElementById("stepForwardBtn");
+    const speed = document.querySelector(".speed-btn");
+    const slider = document.getElementById("timelineSlider");
+    const yr = year.getBoundingClientRect();
+    const sn = season.getBoundingClientRect();
+    const vis = (el) => {
+      const s = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return s.display !== "none" && s.visibility !== "hidden" && r.width > 2 && r.height > 2;
+    };
+    return {
+      yearText: (year.textContent || "").trim(),
+      seasonText: (season.textContent || "").trim(),
+      yearVisible: vis(year),
+      seasonVisible: vis(season) && sn.height > 4,
+      seasonH: sn.height,
+      yearH: yr.height,
+      aria: badge.getAttribute("aria-label") || "",
+      play: vis(play),
+      skip: vis(back) && vis(fwd),
+      speed: vis(speed),
+      scrubber: vis(slider)
+    };
+  });
+  console.log("Year badge:", yearBadge);
+  if (!yearBadge.yearVisible) fail("Year badge must stay visible on phone");
+  if (!/6 BC/.test(yearBadge.yearText)) fail(`Expected year-only "6 BC", got "${yearBadge.yearText}"`);
+  if (yearBadge.seasonVisible) fail(`Season subtitle must not be visible on phone, height=${yearBadge.seasonH}`);
+  if (!/Roman Census|Annunciation/i.test(yearBadge.aria + " " + yearBadge.seasonText)) {
+    fail("Season copy should remain for assistive text");
+  }
+  if (!yearBadge.play || !yearBadge.skip || !yearBadge.speed || !yearBadge.scrubber) {
+    fail("Play, skip, speed, and scrubber must stay visible after the period dropdown change");
+  }
+
+  await page.locator("#mobilePeriodBtn").click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
+  const eraCount = await page.locator(".era-tab").count();
+  if (eraCount < 8) fail(`Expected 8 era tabs in the period menu, found ${eraCount}`);
+  const openEra = await page.locator(".era-tab").nth(1).boundingBox();
+  assertTap("era-tab", openEra);
+  await page.screenshot({ path: path.join(OUT, "phone_period_dropdown.png"), fullPage: false });
+  await page.locator('.era-tab[data-start-year="-4"]').click();
+  await page.waitForTimeout(250);
+  const afterPeriod = await page.evaluate(() => ({
+    open: document.documentElement.classList.contains("period-menu-open"),
+    label: (document.getElementById("mobilePeriodLabel") || {}).textContent || "",
+    year: (document.getElementById("displayYear") || {}).textContent || "",
+    eraDisplay: getComputedStyle(document.querySelector(".era-selector-tabs")).display
+  }));
+  if (afterPeriod.open || afterPeriod.eraDisplay !== "none") fail("Period menu should close after choosing an era");
+  if (!/Period · Nazareth/i.test(afterPeriod.label)) {
+    fail(`Period trigger should show Period · Nazareth, got "${afterPeriod.label}"`);
+  }
+  if (!/4 BC/.test(afterPeriod.year)) fail(`Choosing Nazareth should jump the timeline to 4 BC, year=${afterPeriod.year}`);
 
   const closedSheet = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
@@ -317,12 +401,13 @@ async function measureOverflow(page) {
       pointerEvents: barStyle.pointerEvents,
       ariaHidden: bar.getAttribute("aria-hidden"),
       filterH: filter.getBoundingClientRect().height,
+      periodH: document.getElementById("mobilePeriodBtn").getBoundingClientRect().height,
       cityH: city.getBoundingClientRect().height
     };
   });
   if (sheetChrome.display !== "none") fail(`Command row must hide when sheet is open, display=${sheetChrome.display}`);
-  if (sheetChrome.filterH > 0 || sheetChrome.cityH > 0) {
-    fail(`Layers/Jump still painting while sheet is open: filter=${sheetChrome.filterH} city=${sheetChrome.cityH}`);
+  if (sheetChrome.filterH > 0 || sheetChrome.periodH > 0 || sheetChrome.cityH > 0) {
+    fail(`Layers/Period/Jump still painting while sheet is open: filter=${sheetChrome.filterH} period=${sheetChrome.periodH} city=${sheetChrome.cityH}`);
   }
   if (sheetChrome.ariaHidden !== "true") fail("Command row should be aria-hidden while the sheet is open");
 
@@ -336,7 +421,6 @@ async function measureOverflow(page) {
     const label = document.querySelector(".city-label-text.city-label-primary");
     return {
       tab: box(".tab-btn"),
-      era: box(".era-tab"),
       fab: box(".map-floating-actions .floating-btn"),
       speed: box(".speed-btn"),
       handle: box(".sheet-handle"),
@@ -344,7 +428,6 @@ async function measureOverflow(page) {
     };
   });
   assertTap("tab-btn", taps.tab);
-  assertTap("era-tab", taps.era);
   assertTap("floating-btn", taps.fab);
   assertTap("speed-btn", taps.speed);
   assertTap("sheet-handle", taps.handle);
@@ -383,6 +466,14 @@ async function measureOverflow(page) {
       quoteVisible: quoteRect ? quoteRect.bottom <= footerRect.top + 1 && quoteRect.height > 8 : false
     };
   });
+  const jumpedPlace = await page.evaluate(() => ({
+    current: (document.getElementById("mobileCityPickerCurrent") || {}).textContent || "",
+    hasPlace: document.getElementById("mobileCityBar").classList.contains("has-place")
+  }));
+  if (!/corinth/i.test(jumpedPlace.current)) {
+    fail(`After pick, Jump should show the place name, got "${jumpedPlace.current}"`);
+  }
+
   if (!sheetOpen.open) fail("Place sheet did not open to half after city jump");
   if (!(sheetOpen.sheetZ > sheetOpen.footerZ)) fail(`Sheet z-index ${sheetOpen.sheetZ} must beat timeline ${sheetOpen.footerZ}`);
   if (sheetOpen.sheetBottom > sheetOpen.footerTop + 2) fail("Details sheet still overlaps the timeline bar");
@@ -426,22 +517,29 @@ async function measureOverflow(page) {
   const chrome = await page.evaluate(() => {
     const bar = document.getElementById("mobileCityBar");
     const tabs = document.querySelector(".sidebar-tabs");
-    const eras = document.querySelector(".era-selector-tabs");
     const fabs = document.querySelector(".map-floating-actions");
+    const play = document.getElementById("playPauseBtn");
+    const year = document.getElementById("displayYear");
+    const slider = document.getElementById("timelineSlider");
     const barRect = bar.getBoundingClientRect();
     const tabRect = tabs.getBoundingClientRect();
+    const vis = (el) => el && el.getBoundingClientRect().height > 2;
     return {
       commandHeight: barRect.height,
       tabHeight: tabRect.height,
       tabScroll: tabs.scrollWidth > tabs.clientWidth - 4,
-      eraOverflow: getComputedStyle(eras).overflowX,
       fabLeft: fabs.getBoundingClientRect().left,
+      playVisible: vis(play),
+      yearVisible: vis(year),
+      scrubberVisible: vis(slider),
       labelsHiddenAtDefault: !document.documentElement.classList.contains("mobile-zoomed")
     };
   });
   if (chrome.commandHeight > 56) fail(`Command row should be a single strip, height=${chrome.commandHeight}`);
   if (chrome.tabHeight > 68) fail(`Place tabs should be a single row, height=${chrome.tabHeight}`);
-  if (chrome.eraOverflow !== "auto" && chrome.eraOverflow !== "scroll") fail(`Era pills overflow-x=${chrome.eraOverflow}`);
+  if (!chrome.playVisible || !chrome.yearVisible || !chrome.scrubberVisible) {
+    fail("Play, year, and scrubber must remain visible");
+  }
   if (chrome.fabLeft > 80) fail(`Map FABs should sit on the left, left=${chrome.fabLeft}`);
 
   await page.locator("#mobileToursBtn").click();
@@ -525,22 +623,26 @@ async function measureOverflow(page) {
   await npage.waitForTimeout(400);
   const narrowState = await npage.evaluate(() => {
     const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
+    const period = document.getElementById("mobilePeriodBtn").getBoundingClientRect();
     const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
     const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
     const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
     const slider = document.getElementById("timelineSlider").getBoundingClientRect();
     const play = document.getElementById("playPauseBtn").getBoundingClientRect();
-    const era = document.querySelector(".era-tab").getBoundingClientRect();
+    const year = document.getElementById("displayYear").getBoundingClientRect();
+    const season = document.getElementById("displaySeason").getBoundingClientRect();
     const main = document.querySelector(".app-main-container").getBoundingClientRect();
     return {
       overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      sameRow: Math.abs(filter.top - city.top) < 10,
-      sideBySide: filter.right <= city.left + 2,
+      sameRow: Math.abs(filter.top - period.top) < 10 && Math.abs(period.top - city.top) < 10,
+      sideBySide: filter.right <= period.left + 2 && period.right <= city.left + 2,
       barHeight: bar.height,
       filterH: filter.height,
+      periodH: period.height,
       cityH: city.height,
       playH: play.height,
-      eraH: era.height,
+      yearVisible: year.height > 4,
+      seasonVisible: season.height > 4,
       footerH: footer.height,
       sliderBottom: slider.bottom,
       footerBottom: footer.bottom,
@@ -550,11 +652,18 @@ async function measureOverflow(page) {
   });
   console.log("360 large-text chrome:", narrowState);
   if (narrowState.overflowX > 2) fail(`Horizontal overflow at 360px large text: ${narrowState.overflowX}px`);
-  if (!narrowState.sameRow || !narrowState.sideBySide) fail("360px large text must keep filter + jump on one row");
+  if (!narrowState.sameRow || !narrowState.sideBySide) fail("360px large text must keep Layers + Period + Jump on one row");
   if (narrowState.filterH + 0.5 < 44) fail(`360 filter tap ${narrowState.filterH}px < 44`);
+  if (narrowState.periodH + 0.5 < 44) fail(`360 period tap ${narrowState.periodH}px < 44`);
   if (narrowState.cityH + 0.5 < 44) fail(`360 city tap ${narrowState.cityH}px < 44`);
   if (narrowState.playH + 0.5 < 44) fail(`360 play tap ${narrowState.playH}px < 44`);
-  if (narrowState.eraH + 0.5 < 44) fail(`360 era tap ${narrowState.eraH}px < 44`);
+  if (!narrowState.yearVisible) fail("360px year badge must stay visible");
+  if (narrowState.seasonVisible) fail("360px season subtitle must stay visually hidden");
+  await npage.locator("#mobilePeriodBtn").click();
+  await npage.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
+  const narrowEra = await npage.locator(".era-tab").first().boundingBox();
+  assertTap("era-tab", narrowEra);
+  await npage.locator("#mobilePeriodBtn").click();
   if (narrowState.sliderBottom > narrowState.viewH - 12) {
     fail(`360px scrubber clipped: bottom=${narrowState.sliderBottom} view=${narrowState.viewH}`);
   }
@@ -589,6 +698,7 @@ async function measureOverflow(page) {
     layout: document.body.className,
     cityBar: getComputedStyle(document.getElementById("mobileCityBar")).display,
     filterBtn: getComputedStyle(document.getElementById("mobileFilterBtn")).display,
+    periodBtn: getComputedStyle(document.getElementById("mobilePeriodBtn")).display,
     basemap: getComputedStyle(document.getElementById("mobileBasemapToggle")).display,
     sidebar: getComputedStyle(document.getElementById("detailSidebar")).width,
     headerRight: getComputedStyle(document.querySelector(".header-right")).display
@@ -597,6 +707,7 @@ async function measureOverflow(page) {
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
   if (deskState.filterBtn !== "none") fail("Mobile filter dropdown should be hidden on desktop");
+  if (deskState.periodBtn !== "none") fail("Mobile period dropdown should be hidden on desktop");
   if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();

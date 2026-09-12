@@ -30,10 +30,10 @@
   }
 
   html.layout-mobile {
-    --header-height: 52px;
-    --filterbar-height: 96px;
-    --citybar-height: 52px;
-    --footer-height: 132px;
+    --header-height: 48px;
+    --filterbar-height: 44px;
+    --citybar-height: 40px;
+    --footer-height: 108px;
     --tap: 44px;
   }
 
@@ -127,16 +127,17 @@
   /* Layer chips: two thumb-scrollable rows */
   html.layout-mobile .layer-filter-bar {
     height: var(--filterbar-height);
-    padding: 6px 8px 8px;
+    padding: 0;
     align-items: stretch;
   }
 
   html.layout-mobile .filter-scroll-track {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    gap: 6px;
-    overflow: visible;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    overflow: hidden;
+    height: 100%;
   }
 
   html.layout-mobile .filter-group-layers {
@@ -150,29 +151,38 @@
   }
 
   html.layout-mobile .filter-chip-rows {
-    flex-direction: column;
-    align-items: stretch;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
     width: 100%;
     gap: 6px;
-  }
-
-  html.layout-mobile .filter-chip-row {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 1px;
+    padding: 0 12px;
+    scroll-padding-inline: 12px;
   }
 
-  html.layout-mobile .filter-chip-row::-webkit-scrollbar {
+  html.layout-mobile .filter-chip-rows::-webkit-scrollbar {
     display: none;
+  }
+
+  html.layout-mobile .filter-chip-row {
+    display: contents;
   }
 
   html.layout-mobile .filter-chip {
     flex: 0 0 auto;
-    min-height: 40px;
-    padding: 0.4rem 0.85rem;
-    font-size: 0.82rem;
+    min-height: 34px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  html.layout-mobile .filter-chip-rows::after {
+    content: "";
+    flex: 0 0 12px;
   }
 
   /* City / region picker bar */
@@ -190,10 +200,10 @@
   html.layout-mobile .mobile-city-picker-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    min-height: 44px;
-    padding: 0 12px;
+    min-height: 36px;
+    padding: 0 10px;
     border: 1.5px solid #D97706;
     border-radius: 10px;
     background: #FFFDF8;
@@ -218,7 +228,7 @@
 
   html.layout-mobile .mobile-city-picker-label {
     font-family: var(--font-serif-title);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: #451A03;
     white-space: nowrap;
@@ -227,11 +237,7 @@
   }
 
   html.layout-mobile .mobile-city-picker-current {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none;
   }
 
   html.layout-mobile .mobile-city-picker-caret {
@@ -251,14 +257,19 @@
   }
 
   html.layout-mobile .floating-era-badge {
-    top: 10px;
-    left: 10px;
-    max-width: min(72vw, 280px);
-    padding: 0.5rem 0.75rem;
+    top: 8px;
+    left: 8px;
+    max-width: min(54vw, 190px);
+    padding: 0.28rem 0.5rem;
+  }
+
+  html.layout-mobile .era-tag {
+    display: none;
   }
 
   html.layout-mobile .era-title {
-    font-size: 0.88rem;
+    font-size: 0.72rem;
+    margin-bottom: 0;
   }
 
   html.layout-mobile .era-desc {
@@ -266,13 +277,40 @@
   }
 
   html.layout-mobile .map-floating-actions {
-    top: 10px;
-    right: 10px;
+    top: auto;
+    right: auto;
+    left: 8px;
+    bottom: 52px;
+  }
+
+  html.layout-mobile #holyLandQuickBtn {
+    display: none;
   }
 
   html.layout-mobile .floating-btn {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
+  }
+
+  html.layout-mobile .city-label-text:not(.city-label-major),
+  html.layout-mobile .region-label-text {
+    display: none;
+  }
+
+  html.layout-mobile .city-label-text.city-label-major {
+    font-size: 9px;
+    letter-spacing: 0.02em;
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile:not(.mobile-zoomed) .city-label-text {
+    display: none !important;
+  }
+
+  html.layout-mobile.mobile-zoomed:not(.mobile-zoomed-deep) .city-label-text:not(.city-label-primary) {
+    display: none !important;
   }
 
   html.layout-mobile .map-legend-box {
@@ -289,7 +327,13 @@
   }
 
   html.layout-mobile .leaflet-control-zoom {
-    margin-bottom: 12px !important;
+    margin-bottom: 8px !important;
+    margin-left: 8px !important;
+  }
+
+  html.layout-mobile .leaflet-bottom.leaflet-left {
+    bottom: 4px;
+    left: 4px;
   }
 
   html.layout-mobile .leaflet-bottom.leaflet-right {
@@ -302,26 +346,40 @@
     max-width: 46vw;
   }
 
-  /* Bottom sheet place panel */
+  /* Bottom sheet sits ABOVE the timeline (fixed, not trapped in main) */
+  html.layout-mobile .app-timeline-footer {
+    z-index: 1000;
+  }
+
   html.layout-mobile .detail-sidebar {
+    position: fixed;
     top: auto;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(var(--footer-height) + env(safe-area-inset-bottom));
     width: 100%;
-    height: 48%;
-    max-height: calc(100% - 8px);
+    height: 42vh;
+    max-height: calc(100dvh - var(--header-height) - var(--filterbar-height) - var(--citybar-height) - var(--footer-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px);
     border-left: none;
     border-top: 2px solid var(--color-gold);
     border-radius: 16px 16px 0 0;
     transform: translateY(110%);
     transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1200;
+    z-index: 1400;
     box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28);
   }
 
   html.layout-mobile .detail-sidebar.closed {
     transform: translateY(110%);
+    pointer-events: none;
+  }
+
+  html.layout-mobile.sheet-open {
+    --citybar-height: 0px;
+  }
+
+  html.layout-mobile.sheet-open .mobile-city-bar {
+    display: none;
   }
 
   html.layout-mobile .detail-sidebar.sheet-half,
@@ -335,11 +393,11 @@
   }
 
   html.layout-mobile .detail-sidebar.sheet-half {
-    height: 50%;
+    height: 40vh;
   }
 
   html.layout-mobile .detail-sidebar.sheet-full {
-    height: 88%;
+    height: calc(100dvh - var(--header-height) - env(safe-area-inset-top) - var(--footer-height) - env(safe-area-inset-bottom) - 8px);
   }
 
   html.layout-mobile .detail-sidebar.sheet-dragging {
@@ -378,38 +436,44 @@
   }
 
   html.layout-mobile .sidebar-tabs {
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: nowrap;
     gap: 6px;
-    padding: 8px;
-  }
-
-  html.layout-mobile .sidebar-tab-row {
-    display: flex;
-    flex-wrap: nowrap;
+    padding: 6px 10px;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    width: 100%;
-    gap: 6px;
+    scroll-padding-inline: 10px;
   }
 
-  html.layout-mobile .sidebar-tab-row::-webkit-scrollbar {
+  html.layout-mobile .sidebar-tabs::-webkit-scrollbar {
     display: none;
   }
 
+  html.layout-mobile .sidebar-tab-row {
+    display: contents;
+  }
+
+  html.layout-mobile .sidebar-tab-row:first-child .tab-btn,
+  html.layout-mobile .sidebar-tab-row:last-child .tab-btn,
   html.layout-mobile .sidebar-tab-row .tab-btn,
   html.layout-mobile .tab-btn {
-    flex: 0 0 auto;
-    min-height: 44px;
+    flex: 0 0 auto !important;
+    min-height: 36px;
     min-width: max-content;
-    padding: 0.45rem 0.9rem;
-    font-size: 0.82rem;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.78rem;
     border-radius: 999px;
   }
 
+  html.layout-mobile .sidebar-tabs::after {
+    content: "";
+    flex: 0 0 10px;
+  }
+
   html.layout-mobile .sidebar-content {
-    padding: 1rem;
+    padding: 1rem 1rem 1.4rem;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -453,6 +517,16 @@
     grid-area: eras;
     display: flex;
     width: 100%;
+    padding: 0 12px;
+    scroll-padding-inline: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html.layout-mobile .era-selector-tabs::after {
+    content: "";
+    flex: 0 0 12px;
   }
 
   html.layout-mobile .btn-ctrl {
@@ -529,30 +603,85 @@
   html.layout-mobile .modal-backdrop {
     padding: 0.6rem 0 0;
     align-items: flex-end;
-    background: rgba(20, 14, 8, 0.72);
+    background: rgba(20, 14, 8, 0.78);
   }
 
   html.layout-mobile .modal-card {
     max-height: 86dvh;
     border-radius: 16px 16px 0 0;
     background: #FBF6EA;
+    isolation: isolate;
+    animation: none;
+    transform: none;
+  }
+
+  html.layout-mobile .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 0.85rem 0.85rem calc(1.4rem + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
+    isolation: isolate;
   }
 
   html.layout-mobile .tour-select-card {
-    min-height: 72px;
+    display: flex;
+    flex-direction: row;
     align-items: flex-start;
-    background: #FFFDF9;
+    gap: 0.75rem;
+    min-height: 0;
+    background: #FFFDF8;
     position: relative;
     z-index: 1;
+    isolation: isolate;
+    contain: layout paint;
+    overflow: hidden;
+    transform: none !important;
+    margin: 0;
+    flex: 0 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: none;
+  }
+
+  html.layout-mobile .tour-select-card:hover,
+  html.layout-mobile .tour-select-card:active,
+  html.layout-mobile .tour-select-card:focus {
+    transform: none !important;
+    box-shadow: none;
   }
 
   html.layout-mobile .tour-card-title,
-  html.layout-mobile .tour-card-desc {
+  html.layout-mobile .tour-card-desc,
+  html.layout-mobile .tour-card-footer {
     display: block;
+    position: static;
   }
 
   html.layout-mobile .tour-card-body {
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  html.layout-mobile .tour-card-title {
+    display: block;
+    line-height: 1.25;
+  }
+
+  html.layout-mobile .tour-card-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  html.layout-mobile .tour-card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.6rem;
+    margin-top: 0.35rem;
   }
 
   html.layout-mobile .satellite-modal-window {
@@ -734,7 +863,7 @@ html.layout-mobile .mobile-picker-empty {
   }
 
   html.layout-mobile .filter-chip-row {
-    flex: 1;
+    display: contents;
   }
 
   html.layout-mobile .era-selector-tabs {

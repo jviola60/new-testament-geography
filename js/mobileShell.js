@@ -32,11 +32,13 @@ class MobileShell {
     this.bindCityPicker();
     this.bindMoreSheet();
     this.bindMapInvalidation();
+    this.bindMobileMapZoom();
 
     if (this.isPhone()) {
       this.setSheet("hidden", { silent: true });
       if (this.sidebar) this.sidebar.classList.add("closed");
       this.collapseLegend();
+      this.tagPrimaryCityLabels();
     }
   }
 
@@ -53,13 +55,15 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open");
-      body.classList.remove("search-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open");
+      body.classList.remove("search-open", "sheet-open");
       this.closeOverlays();
       if (this.sidebar) {
         this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging", "closed");
         this.sidebar.style.height = "";
       }
+    } else {
+      this.syncZoomClass();
     }
 
     this.syncZoomControl();
@@ -100,7 +104,51 @@ class MobileShell {
   syncZoomControl() {
     const map = window.app && window.app.map && window.app.map.map;
     if (!map || !map.zoomControl) return;
-    map.zoomControl.setPosition(this.isPhone() ? "bottomright" : "topleft");
+    map.zoomControl.setPosition(this.isPhone() ? "bottomleft" : "topleft");
+  }
+
+  bindMobileMapZoom() {
+    const attach = () => {
+      const map = window.app && window.app.map && window.app.map.map;
+      if (!map || map.__mobileZoomBound) return !!map;
+      map.__mobileZoomBound = true;
+      map.on("zoomend", () => this.syncZoomClass());
+      this.syncZoomClass();
+      this.tagPrimaryCityLabels();
+      return true;
+    };
+    if (!attach()) {
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries += 1;
+        if (attach() || tries > 40) clearInterval(timer);
+      }, 150);
+    }
+  }
+
+  syncZoomClass() {
+    const root = document.documentElement;
+    if (!this.isPhone()) {
+      root.classList.remove("mobile-zoomed", "mobile-zoomed-deep");
+      return;
+    }
+    const map = window.app && window.app.map && window.app.map.map;
+    if (!map) return;
+    const zoom = map.getZoom();
+    root.classList.toggle("mobile-zoomed", zoom >= 8);
+    root.classList.toggle("mobile-zoomed-deep", zoom >= 10.5);
+  }
+
+  tagPrimaryCityLabels() {
+    const primary = new Set([
+      "Jerusalem", "Nazareth", "Bethlehem", "Capernaum", "Rome", "Corinth",
+      "Ephesus", "Antioch", "Athens", "Damascus", "Alexandria", "Patmos"
+    ]);
+    document.querySelectorAll(".city-label-text").forEach((el) => {
+      if (primary.has((el.textContent || "").trim())) {
+        el.classList.add("city-label-primary");
+      }
+    });
   }
 
   bindHeader() {
@@ -228,6 +276,9 @@ class MobileShell {
       this.sidebar.classList.remove("closed");
       this.sidebar.classList.add(`sheet-${mode}`);
     }
+    const sheetOpen = this.isPhone() && mode !== "hidden";
+    document.documentElement.classList.toggle("sheet-open", sheetOpen);
+    document.body.classList.toggle("sheet-open", sheetOpen);
     if (!opts.silent) this.invalidateMap(320);
   }
 

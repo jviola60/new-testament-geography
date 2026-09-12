@@ -81,6 +81,15 @@ assert(mobileJs.includes("Period ·"), "Period trigger copy should use the Perio
 assert(mobileJs.includes("jumpToQuickJumpValue"), "City jump must keep using existing catalog logic");
 assert(!mobileJs.includes("speed dropdown") && !/bindSpeedDropdown/.test(mobileJs), "This PR must not add a Speed dropdown");
 assert(!/timeline-collapsed|collapseTimeline|collapsible Timeline/i.test(mobileJs + mobileCss), "This PR must not collapse the Timeline");
+assert(mobileCss.includes("100svh"), "Phone shell must fall back to 100svh");
+assert(mobileCss.includes("100dvh"), "Phone shell must use 100dvh");
+assert(mobileCss.includes("-webkit-fill-available"), "Phone shell must fall back to -webkit-fill-available");
+assert(mobileCss.includes("--app-vh"), "Phone shell must honor the visual-viewport --app-vh token");
+assert(mobileCss.includes("flex-direction: column"), "Phone body must be a column so the map can flex-grow");
+assert(mobileJs.includes("syncViewportHeight"), "Mobile shell must sync --app-vh to the visual viewport");
+assert(mobileJs.includes("--app-vh"), "Mobile shell must write --app-vh");
+assert(mobileJs.includes("visualViewport"), "Viewport height must track visualViewport, not only innerHeight");
+assert(html.includes("--app-vh"), "First paint on phones should set --app-vh before CSS");
 assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
 assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
 assert(mobileCss.includes("calc(8px + var(--tap) + 10px)"), "Zoom stack should clear the Map|Satellite chip");

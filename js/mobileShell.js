@@ -80,9 +80,23 @@ class MobileShell {
       this.syncZoomClass();
     }
 
+    this.syncViewportHeight();
     this.syncZoomControl();
     this.syncLeftMapStack();
     this.invalidateMap(80);
+  }
+
+  syncViewportHeight() {
+    const root = document.documentElement;
+    if (!this.isPhone()) {
+      root.style.removeProperty("--app-vh");
+      return;
+    }
+    const vv = window.visualViewport;
+    const next = Math.round((vv && vv.height) || window.innerHeight);
+    if (next > 0) {
+      root.style.setProperty("--app-vh", `${next}px`);
+    }
   }
 
   bindViewport() {
@@ -94,6 +108,7 @@ class MobileShell {
     }
 
     window.addEventListener("orientationchange", () => {
+      this.syncViewportHeight();
       this.invalidateMap(180);
       setTimeout(() => this.invalidateMap(320), 320);
     });
@@ -104,12 +119,15 @@ class MobileShell {
     window.addEventListener("resize", schedule);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", schedule);
+      window.visualViewport.addEventListener("scroll", schedule);
     }
   }
 
   invalidateMap(delay = 40) {
+    this.syncViewportHeight();
     clearTimeout(this._resizeTimer);
     this._resizeTimer = setTimeout(() => {
+      this.syncViewportHeight();
       const map = window.app && window.app.map && window.app.map.map;
       if (map && typeof map.invalidateSize === "function") {
         map.invalidateSize({ animate: false, pan: false });

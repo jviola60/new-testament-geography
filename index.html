@@ -30,11 +30,16 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=7.0">
+  <link rel="stylesheet" href="css/mobile.css?v=7.1">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
       document.documentElement.classList.toggle("layout-mobile", phone);
+      if (phone) {
+        var vv = window.visualViewport;
+        var h = Math.round((vv && vv.height) || window.innerHeight);
+        if (h) document.documentElement.style.setProperty("--app-vh", h + "px");
+      }
       document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.toggle("layout-mobile", phone);
         if (phone) {
@@ -570,7 +575,7 @@
   <script src="js/timelineController.js?v=3.5"></script>
   <script src="js/uiController.js?v=4.5"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=7.1"></script>
+  <script src="js/mobileShell.js?v=7.2"></script>
   <script src="js/app.js?v=4.2"></script>
 </body>
 </html>

@@ -35,7 +35,7 @@
     --header-height: 48px;
     --filterbar-height: 0px;
     --citybar-height: 52px;
-    --footer-height: 136px;
+    --footer-height: 144px;
     --tap: 44px;
   }
 
@@ -641,7 +641,7 @@
   /* Timeline: denser chrome, same core controls, thumb above safe-area */
   html.layout-mobile .app-timeline-footer {
     height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
-    padding: 0.28rem 0.5rem max(18px, calc(10px + env(safe-area-inset-bottom, 0px)));
+    padding: 0.25rem 0.5rem max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
     overflow: visible;
     justify-content: flex-start;
@@ -730,7 +730,7 @@
   html.layout-mobile .timeline-slider-track-wrap {
     margin-top: 0.1rem;
     margin-bottom: 0;
-    padding: 6px 2px 10px;
+    padding: 4px 2px 14px;
     box-sizing: border-box;
   }
 

@@ -76,7 +76,7 @@ assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile 
 assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
 assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should restore era tabs below 768px");
 assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
-assert(/--footer-height:\s*136px/.test(mobileCss), "Mobile footer should be denser than the 176px stacked chrome");
+assert(/--footer-height:\s*144px/.test(mobileCss), "Mobile footer should be denser than the 176px stacked chrome");
 assert(/--citybar-height:\s*52px/.test(mobileCss), "Filter + jump should share one 52px command row");
 assert(/--filterbar-height:\s*0px/.test(mobileCss), "Stacked desktop chip bar must not consume a second mobile row");
 assert(mobileCss.includes("filter-menu-open"), "Filter chips should open from the compact dropdown");

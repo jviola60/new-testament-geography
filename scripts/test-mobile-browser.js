@@ -233,7 +233,7 @@ async function measureOverflow(page) {
   });
   console.log("Phone map chrome:", mapChrome);
   // main stacked two 52px bars + 176px footer = 328px chrome with 48px header.
-  // Compact row + 136px footer should free >= 80px of map.
+  // Compact row + 144px footer should free >= 80px of map.
   const mainChrome = 48 + 52 + 52 + 176;
   const gain = mainChrome - mapChrome.chromeH;
   console.log(`Map viewport ${mapChrome.mapH}px; chrome ${mapChrome.chromeH}px; gain vs main chrome ≈ ${gain}px`);

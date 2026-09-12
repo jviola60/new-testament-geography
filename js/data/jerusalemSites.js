@@ -272,7 +272,7 @@ const JERUSALEM_SITES = [
     category: "passion",
     icon: "✝️",
     summary: "The rocky knoll outside the city gate where the Son of God was lifted up on the cross for the salvation of mankind.",
-    overview: "Bearing His cross down the Via Dolorosa, Jesus arrived at Golgotha. Nailed between two thieves beneath an inscription in Hebrew, Greek, and Latin ('JESUS OF NAZARETH THE KING OF THE JEWS'), He forgave His executioners, entrusted Mary to John, and cried with a loud voice: 'It is finished!' Darkness covered the land from the sixth to the ninth hour as the veil of the temple was rent in twain.",
+    overview: "Jesus went forth bearing his cross (John 19:17) unto a place called the place of a skull, which is called in the Hebrew Golgotha. As they led him away they laid hold upon Simon of Cyrene (Luke 23:26). Via Dolorosa is a later pilgrimage name for that route, not a Gospel place-name. Nailed between two thieves beneath an inscription in Hebrew, Greek, and Latin ('JESUS OF NAZARETH THE KING OF THE JEWS'), He forgave His executioners, entrusted Mary to John, and cried with a loud voice: 'It is finished!' Darkness covered the land from the sixth to the ninth hour as the veil of the temple was rent in twain.",
     scriptures: [
       {
         ref: "Luke 23:33-46",

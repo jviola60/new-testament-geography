@@ -415,6 +415,58 @@ ok(/Later Christian memory/.test(romeD.eraChronology || "") && /Ignatius/.test(r
 ok(/Revelation 2:12/.test(pergD.peopleAndChurch || ""), "Pergamum lost Revelation 2:12 for the angel");
 ok(/later interpretation/i.test(pergD.peopleAndChurch || ""), "Pergamum should label angel=bishop as later interpretation");
 
+// --- Joseph third supplement (same PR #13) ---
+const philippiD = cities.find((c) => c.id === "philippi") || {};
+ok(/Acts 16:13/.test((philippiD.overview || "") + (philippiD.jewishDiasporaInfo || "")), "Philippi lost Acts 16:13 riverside prayer");
+ok(/reconstruction/.test((philippiD.overview || "") + (philippiD.politicalInsights || "") + (philippiD.jewishDiasporaInfo || "")), "Philippi should label Gangites/minyan as reconstruction");
+ok(!/fewer than ten Jewish men required to sustain a formal synagogue/.test(philippiD.overview || ""), "Philippi overview still states minyan as NT fact");
+
+const sycharD = cities.find((c) => c.id === "sychar") || {};
+ok(sycharD.teachings && sycharD.teachings.passages.includes("John 4:5-42"), "Sychar lost John 4 passages");
+ok(sycharD.teachings && !sycharD.teachings.passages.some((p) => /Luke 10/.test(p)), "Sychar passages still list Luke 10:29–37 (Good Samaritan / Jericho road)");
+ok(!/Taheb/.test((sycharD.teachings && sycharD.teachings.whatWasTaught) || ""), "Sychar still uses Messianic Taheb (Restorer)");
+ok(/John 4:25/.test((sycharD.teachings && sycharD.teachings.whatWasTaught) || ""), "Sychar teachings should cite Messiah/Christ (John 4:25–26)");
+
+ok(/Luke 9:10/.test(bethsaida.significance || "") && /Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin should distinguish Feeding (Luke 9) from the blind man (Mark 8)");
+ok(!/Feeding of the 5,000.*Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin still cites Mark 8:22 for the Feeding");
+
+ok(/Revelation 1:9/.test(patmosD.overview || ""), "Patmos overview lost Revelation 1:9");
+ok(/early-church testimony/i.test((patmosD.overview || "") + (patmosD.peopleAndChurch || "") + (patmosD.eraChronology || "")), "Patmos should label Domitian/~95 as early-church testimony");
+ok(!/Around 95 AD, during the harsh reign of Emperor Domitian/.test(patmosD.overview || ""), "Patmos overview still states Domitian exile ~95 as a bare fact with Rev 1:9");
+
+const cyreneD = cities.find((c) => c.id === "cyrene") || {};
+ok(/John 19:17/.test(cyreneD.overview || "") && /Luke 23:26/.test(cyreneD.overview || ""), "Cyrene lost John 19:17 / Luke 23:26");
+ok(/later pilgrimage name/.test(cyreneD.overview || ""), "Cyrene should label Via Dolorosa as a later pilgrimage name");
+ok(!/renowned leaders/.test((cyreneD.overview || "") + (cyreneD.peopleAndChurch || "")), "Cyrene still calls Alexander and Rufus renowned leaders via Mark 15:21 + Rom 16:13");
+ok(/identification is not stated/.test((cyreneD.overview || "") + (cyreneD.peopleAndChurch || "")), "Cyrene should label Rufus ID as not stated");
+
+const golgotha = (sandbox.JERUSALEM_SITES || []).find((s) => s.id === "jer-golgotha-calvary") || {};
+ok(/John 19:17/.test(golgotha.overview || "") && /Luke 23:26/.test(golgotha.overview || ""), "Golgotha lost John 19:17 / Luke 23:26");
+ok(/later pilgrimage name/.test(golgotha.overview || ""), "Golgotha should label Via Dolorosa as a later pilgrimage name");
+ok(!/Bearing His cross down the Via Dolorosa/.test(golgotha.overview || ""), "Golgotha still names the Gospel route Via Dolorosa as fact");
+
+const bethlehemEra = (bethlehem && bethlehem.eraChronology) || "";
+ok(/Temple at Jerusalem/.test(bethlehemEra) && /Luke 2:22/.test(bethlehemEra), "Bethlehem era should place the presentation at Jerusalem (Luke 2:22–39)");
+ok(!/presentation in the Temple on the 40th day/.test(bethlehemEra), "Bethlehem era still treats the Temple presentation as a Bethlehem scene");
+ok(/wise men from the east/i.test((bethlehem.overview || "") + bethlehemEra), "Bethlehem lost Matthew 2:1 wise men from the east");
+ok(!/Persian Magi/.test((bethlehem.overview || "") + bethlehemEra), "Bethlehem still says Persian Magi");
+
+ok(/brow of the hill/.test(nazarethD.peopleAndChurch || "") && /Luke 4:29/.test(nazarethD.peopleAndChurch || ""), "Nazareth lost Luke 4:29 brow of the hill");
+ok(/traditional\/modern/.test(nazarethD.peopleAndChurch || ""), "Nazareth should label Mount Precipice as traditional/modern");
+
+const corinthD = cities.find((c) => c.id === "corinth") || {};
+ok(/Acts 18:17/.test(corinthD.peopleAndChurch || "") && /1 Corinthians 1:1/.test(corinthD.peopleAndChurch || ""), "Corinth lost Acts 18:17 / 1 Cor 1:1 for Sosthenes");
+ok(/identification is not stated/.test(corinthD.peopleAndChurch || ""), "Corinth should label Sosthenes ID as not stated");
+ok(!/later converted and became/.test(corinthD.peopleAndChurch || ""), "Corinth still equates the beaten Sosthenes with 1 Cor 1:1 as fact");
+
+const journeys = sandbox.MISSIONARY_JOURNEYS || [];
+const journey3 = journeys.find((j) => /3rd|Third/i.test(j.name || j.id || "")) || {};
+ok(!/pens Galatians, Romans, and Corinthians/.test(journey3.description || ""), "3rd journey still asserts Galatians on that arc without a dating label");
+ok(/scholarly option/.test(journey3.description || "") && /Galatians/.test(journey3.description || ""), "3rd journey should label Galatians dating as a scholarly option");
+ok(/Romans/.test(journey3.description || "") && /Corinthian/.test(journey3.description || ""), "3rd journey lost Romans / Corinthian letters");
+
+ok(Array.isArray(lystra.epistles) && lystra.epistles.includes("Galatians") && !lystra.epistles.some((e) => /Timothy/.test(e)), "Lystra epistles should keep Galatians and drop 1 & 2 Timothy");
+
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);
   fails.forEach((f) => console.error(" -", f));

@@ -1026,31 +1026,62 @@ class UIController {
     bodyEl.textContent = text.startsWith("[") ? text : `"${text}"`;
   }
 
-  normalizeTeachings(type, data) {
-    if (!data) return {
-      teacher: "Jesus Christ & the Apostles",
-      audience: "The Disciples and Multitudes",
-      whatWasTaught: "The Gospel of the Kingdom, repentance, faith in Christ, and the resurrection of the dead.",
-      whyTaught: "To proclaim salvation and call all people into covenant with God.",
-      context: "Recorded in the New Testament Scriptures.",
-      howAccepted: "Many humble souls believed and followed the Lord and His apostles, while traditional religious and civil rulers often opposed the word.",
-      passages: []
+  conservativeTeachingsFallback(data = {}) {
+    return {
+      teacher: "See scriptures for who taught here.",
+      audience: "See the cited verses.",
+      whatWasTaught: "The New Testament does not record a teaching discourse at this place in enough detail to name a teacher, audience, or synagogue setting.",
+      whyTaught: "When the text is silent, this atlas does not invent a sermon, synagogue, or ministry.",
+      context: data.region
+        ? `The 1st-century New Testament world (${data.region}).`
+        : "The 1st-century New Testament world.",
+      howAccepted: "Reception is recorded only where the Gospels or Acts describe it.",
+      passages: data.scriptures || data.passages || []
     };
+  }
+
+  lookupRelatedCity(data) {
+    if (!data) return null;
+    const keys = [
+      data.id,
+      data.city,
+      data.name,
+      data.title,
+      data.locationName,
+      data.ancientName
+    ].filter(Boolean);
+    for (const key of keys) {
+      const city = this.findCityByName(key);
+      if (city) return city;
+    }
+    return null;
+  }
+
+  normalizeTeachings(type, data, _inheritDepth = 0) {
+    if (!data) return this.conservativeTeachingsFallback();
 
     if (data.teachings && typeof data.teachings === "object") {
       return {
-        teacher: data.teachings.teacher || "Jesus Christ",
-        audience: data.teachings.audience || "Disciples and Multitudes",
+        teacher: data.teachings.teacher || "See scriptures for who taught here.",
+        audience: data.teachings.audience || "See the cited verses.",
         whatWasTaught: data.teachings.whatWasTaught || data.teachings.doctrine || data.summary || "",
-        whyTaught: data.teachings.whyTaught || data.teachings.purpose || "To bear testimony of the Son of God.",
+        whyTaught: data.teachings.whyTaught || data.teachings.purpose || "Recorded so that readers may know what the New Testament actually says of this place.",
         context: data.teachings.context || data.teachings.setting || data.overview || "",
         howAccepted: data.teachings.howAccepted || data.teachings.reception || data.teachings.acceptance || "",
         passages: data.teachings.passages || data.scriptures || []
       };
     }
 
-    const name = String((data.name || data.city || data.title || "")).toLowerCase();
-    const region = String((data.region || "")).toLowerCase();
+    const name = String((data.name || data.city || data.title || data.locationName || "")).toLowerCase();
+    const region = String((data.region || data.locationName || "")).toLowerCase();
+    const searchBlob = `${name} ${region} ${data.id || ""}`.toLowerCase();
+
+    if (searchBlob.includes("malta") || searchBlob.includes("melita")) {
+      const malta = this.findCityByName("Malta");
+      if (malta && malta.teachings && _inheritDepth < 2) {
+        return this.normalizeTeachings("city", malta, _inheritDepth + 1);
+      }
+    }
 
     // Jerusalem Sacred Sites
     if (type === "jerusalemSite" || type === "jerusalemQuarter" || name.includes("jerusalem")) {
@@ -1143,7 +1174,7 @@ class UIController {
         passages: data.scriptures || ["Luke 4:16-30", "Matthew 13:54-58"]
       };
     }
-    if (name.includes("beatitudes") || name.includes("mountain")) {
+    if (name.includes("beatitudes") || name.includes("sermon on the mount")) {
       return {
         teacher: "Jesus Christ",
         audience: "The Disciples and Multitudes gathered on the mountain slopes",
@@ -1168,10 +1199,10 @@ class UIController {
     if (name.includes("athens")) {
       return {
         teacher: "The Apostle Paul",
-        audience: "Epicurean and Stoic Philosophers and Athenian Citizens at the Areopagus",
+        audience: "Jews and devout persons in the synagogue (Acts 17:17), then Epicurean and Stoic philosophers and the Council of the Areopagus",
         whatWasTaught: "The Unknown God: God who created heaven and earth dwelleth not in temples made with hands; 'For in him we live, and move, and have our being'; the bodily Resurrection of Christ.",
         whyTaught: "To turn intellectual pagan idolaters toward the living Creator and call all humanity to repentance before the appointed day of judgment.",
-        context: "Standing upon the limestone rock of Mars' Hill in view of the Parthenon in classical Athens.",
+        context: "Paul disputed in the synagogue and in the market (Acts 17:17); the recorded sermon is on Mars' Hill / the Areopagus (Acts 17:19–22).",
         howAccepted: "Mixed and skeptical reception: when Paul spoke of the bodily resurrection of the dead, some mocked, and others delayed saying, 'We will hear thee again of this matter.' Nevertheless, certain persons clave unto him and believed, including Dionysius the Areopagite (a member of the supreme judicial council) and a woman named Damaris.",
         passages: data.scriptures || ["Acts 17:22-34"]
       };
@@ -1189,7 +1220,7 @@ class UIController {
     }
     if (name.includes("ephesus")) {
       return {
-        teacher: "The Apostle Paul & the Apostle John",
+        teacher: "The Apostle Paul (Acts 19); the Apostle John by later Christian memory",
         audience: "Ephesian Disciples, Students at the Hall of Tyrannus, and Asian Saints",
         whatWasTaught: "The Holy Ghost and true baptism; grace through faith (Ephesians 2:8); the unity of the body of Christ; the Whole Armour of God (Eph 6); letters to the Seven Churches (Rev 2:1-7).",
         whyTaught: "To anchor believers against idolatrous commercial pressure (the cult of Diana/Artemis) and occult sorcery.",
@@ -1200,11 +1231,11 @@ class UIController {
     }
     if (name.includes("rome")) {
       return {
-        teacher: "The Apostle Paul & the Apostle Peter",
-        audience: "Jewish and Gentile Saints at Rome, Praetorian Guards, and Imperial Inquirers",
+        teacher: "The Apostle Paul (Acts 28); the Apostle Peter by later Christian memory",
+        audience: "Jewish elders summoned to Paul's hired house, Gentile saints, Praetorian guards, and members of Caesar's household",
         whatWasTaught: "Justification by faith in Jesus Christ; reconciliation of Jews and Gentiles; 'The just shall live by faith'; no condemnation to them which are in Christ Jesus (Romans 8).",
         whyTaught: "To establish doctrinal foundations for the central church of the Western Mediterranean and prepare for missions to the ends of the empire.",
-        context: "The imperial capital of the Caesars, where Paul preached under house arrest and both apostles later suffered martyrdom.",
+        context: "The imperial capital, where Paul preached two years in his own hired house (Acts 28:30–31). Peter's presence and martyrdom in Rome are early-church testimony, not an Acts narrative.",
         howAccepted: "Roman Christians came out along the Appian Way as far as Appii Forum to welcome Paul; local Jewish leaders listened with divided opinions; for two years Paul preached in his rented house unhindered, converting soldiers and members of Caesar's household. Later under Nero (~64 AD), severe persecution broke out, leading to Peter and Paul's martyrdoms.",
         passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:23-31", "Philippians 4:22"]
       };
@@ -1220,13 +1251,28 @@ class UIController {
         passages: data.scriptures || ["Matthew 13:1-23", "Mark 4:35-41", "Matthew 14:22-33"]
       };
     }
+    if (name.includes("pisidian") || (name.includes("antioch") && (name.includes("pisidia") || searchBlob.includes("pisidian")))) {
+      const pisidian = this.findCityByName("Pisidian Antioch");
+      if (pisidian && pisidian.teachings && _inheritDepth < 2) {
+        return this.normalizeTeachings("city", pisidian, _inheritDepth + 1);
+      }
+      return {
+        teacher: "The Apostle Paul and Barnabas",
+        audience: "Jews and God-fearers in the synagogue, then almost the whole city (Acts 13:14–44)",
+        whatWasTaught: "Forgiveness of sins and justification by Jesus, which the law of Moses could not give (Acts 13:38–39); turning to the Gentiles as a light of the Gentiles (Acts 13:46–47).",
+        whyTaught: "To preach Christ first in the synagogue at Antioch in Pisidia, then openly to the Gentiles when synagogue leaders contradicted and blasphemed.",
+        context: "A synagogue in the Roman colony of Antioch in Pisidia—not Syrian Antioch on the Orontes (Acts 13:14).",
+        howAccepted: "Many Gentiles believed; opponents stirred up honourable women and chief men and expelled Paul and Barnabas (Acts 13:48–50).",
+        passages: data.scriptures || ["Acts 13:14-52", "Acts 14:21-23"]
+      };
+    }
     if (name.includes("antioch")) {
       return {
         teacher: "Barnabas, Saul (Paul), and the Prophet Agabus",
         audience: "The Mixed Congregation of Hellenistic Jews and Greek Believers",
         whatWasTaught: "The grace of God extended to the Gentiles; discipleship where believers were first called 'Christians' (Acts 11:26); world evangelism.",
         whyTaught: "To build a welcoming multi-ethnic church and launch the world missionary journeys into Asia Minor and Europe.",
-        context: "The capital of Roman Syria along the Orontes River, the 3rd largest city of the Roman world.",
+        context: "The capital of Roman Syria along the Orontes River—not Pisidian Antioch (Acts 11:26; 13:1–4).",
         howAccepted: "A great multitude believed and turned unto the Lord; disciples were first called Christians here; the congregation sent generous famine relief to Judean saints and, under the guidance of the Holy Ghost, commissioned Paul and Barnabas on their missionary journeys.",
         passages: data.scriptures || ["Acts 11:19-26", "Acts 13:1-4"]
       };
@@ -1254,16 +1300,15 @@ class UIController {
       };
     }
 
-    // General Fallback
-    return {
-      teacher: "Jesus Christ & His Apostles",
-      audience: "Early Believers, Inquirers, and Synagogue Worshippers",
-      whatWasTaught: "The message of the Kingdom of God, repentance, the atonement and resurrection of Christ, and righteous living.",
-      whyTaught: "To establish the Church of God, gather souls to Christ, and bear witness of His gospel.",
-      context: `The 1st-century New Testament world (${data.region || "Roman Empire"}).`,
-      howAccepted: "Wherever the Word was preached, sincere seekers embraced the truth and gathered into house churches, often persevering through civic and familial opposition.",
-      passages: data.scriptures || []
-    };
+    if (_inheritDepth < 2) {
+      const related = this.lookupRelatedCity(data);
+      if (related && related.teachings && related !== data) {
+        return this.normalizeTeachings("city", related, _inheritDepth + 1);
+      }
+    }
+
+    // Conservative fallback: never invent Jesus's personal ministry or a synagogue.
+    return this.conservativeTeachingsFallback(data);
   }
 
   renderTeachingsTab(dossier, type) {
@@ -1416,9 +1461,10 @@ class UIController {
   }
 
   normalizeDossier(type, data) {
-    const matchingCity = (type === "diaspora" || type === "church")
-      ? this.findCityByName(data.city || data.name)
-      : null;
+    const matchingCity = this.lookupRelatedCity(data) ||
+      ((type === "diaspora" || type === "church")
+        ? this.findCityByName(data.city || data.name)
+        : null);
 
     const region = this.getRelatedRegion(data) || (matchingCity && this.getRelatedRegion(matchingCity));
     const name = data.name || data.city || data.title || (matchingCity && matchingCity.name) || "Selected Place";
@@ -1484,9 +1530,30 @@ class UIController {
   findCityByName(name) {
     const needle = (name || "").toLowerCase().trim();
     if (!needle) return null;
-    return this.citiesList().find((c) =>
-      c.id === needle ||
-      c.name.toLowerCase() === needle ||
+    const cities = this.citiesList();
+    const byId = cities.find((c) => c.id === needle);
+    if (byId) return byId;
+    const exactName = cities.find((c) => c.name.toLowerCase() === needle);
+    if (exactName) return exactName;
+
+    // Never let Pisidian Antioch inherit Syrian Antioch, or the two Caesareas collide.
+    if (needle.includes("antioch") || needle.includes("pisid")) {
+      if (/pisid/.test(needle)) {
+        return cities.find((c) => c.id === "pisidian-antioch") || null;
+      }
+      return cities.find((c) => c.id === "antioch-syria") || null;
+    }
+    if (needle.includes("caesarea") || needle.includes("paneas") || needle.includes("banias")) {
+      if (needle.includes("philippi") || needle.includes("paneas") || needle.includes("banias")) {
+        return cities.find((c) => c.id === "caesarea-philippi") || null;
+      }
+      if (needle.includes("maritima") || needle.includes("sebastos") || needle.includes("palest")) {
+        return cities.find((c) => c.id === "caesarea-maritima") || null;
+      }
+      return null;
+    }
+
+    return cities.find((c) =>
       this.fuzzyMatch(c.name, needle) ||
       this.fuzzyMatch(c.ancientName, needle)
     ) || null;
@@ -2582,7 +2649,7 @@ class UIController {
           <div class="feature-card">
             <h3>Biblical Witnesses</h3>
             <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.55;">
-              ${dossier.peopleAndChurch || `Recorded at <strong>${data.locationName}</strong> during <strong>${data.era}</strong>. Witnesses include the Savior Jesus Christ, His Apostles and disciples, and local people named in the Gospels and Acts.`}
+              ${dossier.peopleAndChurch || `Recorded at <strong>${data.locationName}</strong> during <strong>${data.era}</strong>. Names and witnesses are those the New Testament actually records at this place—not a general template.`}
             </p>
           </div>
         `;

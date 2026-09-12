@@ -300,7 +300,7 @@ const TIMELINE_EVENTS = [
     scriptures: [
       { ref: "Revelation 22:20", text: "He which testifieth these things saith, Surely I come quickly. Amen. Even so, come, Lord Jesus." }
     ],
-    description: "By 100 AD, Christian communities span from Spain, Gaul, and Rome to North Africa, Egypt, the Levant, Asia Minor, Greece, and Parthia. The death of the Apostle John in Ephesus marks the transition to the Early Church Fathers."
+    description: "By 100 AD, Christian communities span from Spain, Gaul, and Rome to North Africa, Egypt, the Levant, Asia Minor, Greece, and Parthia. Traditional close of the apostolic age (later memory of John's death at Ephesus)—not an Acts sermon."
   }
 ];
 

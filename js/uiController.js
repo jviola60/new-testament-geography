@@ -1351,6 +1351,39 @@ class UIController {
         passages: data.scriptures || ["Acts 9:1-20"]
       };
     }
+    if (id === "event-gospels-written" || /compilation and spread of the four gospels|four gospels/.test(blob)) {
+      return {
+        teacher: "Not a single teaching scene — four Gospels circulate in the churches (no one NT verse for a 75 AD compilation event)",
+        audience: "The churches that received the written accounts (Luke 1:1–4; John 20:31)",
+        whatWasTaught: "Luke wrote that many had taken in hand to set forth a declaration of those things most surely believed, and it seemed good to him also to write in order (Luke 1:1–3). John wrote that these are written, that ye might believe that Jesus is the Christ (John 20:31).",
+        whyTaught: "To keep this atlas card from inheriting a city's later teachers. Scripture does not narrate a 75 AD compilation council.",
+        context: "Traditional ranges place the Gospels in the later first century; Luke 1 and John 20 speak of writing, not of a single Mediterranean event in 75 AD.",
+        howAccepted: "The New Testament does not describe how the four Gospels were first gathered as a set.",
+        passages: data.scriptures || ["Luke 1:1-4", "John 20:30-31"]
+      };
+    }
+    if (id === "event-close-apostolic-age" || /close of the apostolic/.test(blob)) {
+      return {
+        teacher: "Traditional close of the apostolic age (later memory of John's death at Ephesus)—not an Acts sermon",
+        audience: "Not a gathered discourse audience in Acts or Revelation.",
+        whatWasTaught: "Revelation ends, 'Surely I come quickly. Amen. Even so, come, Lord Jesus' (Revelation 22:20). That is the book's close, not a 100 AD sermon in Ephesus.",
+        whyTaught: "To keep this card from inheriting Paul's Acts 19 / Timothy / John city teacher.",
+        context: "Ephesus by later Christian memory. Revelation 22:20 is the last word of the book, not a dated funeral oration.",
+        howAccepted: "Later writers remember John at Ephesus; that is not a New Testament verse.",
+        passages: data.scriptures || ["Revelation 22:20"]
+      };
+    }
+    if (id === "event-peter-cornelius" || /conversion of cornelius|peter's vision/.test(blob)) {
+      return {
+        teacher: "The Apostle Peter (Acts 10:34–48)—Cornelius's house, not the later Felix and Festus hearings",
+        audience: "Cornelius, his kinsmen, and near friends (Acts 10:24, 33)",
+        whatWasTaught: "Of a truth I perceive that God is no respecter of persons: but in every nation he that feareth him, and worketh righteousness, is accepted with him (Acts 10:34–35).",
+        whyTaught: "Cornelius was warned from God to send for Peter (Acts 10:22). God shewed Peter that he should not call any man common or unclean (Acts 10:28).",
+        context: "Caesarea, after the rooftop vision at Joppa (Acts 10:1–23). Paul's later hearings in this city (Acts 24–26) are a different era.",
+        howAccepted: "While Peter yet spake, the Holy Ghost fell on all them which heard the word; they of the circumcision were astonished; Peter commanded them to be baptized (Acts 10:44–48).",
+        passages: data.scriptures || ["Acts 10:1-48"]
+      };
+    }
     if (id === "event-john-patmos-revelation" || /john on patmos|apocalypse/.test(blob)) {
       return {
         teacher: "The glorified Christ, in vision to John on Patmos (Revelation 1:9–18). John was told to write to the seven churches (Revelation 1:11)—not a visit of the Lord to those cities.",

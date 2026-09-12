@@ -336,6 +336,46 @@ ok(/Revelation 2:13/.test(pergD.peopleAndChurch || ""), "Pergamum lost Revelatio
 ok(/legend|not a New Testament verse/i.test(pergD.peopleAndChurch || ""), "Pergamum should legend-label the bronze bull");
 ok(/not a New Testament verse/.test(pergD.eraChronology || ""), "Pergamum era should legend-label ~92");
 
+// --- Year>33 inherit: do not keep the wrong city's teachers ---
+events.forEach((ev) => {
+  if (ev.year <= 33) return;
+  const teacher = ((ui.normalizeTeachings("event", ev) || {}).teacher) || "";
+  const blob = `${ev.id} ${ev.title} ${ev.locationName || ""}`.toLowerCase();
+  if (/Barnabas/.test(teacher) && /Agabus/.test(teacher) && !/event-church-antioch|gentile church at antioch/.test(blob)) {
+    ok(false, `year ${ev.year} "${ev.id}" inherited Syrian Antioch teachers: "${teacher}"`);
+  }
+  if (/Paul/.test(teacher) && /Timothy/.test(teacher) && /John/.test(teacher) && ev.year >= 90) {
+    ok(false, `year ${ev.year} "${ev.id}" inherited Ephesus Paul/Timothy/John teacher: "${teacher}"`);
+  }
+  if (/cornelius|peter-cornelius/.test(blob) && /Apostle Paul|Peter and the Apostle Paul/.test(teacher)) {
+    ok(false, `"${ev.id}" Acts 10 scene still names Paul as teacher: "${teacher}"`);
+  }
+});
+
+const gospelsWritten = ui.normalizeTeachings("event", events.find((e) => e.id === "event-gospels-written") || {
+  id: "event-gospels-written", year: 75, title: "Compilation and Spread of the Four Gospels",
+  locationName: "Antioch, Ephesus & Rome", category: "scripture"
+});
+ok(/not a single teaching scene|no one NT verse|not narrate a 75/i.test(gospelsWritten.teacher), `Gospels-written teacher is "${gospelsWritten.teacher}"`);
+ok(!/Barnabas|Agabus/.test(gospelsWritten.teacher), `Gospels-written still inherits Antioch: "${gospelsWritten.teacher}"`);
+
+const closeAge = ui.normalizeTeachings("event", events.find((e) => e.id === "event-close-apostolic-age") || {
+  id: "event-close-apostolic-age", year: 100, title: "Close of the Apostolic Era",
+  locationName: "Ephesus, Asia Minor", category: "apostolic"
+});
+ok(/later memory|not an Acts sermon/i.test(closeAge.teacher), `Close-apostolic-age teacher is "${closeAge.teacher}"`);
+ok(!/Acts 19/.test(closeAge.teacher) && !/Paul \(Acts 19\)/.test(closeAge.teacher), `Close-apostolic-age still inherits Ephesus Paul teacher: "${closeAge.teacher}"`);
+
+const cornelius = ui.normalizeTeachings("event", events.find((e) => e.id === "event-peter-cornelius") || {
+  id: "event-peter-cornelius", year: 38, title: "Peter's Vision & Conversion of Cornelius",
+  locationName: "Caesarea Maritima", category: "apostolic"
+});
+ok(/Peter/.test(cornelius.teacher) && !/Apostle Paul/.test(cornelius.teacher), `Cornelius event teacher is "${cornelius.teacher}"`);
+ok(/Acts 10/.test(cornelius.teacher + cornelius.whatWasTaught + JSON.stringify(cornelius.passages)), "Cornelius event lost Acts 10");
+
+ok(!/apostolic overseer/.test((ephesusD.overview || "") + (ephesusD.peopleAndChurch || "")), "Ephesus still calls Timothy apostolic overseer");
+ok(/abide still at Ephesus|abide at Ephesus/.test((ephesusD.overview || "") + (ephesusD.peopleAndChurch || "")), "Ephesus lost 1 Timothy 1:3 abide wording");
+
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);
   fails.forEach((f) => console.error(" -", f));

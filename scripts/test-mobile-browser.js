@@ -233,15 +233,18 @@ async function measureOverflow(page) {
   });
   console.log("Phone map chrome:", mapChrome);
   // main stacked two 52px bars + 176px footer = 328px chrome with 48px header.
-  // Compact row + 144px footer should free >= 80px of map.
+  // Compact row + PR #4 footer clearance (~168px) should still free the stacked chip row.
   const mainChrome = 48 + 52 + 52 + 176;
   const gain = mainChrome - mapChrome.chromeH;
   console.log(`Map viewport ${mapChrome.mapH}px; chrome ${mapChrome.chromeH}px; gain vs main chrome ≈ ${gain}px`);
-  if (mapChrome.mapH < mapChrome.viewH - 260) {
+  if (mapChrome.mapH < mapChrome.viewH - 280) {
     fail(`Map viewport too short: ${mapChrome.mapH}px in ${mapChrome.viewH}px view (chrome=${mapChrome.chromeH})`);
   }
-  if (gain < 80) fail(`Expected ≥80px chrome savings vs main, got ${gain}px`);
-  if (mapChrome.footerH > 160) fail(`Timeline footer still too tall: ${mapChrome.footerH}px`);
+  if (gain < 52) fail(`Expected ≥52px chrome savings vs main (collapsed chip row), got ${gain}px`);
+  if (mapChrome.footerH > 176) fail(`Timeline footer grew past main's 176px: ${mapChrome.footerH}px`);
+  const footerPad = await page.evaluate(() => getComputedStyle(document.querySelector(".app-timeline-footer")).paddingBottom);
+  const padPx = parseFloat(footerPad);
+  if (!(padPx >= 27.5)) fail(`Footer padding-bottom ${footerPad} must restore PR #4's 28px clearance`);
 
   await page.locator("#mobileFilterBtn").click();
   await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
@@ -250,6 +253,8 @@ async function measureOverflow(page) {
   const chips = await page.locator(".filter-chip").count();
   if (chips < 8) fail(`Expected 8+ chips, found ${chips}`);
 
+  const openChip = await page.locator('.filter-chip[data-filter="savior"]').boundingBox();
+  assertTap("filter-chip", openChip);
   await page.locator('.filter-chip[data-filter="savior"]').click();
   await page.locator('.filter-chip[data-filter="journeys"]').click();
   await page.locator('.filter-chip[data-filter="heatmaps"]').click();
@@ -302,8 +307,25 @@ async function measureOverflow(page) {
   if (!/God so loved/i.test(welcomeOverlap.quoteText)) fail("John 3:16 welcome quote missing");
   if (welcomeOverlap.quoteCovered) fail("John 3:16 is still covered by the timeline");
 
-  await page.locator("#mobileFilterBtn").click();
-  await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
+  const sheetChrome = await page.evaluate(() => {
+    const bar = document.getElementById("mobileCityBar");
+    const filter = document.getElementById("mobileFilterBtn");
+    const city = document.getElementById("mobileCityPickerBtn");
+    const barStyle = getComputedStyle(bar);
+    return {
+      display: barStyle.display,
+      pointerEvents: barStyle.pointerEvents,
+      ariaHidden: bar.getAttribute("aria-hidden"),
+      filterH: filter.getBoundingClientRect().height,
+      cityH: city.getBoundingClientRect().height
+    };
+  });
+  if (sheetChrome.display !== "none") fail(`Command row must hide when sheet is open, display=${sheetChrome.display}`);
+  if (sheetChrome.filterH > 0 || sheetChrome.cityH > 0) {
+    fail(`Layers/Jump still painting while sheet is open: filter=${sheetChrome.filterH} city=${sheetChrome.cityH}`);
+  }
+  if (sheetChrome.ariaHidden !== "true") fail("Command row should be aria-hidden while the sheet is open");
+
   const taps = await page.evaluate(() => {
     const box = (sel) => {
       const el = document.querySelector(sel);
@@ -313,28 +335,20 @@ async function measureOverflow(page) {
     };
     const label = document.querySelector(".city-label-text.city-label-primary");
     return {
-      chip: box(".filter-chip"),
       tab: box(".tab-btn"),
       era: box(".era-tab"),
       fab: box(".map-floating-actions .floating-btn"),
       speed: box(".speed-btn"),
       handle: box(".sheet-handle"),
-      filter: box("#mobileFilterBtn"),
-      city: box("#mobileCityPickerBtn"),
       labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : null
     };
   });
-  assertTap("filter-chip", taps.chip);
-  assertTap("mobile-filter-trigger", taps.filter);
-  assertTap("mobile-city-picker-btn", taps.city);
   assertTap("tab-btn", taps.tab);
   assertTap("era-tab", taps.era);
   assertTap("floating-btn", taps.fab);
   assertTap("speed-btn", taps.speed);
   assertTap("sheet-handle", taps.handle);
   await page.screenshot({ path: path.join(OUT, "phone_welcome_sheet.png"), fullPage: false });
-  await page.locator("#mobileFilterBtn").click();
-  await page.waitForTimeout(150);
   await page.locator("#closeSidebarBtn").click();
   await page.waitForTimeout(250);
   const cityTap = await page.locator("#mobileCityPickerBtn").boundingBox();

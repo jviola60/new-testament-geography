@@ -76,11 +76,25 @@ assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile 
 assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
 assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should restore era tabs below 768px");
 assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
-assert(/--footer-height:\s*144px/.test(mobileCss), "Mobile footer should be denser than the 176px stacked chrome");
+assert(/--footer-height:\s*168px/.test(mobileCss), "Mobile footer should stay denser than the 176px stacked chrome");
 assert(/--citybar-height:\s*52px/.test(mobileCss), "Filter + jump should share one 52px command row");
 assert(/--filterbar-height:\s*0px/.test(mobileCss), "Stacked desktop chip bar must not consume a second mobile row");
 assert(mobileCss.includes("filter-menu-open"), "Filter chips should open from the compact dropdown");
 assert(!mobileCss.includes("--footer-height: 176px"), "Old 176px mobile footer must not remain the phone default");
+assert(
+  /max\(28px,\s*calc\(20px \+ env\(safe-area-inset-bottom/.test(mobileCss),
+  "Footer must restore PR #4 safe-area padding-bottom"
+);
+assert(
+  /padding:\s*10px 2px 18px/.test(mobileCss),
+  "Slider track wrap must keep PR #4 thumb room"
+);
+assert(
+  /sheet-open \.mobile-city-bar[\s\S]{0,120}display:\s*none/.test(mobileCss),
+  "Command row must be display:none while the place sheet is open"
+);
+assert(/badge-season[\s\S]{0,80}0\.64rem/.test(mobileCss), "Season label should stay near 0.64rem");
+assert(mobileJs.includes('aria-hidden'), "Sheet-open should aria-hide the command row");
 
 const chips = html.match(/<button class="filter-chip[^"]*"/g) || [];
 assert(chips.length >= 8, `Expected at least 8 filter chips, found ${chips.length}`);

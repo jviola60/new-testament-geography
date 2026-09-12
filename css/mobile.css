@@ -35,7 +35,7 @@
     --header-height: 48px;
     --filterbar-height: 0px;
     --citybar-height: 52px;
-    --footer-height: 144px;
+    --footer-height: 168px;
     --tap: 44px;
   }
 
@@ -541,6 +541,17 @@
     --citybar-height: 0px;
   }
 
+  html.layout-mobile.sheet-open .mobile-city-bar {
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  html.layout-mobile.sheet-open.filter-menu-open .filter-chip-rows {
+    display: none;
+    pointer-events: none;
+  }
+
   html.layout-mobile .detail-sidebar.sheet-half,
   html.layout-mobile .detail-sidebar.sheet-full,
   html.layout-mobile .detail-sidebar.sheet-peek {
@@ -641,7 +652,7 @@
   /* Timeline: denser chrome, same core controls, thumb above safe-area */
   html.layout-mobile .app-timeline-footer {
     height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
-    padding: 4px 8px max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
+    padding: 4px 8px max(28px, calc(20px + env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
     overflow: visible;
     justify-content: flex-start;
@@ -683,7 +694,7 @@
   }
 
   html.layout-mobile .badge-season {
-    font-size: 0.58rem;
+    font-size: 0.64rem;
     max-width: 100%;
   }
 
@@ -730,7 +741,7 @@
   html.layout-mobile .timeline-slider-track-wrap {
     margin-top: 2px;
     margin-bottom: 0;
-    padding: 4px 2px 16px;
+    padding: 10px 2px 18px;
     box-sizing: border-box;
   }
 
@@ -1038,7 +1049,7 @@ html.layout-mobile .mobile-picker-empty {
   html.layout-mobile {
     --filterbar-height: 0px;
     --citybar-height: 52px;
-    --footer-height: 108px;
+    --footer-height: 120px;
   }
 
   html.layout-mobile.filter-menu-open .filter-chip-rows {

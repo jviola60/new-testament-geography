@@ -65,6 +65,7 @@ class MobileShell {
     if (!this.isPhone()) {
       root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open");
       body.classList.remove("search-open", "sheet-open", "filter-menu-open");
+      if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
       if (this.sidebar) {
         this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging", "closed");
@@ -339,6 +340,8 @@ class MobileShell {
     const sheetOpen = this.isPhone() && mode !== "hidden";
     document.documentElement.classList.toggle("sheet-open", sheetOpen);
     document.body.classList.toggle("sheet-open", sheetOpen);
+    if (this.cityBar) this.cityBar.setAttribute("aria-hidden", sheetOpen ? "true" : "false");
+    if (sheetOpen) this.closeFilterMenu();
     if (!opts.silent) this.invalidateMap(320);
   }
 

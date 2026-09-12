@@ -31,6 +31,7 @@ class MobileShell {
     this.bindSheet();
     this.bindCityPicker();
     this.bindMoreSheet();
+    this.bindBasemapToggle();
     this.bindMapInvalidation();
     this.bindMobileMapZoom();
 
@@ -104,7 +105,7 @@ class MobileShell {
   syncZoomControl() {
     const map = window.app && window.app.map && window.app.map.map;
     if (!map || !map.zoomControl) return;
-    map.zoomControl.setPosition(this.isPhone() ? "bottomleft" : "topleft");
+    map.zoomControl.setPosition(this.isPhone() ? "topright" : "topleft");
   }
 
   bindMobileMapZoom() {
@@ -387,6 +388,38 @@ class MobileShell {
     }
   }
 
+  bindBasemapToggle() {
+    const root = document.getElementById("mobileBasemapToggle");
+    if (!root) return;
+
+    root.addEventListener("click", (e) => {
+      const more = e.target.closest("#mobileBasemapMoreBtn");
+      if (more) {
+        e.preventDefault();
+        this.closeSearch();
+        this.openMoreSheet();
+        return;
+      }
+      const btn = e.target.closest("[data-style]");
+      if (!btn) return;
+      const src = document.querySelector(`#mapStyleDropdown [data-style="${btn.dataset.style}"]`);
+      if (src) src.click();
+      this.syncBasemapToggle();
+    });
+
+    this.syncBasemapToggle();
+  }
+
+  syncBasemapToggle() {
+    const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
+    document.querySelectorAll("#mobileBasemapToggle [data-style]").forEach((btn) => {
+      const style = btn.dataset.style;
+      const on = style === theme || (style === "satellite" && theme === "modern-satellite");
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
   bindMoreSheet() {
     const closeBtn = document.getElementById("mobileMoreClose");
     if (closeBtn) closeBtn.addEventListener("click", () => this.closeOverlays());
@@ -424,6 +457,7 @@ class MobileShell {
         btn.addEventListener("click", () => {
           this.closeOverlays();
           src.click();
+          this.syncBasemapToggle();
         });
         styleHost.appendChild(btn);
       });

@@ -22,6 +22,8 @@ assert(html.includes("sidebar-tab-row"), "Expected two place-detail tab rows");
 assert((html.match(/class="tab-btn/g) || []).length >= 7, "Expected all seven place-detail tabs");
 assert(html.includes('id="sheetHandle"'), "Expected bottom-sheet handle");
 assert(html.includes('id="mobileMoreSheet"'), "Expected more-tools sheet");
+assert(html.includes('id="mobileBasemapToggle"'), "Expected visible mobile Map/Satellite control");
+assert(html.includes('data-style="parchment"') && html.includes('data-style="satellite"'), "Basemap toggle must expose parchment and satellite");
 assert(html.includes("viewport-fit=cover"), "Expected notch-safe viewport");
 
 assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mobile");
@@ -48,7 +50,10 @@ assert(mobileJs.includes("invalidateSize"), "Expected Leaflet invalidateSize on 
 assert(mobileJs.includes("getQuickJumpCatalog"), "City picker should reuse the desktop catalog");
 assert(mobileJs.includes("mobile-zoomed"), "Mobile shell should gate map labels by zoom");
 assert(mobileJs.includes("sheet-open"), "Mobile shell should flag an open details sheet");
-assert(mobileJs.includes("bottomleft"), "Zoom control should move off the Holy Land city cluster");
+assert(mobileJs.includes("topright"), "Zoom control should sit top-right, away from left FABs");
+assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the visible basemap toggle");
+assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
+assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
 
 assert(uiJs.includes("getQuickJumpCatalog"), "uiController should expose the shared place catalog");
 assert(uiJs.includes("jumpToQuickJumpValue"), "uiController should expose shared jump logic");

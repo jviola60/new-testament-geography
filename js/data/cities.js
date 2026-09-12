@@ -473,18 +473,19 @@ const CITIES_DATA = [
   {
     id: "patmos",
     name: "Patmos",
-    ancientName: "Patmos Island",
+    ancientName: "Patmos Island (Pathomis)",
+    aliases: ["Pathomis", "Isle of Patmos", "Island of Patmos", "Cave of the Apocalypse", "John on Patmos", "Apostle John"],
     region: "Aegean Sea",
     lat: 37.3090,
     lng: 26.5460,
-    isMajor: false,
+    isMajor: true,
     hasSynagogue: false,
     hasChurch: true,
     population: "~500 (Penal colony)",
-    jewishDiasporaInfo: "Rocky penal exile island in the Dodecanese.",
-    christianChurchInfo: "The Apostle John was exiled here under Emperor Domitian (~95 AD) 'for the word of God, and for the testimony of Jesus Christ'.",
+    jewishDiasporaInfo: "Rocky penal exile island in the Dodecanese archipelago where the Apostle John was banished.",
+    christianChurchInfo: "The Apostle John was exiled here under Emperor Domitian (~95 AD) 'for the word of God, and for the testimony of Jesus Christ' (Revelation 1:9).",
     epistles: ["Revelation"],
-    significance: "Site where John received the apocalyptic visions of Revelation and messages to the Seven Churches of Asia."
+    significance: "Site where John beheld the resurrected Christ in celestial majesty, receiving the apocalyptic visions of Revelation and messages to the Seven Churches of Asia."
   },
 
   // --- MACEDONIA & GREECE ---

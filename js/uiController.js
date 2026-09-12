@@ -373,7 +373,11 @@ class UIController {
       apostolicCities.forEach(city => {
         const opt = document.createElement("option");
         opt.value = `city:${city.id}`;
-        opt.textContent = `${city.name} (${city.region})`;
+        if (city.id === "patmos") {
+          opt.textContent = `📜 Patmos (Isle of Patmos • John's Exile & Revelation)`;
+        } else {
+          opt.textContent = `${city.name} (${city.region})`;
+        }
         apGroup.appendChild(opt);
       });
       select.appendChild(apGroup);
@@ -535,14 +539,18 @@ class UIController {
 
     // Search Cities
     this.citiesList().forEach(city => {
+      const isPathomisMatch = (q.includes("pathom") || q.includes("patm")) && city.id === "patmos";
       if (
         city.name.toLowerCase().includes(q) ||
         (city.ancientName && city.ancientName.toLowerCase().includes(q)) ||
         (city.region && city.region.toLowerCase().includes(q)) ||
         (city.significance && city.significance.toLowerCase().includes(q)) ||
-        (city.overview && city.overview.toLowerCase().includes(q))
+        (city.overview && city.overview.toLowerCase().includes(q)) ||
+        (city.aliases && city.aliases.some(a => a.toLowerCase().includes(q))) ||
+        isPathomisMatch
       ) {
-        results.push({ type: "city", item: city, title: city.name, subtitle: `${city.region} • ${city.ancientName}`, badge: "City" });
+        const title = city.id === "patmos" ? "📜 Patmos (Isle of Patmos • John's Exile)" : city.name;
+        results.push({ type: "city", item: city, title: title, subtitle: `${city.region} • ${city.ancientName}`, badge: "City" });
       }
     });
 

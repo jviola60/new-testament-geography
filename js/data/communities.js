@@ -276,6 +276,16 @@ const COMMUNITIES_DATA = {
       founders: "Disciples of Paul and the Apostle John",
       growthMilestone: "Established in key commercial centers of western Asia Minor.",
       significance: "Direct recipients of the prophetic letters in Revelation chapters 2 & 3 (~95 AD)."
+    },
+    {
+      city: "Patmos (Apostle John's Exile)",
+      foundedYear: 95,
+      region: "Aegean Sea",
+      lat: 37.3090,
+      lng: 26.5460,
+      founders: "The Apostle John (the Beloved / the Revelator)",
+      growthMilestone: "Celestial apocalypse received and transcribed in the Cave of the Apocalypse (Revelation 1:9-11).",
+      significance: "Penal exile island where the glorified Savior unveiled His cosmic victory, messages to the Seven Churches, and vision of the New Jerusalem."
     }
   ],
 

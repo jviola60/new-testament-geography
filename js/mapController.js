@@ -444,6 +444,41 @@ class MapController {
     if (!CITIES_DATA) return;
 
     CITIES_DATA.forEach(city => {
+      // Special prominent representation for the Isle of Patmos (Apostle John's Exile)
+      if (city.id === "patmos") {
+        const patmosMarker = L.marker([city.lat, city.lng], {
+          icon: L.divIcon({
+            className: "custom-patmos-marker",
+            html: `
+              <div class="patmos-pin-wrap" title="Isle of Patmos • Apostle John's Exile & Revelation">
+                <span class="patmos-pin-icon">📜</span>
+                <span class="patmos-pin-label">Patmos <small>(Apostle John)</small></span>
+              </div>
+            `,
+            iconSize: [124, 30],
+            iconAnchor: [62, 15]
+          }),
+          zIndexOffset: 1500
+        });
+
+        patmosMarker.bindTooltip(`
+          <div class="custom-bible-tooltip">
+            <strong>📜 ISLE OF PATMOS (Pathomis)</strong><br>
+            <span style="color:#D97706; font-weight:700;">Aegean Sea • Exile of the Apostle John (~95 AD)</span><br>
+            <small>"I John, who also am your brother... was in the isle that is called Patmos, for the word of God, and for the testimony of Jesus Christ." (Rev 1:9)</small><br>
+            <span style="color:#B91C1C; font-size:10px; font-weight:700;">👆 Click to open 5-Tab Biblical Dossier & Revelation Scriptures</span>
+          </div>
+        `, { className: "custom-bible-tooltip", sticky: true, direction: "top" });
+
+        patmosMarker.on("click", (e) => {
+          if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+          window.app.ui.showCityDetail(city);
+        });
+
+        this.layers.cities.addLayer(patmosMarker);
+        return;
+      }
+
       // Create custom HTML label
       const isMajor = city.isMajor;
       const labelHtml = `<div class="city-label-text ${isMajor ? 'city-label-major' : ''}">${city.name}</div>`;
@@ -816,20 +851,24 @@ class MapController {
     this.layers.churches.clearLayers();
     this.layers.heatmaps.clearLayers();
 
-    // 2. Render Savior's Events active by current year
+    // 2. Render Chronological Events active by current year
     let visibleEventsCount = 0;
+    const allChronologicalEvents = (typeof TIMELINE_EVENTS !== "undefined" && TIMELINE_EVENTS.length > 0) ? TIMELINE_EVENTS : (typeof SAVIOR_EVENTS !== "undefined" ? SAVIOR_EVENTS : []);
     if (this.filterState.savior) {
-      SAVIOR_EVENTS.forEach(event => {
+      allChronologicalEvents.forEach(event => {
         // Show events that have occurred up to the current year
         // Highlight active event if exactly in this year
         if (event.year <= year) {
           visibleEventsCount++;
-          const isCurrentYear = Math.abs(event.year - Math.floor(year)) < 0.5;
+          const isCurrentYear = Math.abs(event.year - Math.floor(year)) < 1.0;
+          const isProphecy = event.category === "prophecy" || (event.id && event.id.includes("patmos"));
+          const isApostolic = event.category === "apostolic";
+          const eventIcon = isProphecy ? "📜" : (isApostolic ? "🔥" : "✝");
 
           const iconHtml = `
-            <div class="custom-marker-savior ${isCurrentYear ? 'active-highlight' : ''}">
+            <div class="custom-marker-savior ${isProphecy ? 'marker-prophecy' : (isApostolic ? 'marker-apostolic' : '')} ${isCurrentYear ? 'active-highlight' : ''}">
               ${isCurrentYear ? '<div class="savior-pulse-ring"></div>' : ''}
-              <div class="savior-icon-inner" title="${event.title}">✝</div>
+              <div class="savior-icon-inner" title="${event.title}">${eventIcon}</div>
             </div>`;
 
           const marker = L.marker([event.lat, event.lng], {
@@ -844,8 +883,8 @@ class MapController {
 
           marker.bindTooltip(`
             <div class="tooltip-title">${event.title}</div>
-            <div style="font-size:11px; color:#92400E; font-weight:600;">${event.season}</div>
-            <div class="tooltip-scripture">${event.scriptures[0] ? event.scriptures[0].ref : ''}</div>
+            <div style="font-size:11px; color:#92400E; font-weight:600;">${event.locationName} • ${event.season || (event.year + ' AD')}</div>
+            <div class="tooltip-scripture">${event.scriptures && event.scriptures[0] ? event.scriptures[0].ref : ''}</div>
           `, { className: "custom-bible-tooltip", direction: "top" });
 
           marker.on("click", () => {

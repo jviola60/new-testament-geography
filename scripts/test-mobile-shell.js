@@ -69,6 +69,14 @@ assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the co
 assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
 assert(mobileJs.includes("bindPeriodDropdown"), "Mobile shell should wire the compact period dropdown");
 assert(mobileJs.includes("syncPeriodLabel"), "Period trigger should show Period · current era");
+assert(mobileJs.includes("closeChromeMenus"), "Search/Tours/More must share a close for Layers + Period menus");
+{
+  const header = mobileJs.slice(mobileJs.indexOf("bindHeader() {"), mobileJs.indexOf("collapseLegend() {"));
+  assert(header.includes("closeChromeMenus"), "Header Search/Tours/More must close the period menu");
+  assert(/if \(open\)[\s\S]{0,80}closeChromeMenus/.test(header), "Opening Search must close the period menu");
+  assert(/toursBtn[\s\S]{0,200}closeChromeMenus/.test(header), "Opening Tours must close the period menu");
+  assert(/closeChromeMenus[\s\S]{0,80}openMoreSheet/.test(header), "Opening More must close the period menu");
+}
 assert(mobileJs.includes("Period ·"), "Period trigger copy should use the Period · current pattern");
 assert(mobileJs.includes("jumpToQuickJumpValue"), "City jump must keep using existing catalog logic");
 assert(!mobileJs.includes("speed dropdown") && !/bindSpeedDropdown/.test(mobileJs), "This PR must not add a Speed dropdown");

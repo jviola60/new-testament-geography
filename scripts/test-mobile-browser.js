@@ -373,6 +373,41 @@ async function measureOverflow(page) {
   }
   if (!/4 BC/.test(afterPeriod.year)) fail(`Choosing Nazareth should jump the timeline to 4 BC, year=${afterPeriod.year}`);
 
+  const assertPeriodClosedBy = async (label, openAction) => {
+    await page.locator("#mobilePeriodBtn").click();
+    await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
+    await openAction();
+    const state = await page.evaluate(() => ({
+      open: document.documentElement.classList.contains("period-menu-open"),
+      display: getComputedStyle(document.querySelector(".era-selector-tabs")).display
+    }));
+    if (state.open || state.display !== "none") {
+      fail(`Period menu stayed open after opening ${label}`);
+    }
+  };
+
+  await assertPeriodClosedBy("Search", async () => {
+    await page.locator("#mobileSearchBtn").click();
+    await page.waitForFunction(() => document.body.classList.contains("search-open"), { timeout: 3000 });
+  });
+  await page.screenshot({ path: path.join(OUT, "phone_period_closed_by_search.png"), fullPage: false });
+  await page.locator("#mobileSearchBtn").click();
+  await page.waitForTimeout(150);
+
+  await assertPeriodClosedBy("More", async () => {
+    await page.locator("#mobileMoreBtn").click();
+    await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
+  });
+  await page.locator("#mobileMoreClose").click();
+  await page.waitForTimeout(150);
+
+  await assertPeriodClosedBy("Tours", async () => {
+    await page.locator("#mobileToursBtn").click();
+    await page.waitForSelector("#tourModal", { state: "visible", timeout: 5000 });
+  });
+  await page.locator("#closeTourModalBtn").click();
+  await page.waitForTimeout(150);
+
   const closedSheet = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
     const r = el.getBoundingClientRect();

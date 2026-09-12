@@ -743,12 +743,58 @@ class UIController {
       "malachi": "mal"
     };
 
+    // 1. Direct handling for Revelation & Seven Churches letters
+    const lower = String(citation).toLowerCase().trim();
+    if (lower.includes("revelation") || lower.includes("apocalypse")) {
+      if (lower.includes("ephesus")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/2?lang=eng&id=p1-p7#p1";
+      if (lower.includes("smyrna")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/2?lang=eng&id=p8-p11#p8";
+      if (lower.includes("pergamum") || lower.includes("pergamos")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/2?lang=eng&id=p12-p17#p12";
+      if (lower.includes("thyatira")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/2?lang=eng&id=p18-p29#p18";
+      if (lower.includes("sardis")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/3?lang=eng&id=p1-p6#p1";
+      if (lower.includes("philadelphia")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/3?lang=eng&id=p7-p13#p7";
+      if (lower.includes("laodicea")) return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/3?lang=eng&id=p14-p22#p14";
+      const revMatch = lower.match(/rev(?:elation)?\s*(\d+)(?::(\d+))?/);
+      if (revMatch) {
+        const ch = revMatch[1];
+        const v = revMatch[2];
+        return v ? `https://www.churchofjesuschrist.org/study/scriptures/nt/rev/${ch}?lang=eng&id=p${v}#p${v}` : `https://www.churchofjesuschrist.org/study/scriptures/nt/rev/${ch}?lang=eng`;
+      }
+      return "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/1?lang=eng";
+    }
+
     const cleaned = String(citation).replace(/&/g, " ").split(/[;,—]/)[0].trim();
-    const match = cleaned.match(/^([\d]?\s*[A-Za-z]+)\s+(\d+)(?::(\d+))?/);
+    const cleanLower = cleaned.toLowerCase();
+
+    // 2. Check for whole book name match (e.g. "Romans", "1 Corinthians", "Galatians")
+    for (const [bookName, slug] of Object.entries(ntBooks)) {
+      if (cleanLower === bookName || cleanLower.startsWith(bookName + " ")) {
+        const remainder = cleanLower.slice(bookName.length).trim();
+        const chMatch = remainder.match(/^(\d+)(?::(\d+))?/);
+        const ch = chMatch ? chMatch[1] : "1";
+        const v = chMatch && chMatch[2] ? chMatch[2] : null;
+        return v
+          ? `https://www.churchofjesuschrist.org/study/scriptures/nt/${slug}/${ch}?lang=eng&id=p${v}#p${v}`
+          : `https://www.churchofjesuschrist.org/study/scriptures/nt/${slug}/${ch}?lang=eng`;
+      }
+    }
+
+    for (const [bookName, slug] of Object.entries(otBooks)) {
+      if (cleanLower === bookName || cleanLower.startsWith(bookName + " ")) {
+        const remainder = cleanLower.slice(bookName.length).trim();
+        const chMatch = remainder.match(/^(\d+)(?::(\d+))?/);
+        const ch = chMatch ? chMatch[1] : "1";
+        const v = chMatch && chMatch[2] ? chMatch[2] : null;
+        return v
+          ? `https://www.churchofjesuschrist.org/study/scriptures/ot/${slug}/${ch}?lang=eng&id=p${v}#p${v}`
+          : `https://www.churchofjesuschrist.org/study/scriptures/ot/${slug}/${ch}?lang=eng`;
+      }
+    }
+
+    const match = cleaned.match(/^([\d]?\s*[A-Za-z]+)\s*(\d+)?(?::(\d+))?/);
     if (!match) return "https://www.churchofjesuschrist.org/study/scriptures/nt?lang=eng";
 
     const rawBook = match[1].trim().toLowerCase();
-    const chapter = match[2];
+    const chapter = match[2] || "1";
     const verse = match[3] || "1";
     if (otBooks[rawBook]) {
       return `https://www.churchofjesuschrist.org/study/scriptures/ot/${otBooks[rawBook]}/${chapter}?lang=eng#${verse}`;

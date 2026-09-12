@@ -60,15 +60,8 @@ class MapController {
       minZoom: 4,
       maxZoom: 18,
       zoomControl: true,
-      attributionControl: false,
-      tapTolerance: 15
+      attributionControl: false
     });
-
-    if (typeof this.map.whenReady === "function") {
-      this.map.whenReady(() => {
-        this.map.invalidateSize({ animate: false });
-      });
-    }
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })

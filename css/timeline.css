@@ -274,4 +274,16 @@
   font-weight: 700;
 }
 
-/* Phone/tablet timeline layout is in mobile.css so era tabs stay usable. */
+@media (max-width: 900px) {
+  :root {
+    --footer-height: 135px;
+  }
+  
+  .era-selector-tabs {
+    display: none;
+  }
+  
+  .timeline-control-bar {
+    justify-content: space-between;
+  }
+}

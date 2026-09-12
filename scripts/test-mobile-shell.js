@@ -27,7 +27,7 @@ assert(html.includes("viewport-fit=cover"), "Expected notch-safe viewport");
 assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mobile");
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
-assert(mobileCss.includes("@media (max-width: 820px)"), "Expected phone breakpoint");
+assert(mobileCss.includes("@media (max-width: 768px)"), "Expected phone breakpoint at 768px");
 
 assert(mobileJs.includes("class MobileShell"), "Expected MobileShell class");
 assert(mobileJs.includes("invalidateSize"), "Expected Leaflet invalidateSize on layout changes");
@@ -37,8 +37,9 @@ assert(uiJs.includes("getQuickJumpCatalog"), "uiController should expose the sha
 assert(uiJs.includes("jumpToQuickJumpValue"), "uiController should expose shared jump logic");
 assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile shell");
 
-assert(mainCss.includes("--citybar-height"), "Desktop layout should reserve a zero-height city bar slot");
-assert(!fs.readFileSync(path.join(root, "css/timeline.css"), "utf8").includes("era-selector-tabs {\n    display: none;"), "Era tabs must remain available on small screens");
+assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
+assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should restore era tabs below 768px");
+assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
 
 const chips = html.match(/<button class="filter-chip[^"]*"/g) || [];
 assert(chips.length >= 8, `Expected at least 8 filter chips, found ${chips.length}`);

@@ -4,8 +4,7 @@
  */
 class MobileShell {
   constructor() {
-    this.phoneQuery = window.matchMedia("(max-width: 820px)");
-    this.tabletQuery = window.matchMedia("(min-width: 821px) and (max-width: 1100px)");
+    this.phoneQuery = window.matchMedia("(max-width: 768px)");
     this.sheetMode = "hidden";
     this.catalog = [];
     this._resizeTimer = null;
@@ -45,19 +44,13 @@ class MobileShell {
     return this.phoneQuery.matches;
   }
 
-  isTablet() {
-    return this.tabletQuery.matches;
-  }
-
   applyLayout() {
     const root = document.documentElement;
     const body = document.body;
     const phone = this.isPhone();
-    const tablet = this.isTablet();
     root.classList.toggle("layout-mobile", phone);
     body.classList.toggle("layout-mobile", phone);
-    body.classList.toggle("layout-tablet", tablet);
-    body.classList.toggle("layout-desktop", !phone && !tablet);
+    body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
       root.classList.remove("search-open");
@@ -77,10 +70,8 @@ class MobileShell {
     const onChange = () => this.applyLayout();
     if (this.phoneQuery.addEventListener) {
       this.phoneQuery.addEventListener("change", onChange);
-      this.tabletQuery.addEventListener("change", onChange);
     } else {
       this.phoneQuery.addListener(onChange);
-      this.tabletQuery.addListener(onChange);
     }
 
     window.addEventListener("orientationchange", () => {

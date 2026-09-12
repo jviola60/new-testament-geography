@@ -52,7 +52,6 @@
   /* Header & Footer Dimensions */
   --header-height: 64px;
   --filterbar-height: 44px;
-  --citybar-height: 0px;
   --footer-height: 118px;
   --sidebar-width: 440px;
 }
@@ -340,16 +339,10 @@ html, body {
   gap: 0.45rem;
 }
 
-.filter-chip-rows {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
+/* Wrappers are display:contents on desktop so chip flow matches main exactly. */
+.filter-chip-rows,
 .filter-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  display: contents;
 }
 
 .filter-label {
@@ -441,7 +434,7 @@ html, body {
 .app-main-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--header-height) - var(--filterbar-height) - var(--citybar-height) - var(--footer-height));
+  height: calc(100vh - var(--header-height) - var(--filterbar-height) - var(--footer-height));
   display: flex;
   overflow: hidden;
 }
@@ -454,19 +447,27 @@ html, body {
   z-index: 10;
 }
 
-/* Compact desktop / large-tablet tweaks (phone shell lives in mobile.css) */
-@media (max-width: 1100px) {
+/* Responsive adjustments — identical to main. Mobile shell is max-width: 768px in mobile.css. */
+@media (max-width: 900px) {
+  :root {
+    --sidebar-width: 100%;
+  }
+  
   .brand-subtitle {
     display: none;
   }
-
+  
   .header-center {
-    max-width: 240px;
+    max-width: 220px;
     margin: 0 0.5rem;
+  }
+  
+  .stat-pill {
+    display: none;
   }
 }
 
-/* Mobile-only chrome is hidden until the phone/tablet shell activates */
+/* New mobile-only nodes stay hidden at every desktop width */
 .mobile-header-actions,
 .mobile-city-bar,
 .mobile-backdrop,

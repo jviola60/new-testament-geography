@@ -15,9 +15,15 @@ const mainCss = fs.readFileSync(path.join(root, "css/main.css"), "utf8");
 assert(html.includes('css/mobile.css'), "index.html should load mobile.css");
 assert(html.includes("js/mobileShell.js"), "index.html should load mobileShell.js");
 assert(html.includes('id="mobileCityPickerBtn"'), "Expected mobile city picker button");
+assert(html.includes('id="mobileFilterBtn"'), "Expected mobile filter dropdown trigger");
+assert(html.includes('id="mobileFilterMenu"'), "Expected existing filter chips to back the dropdown");
 assert(html.includes('id="mobileCityPickerSheet"'), "Expected searchable city picker sheet");
 assert(html.includes('id="mobileCitySearch"'), "Expected city picker search input");
 assert(html.includes('id="filterRowPrimary"') && html.includes('id="filterRowSecondary"'), "Expected two filter chip rows");
+assert(
+  html.indexOf('id="mobileFilterBtn"') < html.indexOf('id="mobileCityPickerBtn"'),
+  "Filter dropdown should sit beside (before) the city jump control"
+);
 assert(html.includes("sidebar-tab-row"), "Expected two place-detail tab rows");
 assert((html.match(/class="tab-btn/g) || []).length >= 7, "Expected all seven place-detail tabs");
 assert(html.includes('id="sheetHandle"'), "Expected bottom-sheet handle");
@@ -30,7 +36,7 @@ assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mo
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
 assert(mobileCss.includes("--tap: 44px"), "Expected --tap token at 44px");
-["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "speed-btn", "sheet-handle"].forEach(sel => {
+["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "speed-btn", "sheet-handle"].forEach(sel => {
   const re = new RegExp(`html\\.layout-mobile \\.${sel}(?:[\\s,:][^{]*)?\\{([\\s\\S]{0,240})`);
   const match = mobileCss.match(re);
   assert(match, `Expected mobile rule for .${sel}`);
@@ -54,6 +60,9 @@ assert(mobileJs.includes("topright"), "Zoom control should sit top-right, away f
 assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the visible basemap toggle");
 assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell should stack left FABs below the period title");
 assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the period-title height");
+assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the compact filter dropdown");
+assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
+assert(mobileJs.includes("jumpToQuickJumpValue"), "City jump must keep using existing catalog logic");
 assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
 assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
 assert(mobileCss.includes("calc(8px + var(--tap) + 10px)"), "Zoom stack should clear the Map|Satellite chip");
@@ -67,6 +76,11 @@ assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile 
 assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
 assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should restore era tabs below 768px");
 assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
+assert(/--footer-height:\s*136px/.test(mobileCss), "Mobile footer should be denser than the 176px stacked chrome");
+assert(/--citybar-height:\s*52px/.test(mobileCss), "Filter + jump should share one 52px command row");
+assert(/--filterbar-height:\s*0px/.test(mobileCss), "Stacked desktop chip bar must not consume a second mobile row");
+assert(mobileCss.includes("filter-menu-open"), "Filter chips should open from the compact dropdown");
+assert(!mobileCss.includes("--footer-height: 176px"), "Old 176px mobile footer must not remain the phone default");
 
 const chips = html.match(/<button class="filter-chip[^"]*"/g) || [];
 assert(chips.length >= 8, `Expected at least 8 filter chips, found ${chips.length}`);

@@ -427,8 +427,9 @@ ok(sycharD.teachings && !sycharD.teachings.passages.some((p) => /Luke 10/.test(p
 ok(!/Taheb/.test((sycharD.teachings && sycharD.teachings.whatWasTaught) || ""), "Sychar still uses Messianic Taheb (Restorer)");
 ok(/John 4:25/.test((sycharD.teachings && sycharD.teachings.whatWasTaught) || ""), "Sychar teachings should cite Messiah/Christ (John 4:25–26)");
 
-ok(/Luke 9:10/.test(bethsaida.significance || "") && /Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin should distinguish Feeding (Luke 9) from the blind man (Mark 8)");
-ok(!/Feeding of the 5,000.*Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin still cites Mark 8:22 for the Feeding");
+ok(/Feeding of the 5,000[^.]*Luke 9:10/.test(bethsaida.significance || ""), "Bethsaida pin should cite Luke 9:10–17 for the Feeding");
+ok(/Healing of the blind man[^.]*Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin should cite Mark 8:22–26 for the blind man");
+ok(!/Feeding of the 5,000[^.]*Mark 8:22/.test(bethsaida.significance || ""), "Bethsaida pin still cites Mark 8:22 for the Feeding");
 
 ok(/Revelation 1:9/.test(patmosD.overview || ""), "Patmos overview lost Revelation 1:9");
 ok(/early-church testimony/i.test((patmosD.overview || "") + (patmosD.peopleAndChurch || "") + (patmosD.eraChronology || "")), "Patmos should label Domitian/~95 as early-church testimony");

@@ -126,26 +126,33 @@ class MobileShell {
 
   syncLeftMapStack() {
     const root = document.documentElement;
+    const badge = document.getElementById("floatingEraBadge");
     if (!this.isPhone()) {
       root.style.removeProperty("--left-fab-top");
       root.style.removeProperty("--zoom-stack-top");
+      if (badge) badge.style.maxWidth = "";
       return;
     }
 
     const main = document.querySelector(".app-main-container");
-    const badge = document.getElementById("floatingEraBadge");
     const toggle = document.getElementById("mobileBasemapToggle");
     const mainTop = main ? main.getBoundingClientRect().top : 0;
 
+    if (badge && badge.offsetParent && toggle && toggle.offsetParent) {
+      const sideGap = 10;
+      const maxW = Math.floor(toggle.getBoundingClientRect().left - badge.getBoundingClientRect().left - sideGap);
+      badge.style.maxWidth = `${Math.max(96, maxW)}px`;
+    }
+
     if (badge && badge.offsetParent) {
       const gap = 8;
-      const top = Math.round(badge.getBoundingClientRect().bottom - mainTop + gap);
+      const top = Math.ceil(badge.getBoundingClientRect().bottom - mainTop + gap);
       root.style.setProperty("--left-fab-top", `${Math.max(top, 56)}px`);
     }
 
     if (toggle && toggle.offsetParent) {
       const gap = 10;
-      const top = Math.round(toggle.getBoundingClientRect().bottom - mainTop + gap);
+      const top = Math.ceil(toggle.getBoundingClientRect().bottom - mainTop + gap);
       const fallback = 8 + 44 + 10;
       root.style.setProperty("--zoom-stack-top", `${Math.max(top, fallback)}px`);
     }

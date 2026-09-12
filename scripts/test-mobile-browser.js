@@ -101,8 +101,10 @@ async function measureOverflow(page) {
       toggle: { top: toggleR.top, bottom: toggleR.bottom, right: toggleR.right, height: toggleR.height },
       gapBadgeFabs: fabR.top - badgeR.bottom,
       gapToggleZoom: zoomR.top - toggleR.bottom,
+      gapBadgeToggle: toggleR.left - badgeR.right,
       overlapBadgeFabs: badgeR.left < fabR.right && badgeR.right > fabR.left && badgeR.top < fabR.bottom && badgeR.bottom > fabR.top,
       overlapBadgeZoom: badgeR.left < zoomR.right && badgeR.right > zoomR.left && badgeR.top < zoomR.bottom && badgeR.bottom > zoomR.top,
+      overlapBadgeToggle: badgeR.left < toggleR.right && badgeR.right > toggleR.left && badgeR.top < toggleR.bottom && badgeR.bottom > toggleR.top,
       underStripe,
       underBadge,
       interactiveUnder,
@@ -117,6 +119,7 @@ async function measureOverflow(page) {
     title: stack.title,
     gapBadgeFabs: stack.gapBadgeFabs,
     gapToggleZoom: stack.gapToggleZoom,
+    gapBadgeToggle: stack.gapBadgeToggle,
     borderLeft: stack.borderLeft,
     borderColor: stack.borderColor,
     interactiveUnder: stack.interactiveUnder,
@@ -125,8 +128,10 @@ async function measureOverflow(page) {
   if (!/nativity/i.test(stack.title)) fail(`Expected Nativity period title, got "${stack.title}"`);
   if (stack.overlapBadgeFabs) fail("Period title overlaps the left FAB stack");
   if (stack.overlapBadgeZoom) fail("Period title overlaps the zoom control");
+  if (stack.overlapBadgeToggle) fail("Period title overlaps the Map|Satellite chip");
   if (stack.gapBadgeFabs < 6) fail(`Left FABs must clear the period title, gap=${stack.gapBadgeFabs}`);
   if (stack.gapToggleZoom < 8) fail(`Zoom stack must clear Map|Satellite chip, gap=${stack.gapToggleZoom}`);
+  if (stack.gapBadgeToggle < 8) fail(`Period title must clear Map|Satellite chip, gap=${stack.gapBadgeToggle}`);
   if (stack.topleftControls > 0) fail(`Leaflet top-left still has ${stack.topleftControls} control(s) under the period title`);
   if (stack.interactiveUnder.length) fail(`Interactive control under the period-title stripe: ${JSON.stringify(stack.interactiveUnder)}`);
   if (stack.recenter.height + 0.5 < 44) fail(`Reset FAB tap height ${stack.recenter.height}px < 44px`);

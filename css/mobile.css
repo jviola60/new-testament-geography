@@ -7,6 +7,7 @@
 
 .mobile-header-actions,
 .mobile-filter-trigger,
+.mobile-period-trigger,
 .mobile-city-bar,
 .mobile-backdrop,
 .mobile-picker-sheet,
@@ -35,7 +36,7 @@
     --header-height: 48px;
     --filterbar-height: 0px;
     --citybar-height: 52px;
-    --footer-height: 168px;
+    --footer-height: 124px;
     --tap: 44px;
   }
 
@@ -158,16 +159,17 @@
     display: none;
   }
 
-  html.layout-mobile .mobile-filter-trigger {
+  html.layout-mobile .mobile-filter-trigger,
+  html.layout-mobile .mobile-period-trigger {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 0 1 42%;
+    flex: 1 1 0;
     min-width: 0;
-    max-width: 48%;
+    max-width: none;
     min-height: var(--tap);
     height: var(--tap);
-    padding: 0 10px;
+    padding: 0 8px;
     border: 1.5px solid var(--border-parchment-dark);
     border-radius: 10px;
     background: #FFFDF8;
@@ -178,6 +180,15 @@
     text-align: left;
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  html.layout-mobile .mobile-filter-trigger {
+    flex: 0 1 28%;
+    max-width: 32%;
+  }
+
+  html.layout-mobile .mobile-period-trigger {
+    flex: 1 1 32%;
   }
 
   html.layout-mobile .mobile-filter-dot {
@@ -206,18 +217,30 @@
     text-overflow: ellipsis;
   }
 
-  html.layout-mobile .mobile-filter-caret {
+  html.layout-mobile .mobile-filter-caret,
+  html.layout-mobile .mobile-period-caret {
     color: #B45309;
     font-size: 1.05rem;
     line-height: 1;
+    flex: 0 0 auto;
   }
 
-  html.layout-mobile.filter-menu-open .mobile-filter-trigger {
+  html.layout-mobile .mobile-period-label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile.filter-menu-open .mobile-filter-trigger,
+  html.layout-mobile.period-menu-open .mobile-period-trigger {
     border-color: #D97706;
     background: #FFF8EB;
   }
 
-  html.layout-mobile .filter-chip-rows {
+  html.layout-mobile .filter-chip-rows,
+  html.layout-mobile .era-selector-tabs {
     display: none;
     position: fixed;
     top: calc(var(--header-height) + env(safe-area-inset-top) + var(--citybar-height) + 4px);
@@ -240,7 +263,8 @@
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
   }
 
-  html.layout-mobile.filter-menu-open .filter-chip-rows {
+  html.layout-mobile.filter-menu-open .filter-chip-rows,
+  html.layout-mobile.period-menu-open .era-selector-tabs {
     display: flex;
     pointer-events: auto;
   }
@@ -277,12 +301,12 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 1 1 58%;
+    flex: 1 1 38%;
     width: auto;
     min-width: 0;
     min-height: var(--tap);
     height: var(--tap);
-    padding: 0 8px 0 10px;
+    padding: 0 8px;
     border: 1.5px solid #D97706;
     border-radius: 10px;
     background: #FFFDF8;
@@ -307,8 +331,8 @@
   }
 
   html.layout-mobile .mobile-city-picker-label {
-    font-family: var(--font-serif-title);
-    font-size: 0.72rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
     font-weight: 700;
     color: #451A03;
     white-space: nowrap;
@@ -331,8 +355,8 @@
 
   html.layout-mobile .mobile-city-bar.has-place .mobile-city-picker-current {
     display: block;
-    font-family: var(--font-serif-title);
-    font-size: 0.72rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
     font-weight: 700;
     color: #451A03;
   }
@@ -547,7 +571,8 @@
     pointer-events: none;
   }
 
-  html.layout-mobile.sheet-open.filter-menu-open .filter-chip-rows {
+  html.layout-mobile.sheet-open.filter-menu-open .filter-chip-rows,
+  html.layout-mobile.sheet-open.period-menu-open .era-selector-tabs {
     display: none;
     pointer-events: none;
   }
@@ -661,10 +686,8 @@
 
   html.layout-mobile .timeline-control-bar {
     display: grid;
-    grid-template-columns: minmax(0, auto) minmax(72px, 1fr);
-    grid-template-areas:
-      "playback date"
-      "eras eras";
+    grid-template-columns: minmax(0, auto) minmax(56px, 1fr);
+    grid-template-areas: "playback date";
     gap: 2px 6px;
     align-items: center;
     min-width: 0;
@@ -684,34 +707,28 @@
 
   html.layout-mobile .current-date-badge {
     grid-area: date;
+    position: relative;
     min-width: 0;
     width: 100%;
-    padding: 1px 6px;
+    padding: 4px 8px;
+    justify-content: center;
   }
 
   html.layout-mobile .badge-year {
     font-size: 0.95rem;
   }
 
+  /* Year only on phone; season stays in the a11y tree / aria-label. */
   html.layout-mobile .badge-season {
-    font-size: 0.64rem;
-    max-width: 100%;
-  }
-
-  html.layout-mobile .era-selector-tabs {
-    grid-area: eras;
-    display: flex;
-    width: 100%;
-    padding: 0 8px;
-    scroll-padding-inline: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  html.layout-mobile .era-selector-tabs::after {
-    content: "";
-    flex: 0 0 8px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   html.layout-mobile .btn-ctrl {
@@ -732,10 +749,17 @@
   }
 
   html.layout-mobile .era-tab {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-start;
     min-height: var(--tap);
-    padding: 3px 10px;
-    font-size: 0.68rem;
-    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    box-sizing: border-box;
+    text-align: left;
   }
 
   html.layout-mobile .timeline-slider-track-wrap {
@@ -1052,17 +1076,14 @@ html.layout-mobile .mobile-picker-empty {
     --footer-height: 120px;
   }
 
-  html.layout-mobile.filter-menu-open .filter-chip-rows {
+  html.layout-mobile.filter-menu-open .filter-chip-rows,
+  html.layout-mobile.period-menu-open .era-selector-tabs {
     flex-direction: column;
     max-height: min(48vh, 280px);
   }
 
   html.layout-mobile .filter-chip-row {
     display: contents;
-  }
-
-  html.layout-mobile .era-selector-tabs {
-    display: none;
   }
 
   html.layout-mobile .detail-sidebar.sheet-half {

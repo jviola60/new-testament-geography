@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=6.1">
+  <link rel="stylesheet" href="css/mobile.css?v=7.0">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -213,10 +213,14 @@
       <span class="mobile-filter-label" id="mobileFilterLabel">Layers</span>
       <span class="mobile-filter-caret" aria-hidden="true">▾</span>
     </button>
+    <button type="button" id="mobilePeriodBtn" class="mobile-period-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="eraTabs">
+      <span class="mobile-period-label" id="mobilePeriodLabel">Period · Nativity</span>
+      <span class="mobile-period-caret" aria-hidden="true">▾</span>
+    </button>
     <button type="button" id="mobileCityPickerBtn" class="mobile-city-picker-btn" aria-haspopup="dialog" aria-expanded="false">
       <span class="mobile-city-picker-icon" aria-hidden="true">📍</span>
       <span class="mobile-city-picker-text">
-        <span class="mobile-city-picker-label">Jump to any city or region</span>
+        <span class="mobile-city-picker-label">Jump to place</span>
         <span class="mobile-city-picker-current" id="mobileCityPickerCurrent">Searchable list of every place</span>
       </span>
       <span class="mobile-city-picker-caret" aria-hidden="true">▾</span>
@@ -566,7 +570,7 @@
   <script src="js/timelineController.js?v=3.5"></script>
   <script src="js/uiController.js?v=4.2"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=6.1"></script>
+  <script src="js/mobileShell.js?v=7.1"></script>
   <script src="js/app.js?v=4.2"></script>
 </body>
 </html>

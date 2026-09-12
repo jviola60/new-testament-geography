@@ -28,13 +28,18 @@ class MobileShell {
     this.filterLabel = document.getElementById("mobileFilterLabel");
     this.filterDot = document.getElementById("mobileFilterDot");
     this.filterMenu = document.getElementById("mobileFilterMenu");
+    this.periodBtn = document.getElementById("mobilePeriodBtn");
+    this.periodLabel = document.getElementById("mobilePeriodLabel");
+    this.periodMenu = document.getElementById("eraTabs");
     this.cityBar = document.getElementById("mobileCityBar");
+    this.dateBadge = document.getElementById("currentDateBadge");
 
     this.applyLayout();
     this.bindViewport();
     this.bindHeader();
     this.bindSheet();
     this.bindFilterDropdown();
+    this.bindPeriodDropdown();
     this.bindCityPicker();
     this.bindMoreSheet();
     this.bindBasemapToggle();
@@ -63,8 +68,8 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open");
-      body.classList.remove("search-open", "sheet-open", "filter-menu-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open");
+      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open");
       if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
       if (this.sidebar) {
@@ -217,7 +222,7 @@ class MobileShell {
         document.documentElement.classList.toggle("search-open", open);
         this.searchBtn.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
-          this.closeFilterMenu();
+          this.closeChromeMenus();
           const input = document.getElementById("globalSearchInput");
           if (input) input.focus();
         }
@@ -227,7 +232,7 @@ class MobileShell {
     if (this.toursBtn) {
       this.toursBtn.addEventListener("click", () => {
         this.closeSearch();
-        this.closeFilterMenu();
+        this.closeChromeMenus();
         this.closeOverlays();
         const desktopTours = document.getElementById("storyToursBtn");
         if (desktopTours) desktopTours.click();
@@ -238,7 +243,7 @@ class MobileShell {
       this.moreBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         this.closeSearch();
-        this.closeFilterMenu();
+        this.closeChromeMenus();
         this.openMoreSheet();
       });
     }
@@ -254,6 +259,11 @@ class MobileShell {
     document.documentElement.classList.remove("search-open");
     document.body.classList.remove("search-open");
     if (this.searchBtn) this.searchBtn.setAttribute("aria-expanded", "false");
+  }
+
+  closeChromeMenus() {
+    this.closeFilterMenu();
+    this.closePeriodMenu();
   }
 
   collapseLegend() {
@@ -341,7 +351,7 @@ class MobileShell {
     document.documentElement.classList.toggle("sheet-open", sheetOpen);
     document.body.classList.toggle("sheet-open", sheetOpen);
     if (this.cityBar) this.cityBar.setAttribute("aria-hidden", sheetOpen ? "true" : "false");
-    if (sheetOpen) this.closeFilterMenu();
+    if (sheetOpen) this.closeChromeMenus();
     if (!opts.silent) this.invalidateMap(320);
   }
 
@@ -379,7 +389,8 @@ class MobileShell {
     this.filterBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.closeSearch();
-      if (this.isFilterMenuOpen()) this.closeFilterMenu();
+      this.closePeriodMenu();
+      if (this.isFilterMenuOpen()) this.closeChromeMenus();
       else this.openFilterMenu();
     });
 
@@ -456,12 +467,112 @@ class MobileShell {
     }
   }
 
+  bindPeriodDropdown() {
+    if (!this.periodBtn) return;
+
+    this.periodBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.closeSearch();
+      this.closeFilterMenu();
+      if (this.isPeriodMenuOpen()) this.closeChromeMenus();
+      else this.openPeriodMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!this.isPeriodMenuOpen()) return;
+      if (e.target.closest("#mobilePeriodBtn") || e.target.closest("#eraTabs")) return;
+      this.closePeriodMenu();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.isPeriodMenuOpen()) this.closePeriodMenu();
+    });
+
+    document.querySelectorAll(".era-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        this.closePeriodMenu();
+        this.syncPeriodLabel(tab);
+      });
+    });
+
+    const eraHost = this.periodMenu;
+    if (eraHost && !eraHost.__periodLabelObs) {
+      eraHost.__periodLabelObs = new MutationObserver(() => this.syncPeriodLabel());
+      eraHost.__periodLabelObs.observe(eraHost, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+        childList: true,
+        characterData: true
+      });
+    }
+
+    if (this.dateBadge && !this.dateBadge.__yearAriaObs) {
+      this.dateBadge.__yearAriaObs = new MutationObserver(() => this.syncYearBadgeAria());
+      this.dateBadge.__yearAriaObs.observe(this.dateBadge, {
+        subtree: true,
+        childList: true,
+        characterData: true
+      });
+    }
+
+    this.syncPeriodLabel();
+    this.syncYearBadgeAria();
+  }
+
+  isPeriodMenuOpen() {
+    return document.documentElement.classList.contains("period-menu-open");
+  }
+
+  openPeriodMenu() {
+    if (this.citySheet && this.citySheet.classList.contains("open")) this.closeOverlays();
+    document.documentElement.classList.add("period-menu-open");
+    document.body.classList.add("period-menu-open");
+    this.periodBtn.setAttribute("aria-expanded", "true");
+    if (this.periodMenu) this.periodMenu.setAttribute("role", "listbox");
+  }
+
+  closePeriodMenu() {
+    document.documentElement.classList.remove("period-menu-open");
+    document.body.classList.remove("period-menu-open");
+    if (this.periodBtn) this.periodBtn.setAttribute("aria-expanded", "false");
+  }
+
+  shortEraName(tab) {
+    const text = ((tab && tab.textContent) || "").replace(/\s+/g, " ").trim();
+    const cut = text.replace(/\s*[\(（].*$/, "").trim();
+    return cut || text || "Period";
+  }
+
+  syncPeriodLabel(preferred) {
+    const actives = [...document.querySelectorAll(".era-tab.active")];
+    const active = preferred || actives[actives.length - 1] || document.querySelector(".era-tab");
+    const name = this.shortEraName(active);
+    const label = `Period · ${name}`;
+    if (this.periodLabel) this.periodLabel.textContent = label;
+    if (this.periodBtn) {
+      this.periodBtn.setAttribute("aria-label", `Timeline period, ${name}`);
+    }
+  }
+
+  syncYearBadgeAria() {
+    if (!this.dateBadge) return;
+    const yearEl = document.getElementById("displayYear");
+    const seasonEl = document.getElementById("displaySeason");
+    const year = (yearEl && yearEl.textContent) || "";
+    const season = (seasonEl && seasonEl.textContent) || "";
+    const parts = [year.trim(), season.trim()].filter(Boolean);
+    if (parts.length) this.dateBadge.setAttribute("aria-label", parts.join(", "));
+    if (seasonEl && this.isPhone()) seasonEl.setAttribute("aria-hidden", "true");
+    else if (seasonEl) seasonEl.removeAttribute("aria-hidden");
+  }
+
   bindCityPicker() {
     if (!this.cityBtn) return;
 
     this.cityBtn.addEventListener("click", () => {
       this.closeSearch();
-      this.closeFilterMenu();
+      this.closeChromeMenus();
       this.openCityPicker();
     });
 
@@ -544,6 +655,7 @@ class MobileShell {
       if (more) {
         e.preventDefault();
         this.closeSearch();
+        this.closeChromeMenus();
         this.openMoreSheet();
         return;
       }
@@ -585,6 +697,7 @@ class MobileShell {
   }
 
   openMoreSheet() {
+    this.closeChromeMenus();
     this.populateMoreLists();
     this.moreSheet.hidden = false;
     this.moreSheet.classList.add("open");
@@ -647,6 +760,6 @@ class MobileShell {
     }
     if (this.cityBtn) this.cityBtn.setAttribute("aria-expanded", "false");
     if (this.moreBtn) this.moreBtn.setAttribute("aria-expanded", "false");
-    this.closeFilterMenu();
+    this.closeChromeMenus();
   }
 }

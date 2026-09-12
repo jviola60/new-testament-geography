@@ -130,31 +130,31 @@
     <div class="filter-scroll-track">
       <div class="filter-group">
         <span class="filter-label">Layers:</span>
-        <button class="filter-chip active" data-filter="all">
+        <button class="filter-chip" data-filter="all">
           <span class="chip-dot dot-all"></span>All Visible
         </button>
-        <button class="filter-chip active" data-filter="savior">
+        <button class="filter-chip" data-filter="savior">
           <span class="chip-dot dot-savior"></span>Savior's Ministry
         </button>
-        <button class="filter-chip active" data-filter="diaspora">
+        <button class="filter-chip" data-filter="diaspora">
           <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
         </button>
-        <button class="filter-chip active" data-filter="churches">
+        <button class="filter-chip" data-filter="churches">
           <span class="chip-dot dot-church"></span>Christian Churches
         </button>
-        <button class="filter-chip active" data-filter="journeys">
+        <button class="filter-chip" data-filter="journeys">
           <span class="chip-dot dot-journey"></span>Paul's Journeys
         </button>
         <button class="filter-chip" data-filter="heatmaps">
           <span class="chip-dot dot-heatmap"></span>Growth Heatmap
         </button>
-        <button class="filter-chip active" data-filter="provinces">
+        <button class="filter-chip" data-filter="provinces">
           <span class="chip-dot dot-provinces"></span>Roman Provinces
         </button>
-        <button class="filter-chip active" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
+        <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
           <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
         </button>
-        <button class="filter-chip active" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
+        <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
           <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
         </button>
         <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
@@ -185,11 +185,13 @@
     <!-- Map Container -->
     <div id="map" class="map-viewport" role="region" aria-label="Interactive Map of New Testament Lands"></div>
 
-    <!-- Floating 1st Century Satellite Quick Action Pill -->
-    <button id="floatingSatellitePill" class="floating-satellite-pill" title="Explore 1st Century Satellite Reconnaissance (c. 30 AD)">
-      <span style="font-size:1.1rem;">🛰️</span>
-      <span>1st-C. Satellite Reconnaissance</span>
-    </button>
+    <!-- Floating Location Quick Jump Dropdown -->
+    <div class="quick-jump-container" id="quickJumpContainer" title="Jump directly to any Biblical City or Holy Site">
+      <span class="quick-jump-icon">📍</span>
+      <select id="quickJumpSelect" class="quick-jump-select" aria-label="Jump to Any Biblical Location">
+        <option value="" disabled selected>Jump to City or Holy Site...</option>
+      </select>
+    </div>
 
     <!-- Active Era Banner / Watermark (Floating on Map) -->
     <div class="floating-era-badge" id="floatingEraBadge">
@@ -211,24 +213,27 @@
       </button>
     </div>
 
-    <!-- Floating Map Legend -->
-    <div class="map-legend-box" id="mapLegend">
+    <!-- Floating Map Legend (Hidden by default; appears when any overlay layer is active) -->
+    <div class="map-legend-box" id="mapLegend" style="display: none;">
       <div class="legend-header" id="legendToggleHeader">
         <span class="legend-title">Atlas Legend</span>
         <button class="legend-collapse-btn" id="legendCollapseBtn" aria-label="Toggle legend">−</button>
       </div>
       <div class="legend-body" id="legendBody">
-        <div class="legend-item"><span class="legend-marker marker-savior"></span> <span>Jesus's Ministry & Miracles</span></div>
-        <div class="legend-item"><span class="legend-line line-savior"></span> <span>Savior's Footsteps / Routes</span></div>
-        <div class="legend-item"><span class="legend-marker marker-jerusalem-site"></span> <span>Jerusalem Sacred Sites</span></div>
-        <div class="legend-item"><span class="legend-marker marker-diaspora"></span> <span>Jewish Synagogues & Diaspora</span></div>
-        <div class="legend-item"><span class="legend-marker marker-church"></span> <span>Christian Congregations</span></div>
-        <div class="legend-item"><span class="legend-marker marker-epistle"></span> <span>Seven Churches / Epistle Centers</span></div>
-        <div class="legend-item"><span class="legend-line line-paul1"></span> <span>Paul's 1st Journey (47–49 AD)</span></div>
-        <div class="legend-item"><span class="legend-line line-paul2"></span> <span>Paul's 2nd Journey (49–52 AD)</span></div>
-        <div class="legend-item"><span class="legend-line line-paul3"></span> <span>Paul's 3rd Journey (53–58 AD)</span></div>
-        <div class="legend-item"><span class="legend-line line-paul4"></span> <span>Paul's Voyage to Rome (59–60 AD)</span></div>
-        <div class="legend-item"><span class="legend-line line-province"></span> <span>Roman Provincial Boundaries</span></div>
+        <div class="legend-item" data-layer="savior"><span class="legend-marker marker-savior"></span> <span>Jesus's Ministry & Miracles</span></div>
+        <div class="legend-item" data-layer="savior"><span class="legend-line line-savior"></span> <span>Savior's Footsteps / Routes</span></div>
+        <div class="legend-item" data-layer="jerusalemSites"><span class="legend-marker marker-jerusalem-site"></span> <span>Jerusalem Sacred Sites</span></div>
+        <div class="legend-item" data-layer="jerusalemGeography"><span class="legend-line" style="background: #78350F; height: 3px;"></span> <span>Jerusalem Walls & Quarters</span></div>
+        <div class="legend-item" data-layer="diaspora"><span class="legend-marker marker-diaspora"></span> <span>Jewish Synagogues & Diaspora</span></div>
+        <div class="legend-item" data-layer="churches"><span class="legend-marker marker-church"></span> <span>Christian Congregations</span></div>
+        <div class="legend-item" data-layer="churches"><span class="legend-marker marker-epistle"></span> <span>Seven Churches / Epistle Centers</span></div>
+        <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul1"></span> <span>Paul's 1st Journey (47–49 AD)</span></div>
+        <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul2"></span> <span>Paul's 2nd Journey (49–52 AD)</span></div>
+        <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul3"></span> <span>Paul's 3rd Journey (53–58 AD)</span></div>
+        <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul4"></span> <span>Paul's Voyage to Rome (59–60 AD)</span></div>
+        <div class="legend-item" data-layer="provinces"><span class="legend-line line-province"></span> <span>Roman Provincial Boundaries</span></div>
+        <div class="legend-item" data-layer="heatmaps"><span class="legend-marker" style="background: rgba(220,38,38,0.5); border: 1px solid #DC2626;"></span> <span>Christian Growth Heatmap</span></div>
+        <div class="legend-item" data-layer="modernOverlay"><span class="legend-line" style="background: #475569; height: 2px; border-top: 1px dashed #94a3b8;"></span> <span>Modern Streets Overlay</span></div>
       </div>
     </div>
 
@@ -404,25 +409,25 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=2.7"></script>
-  <script src="js/data/regions.js?v=2.7"></script>
-  <script src="js/data/cities.js?v=2.7"></script>
-  <script src="js/data/jerusalemSites.js?v=2.7"></script>
-  <script src="js/data/jerusalemGeography.js?v=2.7"></script>
-  <script src="js/data/saviorEvents.js?v=2.7"></script>
-  <script src="js/data/missionaryJourneys.js?v=2.7"></script>
-  <script src="js/data/communities.js?v=2.7"></script>
-  <script src="js/data/placeDossiers.js?v=2.7"></script>
-  <script src="js/data/scriptureTranslations.js?v=2.7"></script>
-  <script src="js/data/churchVideos.js?v=2.7"></script>
-  <script src="js/data/timelineEvents.js?v=2.7"></script>
-  <script src="js/data/tours.js?v=2.7"></script>
+  <script src="js/data/hydrography.js?v=2.8"></script>
+  <script src="js/data/regions.js?v=2.8"></script>
+  <script src="js/data/cities.js?v=2.8"></script>
+  <script src="js/data/jerusalemSites.js?v=2.8"></script>
+  <script src="js/data/jerusalemGeography.js?v=2.8"></script>
+  <script src="js/data/saviorEvents.js?v=2.8"></script>
+  <script src="js/data/missionaryJourneys.js?v=2.8"></script>
+  <script src="js/data/communities.js?v=2.8"></script>
+  <script src="js/data/placeDossiers.js?v=2.8"></script>
+  <script src="js/data/scriptureTranslations.js?v=2.8"></script>
+  <script src="js/data/churchVideos.js?v=2.8"></script>
+  <script src="js/data/timelineEvents.js?v=2.8"></script>
+  <script src="js/data/tours.js?v=2.8"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=2.7"></script>
-  <script src="js/timelineController.js?v=2.7"></script>
-  <script src="js/uiController.js?v=2.7"></script>
-  <script src="js/satelliteExplorer.js?v=2.7"></script>
-  <script src="js/app.js?v=2.7"></script>
+  <script src="js/mapController.js?v=2.8"></script>
+  <script src="js/timelineController.js?v=2.8"></script>
+  <script src="js/uiController.js?v=2.8"></script>
+  <script src="js/satelliteExplorer.js?v=2.8"></script>
+  <script src="js/app.js?v=2.8"></script>
 </body>
 </html>

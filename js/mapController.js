@@ -33,18 +33,18 @@ class MapController {
       modernOverlay: null
     };
 
-    // Filter states
+    // Filter states (default: all overlays off until user clicks a layer chip)
     this.filterState = {
-      all: true,
-      savior: true,
-      diaspora: true,
-      churches: true,
-      journeys: true,
+      all: false,
+      savior: false,
+      diaspora: false,
+      churches: false,
+      journeys: false,
       heatmaps: false,
-      provinces: true,
+      provinces: false,
       modernOverlay: false,
-      jerusalemSites: true,
-      jerusalemGeography: true,
+      jerusalemSites: false,
+      jerusalemGeography: false,
       firstCenturySatellite: false
     };
 
@@ -71,14 +71,12 @@ class MapController {
     // Setup Tile Layers
     this.setupTileLayers();
 
-    // Attach Base Layer Groups to Map (excluding separate 1st-c satellite image overlays)
-    Object.entries(this.layers).forEach(([k, layer]) => {
-      if (k !== "firstCenturySatellite") {
-        layer.addTo(this.map);
-      }
-    });
+    // Attach Base Geographic Layers to Map (hydrography and cities)
+    // All thematic overlays remain unmounted until user activates their layer chip.
+    this.layers.hydrography.addTo(this.map);
+    this.layers.cities.addTo(this.map);
 
-    // Draw Static & Foundational Geographic Layers
+    // Draw Static & Foundational Geographic Layers into their respective layer groups
     this.drawHydrography();
     this.drawProvinces();
     this.drawCities();
@@ -88,14 +86,6 @@ class MapController {
     this.drawSaviorRoute();
     this.drawMissionaryJourneys();
     this.drawJewishDiaspora();
-
-    // Hide micro-sites & city quarters on initial regional world overview (zoom 6)
-    if (this.map.getZoom() < 14) {
-      this.map.removeLayer(this.layers.jerusalemSites);
-    }
-    if (this.map.getZoom() < 13) {
-      this.map.removeLayer(this.layers.jerusalemGeography);
-    }
 
     // Dynamic Zoom & Region Adaptations
     this.map.on("zoomend moveend", () => {
@@ -155,6 +145,7 @@ class MapController {
 
     // Initial update based on starting year (-6 BC)
     this.updateTimelineYear(-6);
+    this.updateLegend();
   }
 
   setupTileLayers() {
@@ -944,7 +935,7 @@ class MapController {
       document.getElementById("statChurchesCount").textContent = activeChurchesCount;
     }
     if (document.getElementById("statDiasporaCount")) {
-      document.getElementById("statDiasporaCount").textContent = COMMUNITIES_DATA.diasporaSettlements.length;
+      document.getElementById("statDiasporaCount").textContent = this.filterState.diaspora && typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.diasporaSettlements ? COMMUNITIES_DATA.diasporaSettlements.length : 0;
     }
   }
 
@@ -965,12 +956,11 @@ class MapController {
       });
     } else {
       this.filterState[filterType] = isEnabled;
-      // If any core layer is disabled, "all" is no longer fully active
-      if (!isEnabled) {
-        this.filterState.all = false;
-        const allChip = document.querySelector('.filter-chip[data-filter="all"]');
-        if (allChip) allChip.classList.remove("active");
-      }
+      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+      const allActive = coreKeys.every(k => this.filterState[k]);
+      this.filterState.all = allActive;
+      const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+      if (allChip) allChip.classList.toggle("active", allActive);
     }
 
     // Savior's Ministry
@@ -1059,6 +1049,36 @@ class MapController {
     }
 
     this.updateTimelineYear(this.currentYear);
+    this.updateLegend();
+  }
+
+  // Update Atlas Legend Visibility and Dynamic Item Filtering
+  updateLegend() {
+    const legendEl = document.getElementById("mapLegend");
+    if (!legendEl) return;
+
+    // Check if any overlay layer is active (excluding the base map)
+    const activeOverlayKeys = Object.entries(this.filterState)
+      .filter(([k, v]) => k !== "all" && Boolean(v))
+      .map(([k]) => k);
+
+    const hasActiveLayers = activeOverlayKeys.length > 0;
+
+    if (!hasActiveLayers) {
+      legendEl.style.display = "none";
+      return;
+    }
+
+    // Show the legend container
+    legendEl.style.display = "block";
+
+    // Show only the legend items matching the active layer(s)
+    const items = legendEl.querySelectorAll(".legend-item[data-layer]");
+    items.forEach(item => {
+      const layerKey = item.dataset.layer;
+      const isLayerActive = Boolean(this.filterState[layerKey]);
+      item.style.display = isLayerActive ? "flex" : "none";
+    });
   }
 
   // Camera Navigation

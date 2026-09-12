@@ -94,7 +94,7 @@ const synagogueFalse = [
   "philippi", "paphos-cyprus", "bethlehem", "bethsaida", "jericho", "joppa",
   "tarsus", "colossae", "miletus", "cyrene", "laodicea", "pergamum",
   "smyrna", "philadelphia", "malta", "magdala", "tiberias", "bethany",
-  "sardis", "rome"
+  "sardis", "rome", "antioch-syria", "emmaus"
 ];
 synagogueFalse.forEach((id) => {
   const city = cities.find((c) => c.id === id);
@@ -113,6 +113,63 @@ const bethlehem = cities.find((c) => c.id === "bethlehem");
 const bethTeacher = bethlehem && bethlehem.teachings && bethlehem.teachings.teacher;
 ok(bethTeacher && !/Micah|Wise Men|Magi/i.test(bethTeacher), `Bethlehem teacher still lists Micah or Magi: "${bethTeacher}"`);
 ok(bethlehem && /angel/i.test(bethlehem.teachings.teacher), "Bethlehem teacher should be the angelic announcement");
+
+const nazareth = cities.find((c) => c.id === "nazareth");
+ok(nazareth && /^Jesus/.test(nazareth.teachings.teacher) && !/Gabriel/i.test(nazareth.teachings.teacher), `Nazareth teacher should be Jesus, not Gabriel as co-teacher: "${nazareth && nazareth.teachings && nazareth.teachings.teacher}"`);
+ok(nazareth && /Annunciation note|prior note/i.test(nazareth.teachings.audience + nazareth.teachings.whatWasTaught), "Nazareth should keep Gabriel as an Annunciation note");
+
+const cana = cities.find((c) => c.id === "cana");
+ok(cana && cana.teachings.teacher === "Jesus Christ", `Cana teacher should be Jesus only: "${cana && cana.teachings && cana.teachings.teacher}"`);
+ok(cana && /counsel to the servants|not a teaching office/i.test(cana.teachings.whatWasTaught), "Cana should label Mary's John 2:5 as counsel, not teaching office");
+ok(cana && /later reading|not the plain sense/i.test(cana.teachings.whatWasTaught), "Cana should not state OT→NT wine allegory as plain sense");
+
+const bethsaida = cities.find((c) => c.id === "bethsaida");
+ok(bethsaida && !/make Him an earthly political king|make him a king/i.test(bethsaida.teachings.howAccepted), "Bethsaida howAccepted still treats John 6:15 as a Bethsaida scene");
+ok(bethsaida && /John 6:15/.test(bethsaida.teachings.context) && /Capernaum|Tiberias/.test(bethsaida.teachings.context), "Bethsaida should relocate John 6:15 to the Capernaum/Tiberias arc");
+ok(bethsaida && bethsaida.teachings.passages.includes("Luke 9:10-17") && bethsaida.teachings.passages.includes("Mark 8:22-26") && bethsaida.teachings.passages.includes("Matthew 11:21-22"), "Bethsaida lost Luke 9 / Mark 8 / Matt 11 passages");
+ok(bethsaida && !bethsaida.teachings.passages.some((p) => /John 6/.test(p)), "Bethsaida passages still include the John 6 feeding arc");
+
+const jericho = cities.find((c) => c.id === "jericho");
+ok(jericho && !jericho.teachings.passages.some((p) => /Luke 10/.test(p)), "Jericho teachings passages still list Luke 10 as a Jericho sermon");
+ok(jericho && /parable/.test(jericho.teachings.context), "Jericho should mark Luke 10 as parable setting, not a local sermon");
+
+const lystra = cities.find((c) => c.id === "lystra");
+ok(lystra && /already/.test(lystra.teachings.howAccepted) && /Acts 16:1/.test(lystra.teachings.howAccepted), "Lystra should say Timothy was already a disciple (Acts 16:1)");
+ok(lystra && /2 Timothy 1:5/.test(lystra.teachings.howAccepted) && !/conversion and spiritual formation of young Timothy/.test(lystra.teachings.howAccepted), "Lystra should not treat Lois/Eunice as an Acts 14 conversion");
+
+const smyrna = cities.find((c) => c.id === "smyrna");
+ok(smyrna && /later Christian memory/i.test(smyrna.teachings.howAccepted) && /Polycarp/.test(smyrna.teachings.howAccepted), "Smyrna should label Polycarp as later Christian memory");
+
+const philadelphia = cities.find((c) => c.id === "philadelphia");
+ok(philadelphia && !/1390|14th/.test(philadelphia.teachings.howAccepted), "Philadelphia howAccepted should stop at Revelation 3");
+ok(philadelphia && /Revelation 3/.test(philadelphia.teachings.howAccepted), "Philadelphia howAccepted should cite Revelation 3");
+
+const laodicea = cities.find((c) => c.id === "laodicea");
+ok(laodicea && /epistle from Laodicea/i.test(laodicea.teachings.howAccepted) && !/lost Epistle/.test(laodicea.teachings.howAccepted + JSON.stringify(laodicea.epistles || [])), "Laodicea should treat Col 4:16 as a letter exchange, not a proven lost Pauline epistle");
+ok(laodicea && /inference/.test(laodicea.teachings.howAccepted) && /later history/i.test(laodicea.teachings.howAccepted), "Laodicea should label Epaphras planting as inference and the Council as later history");
+
+const pergamum = cities.find((c) => c.id === "pergamum");
+ok(pergamum && /Antipas/.test(pergamum.teachings.howAccepted), "Pergamum lost Antipas");
+ok(pergamum && !/lasting Christian center|Byzantine era/.test(pergamum.teachings.howAccepted), "Pergamum howAccepted still claims later civic triumph");
+
+const thyatira = cities.find((c) => c.id === "thyatira");
+ok(thyatira && /Reconstruction/.test(thyatira.teachings.context), "Thyatira should label guild/Apollo as reconstruction");
+ok(thyatira && !/centuries of subsequent/.test(thyatira.teachings.howAccepted), "Thyatira howAccepted still invents centuries of witness");
+
+const jerusalem = cities.find((c) => c.id === "jerusalem");
+ok(jerusalem && /brother of the Lord/.test(jerusalem.teachings.teacher), "Jerusalem teacher should name James as brother of the Lord, not bishop");
+ok(jerusalem && !/bishop/i.test(jerusalem.teachings.teacher + jerusalem.teachings.howAccepted), "Jerusalem teaching fields still use bishop");
+ok(jerusalem && /Later history/.test(jerusalem.teachings.howAccepted) && /70/.test(jerusalem.teachings.howAccepted), "Jerusalem should label James ~62 and Temple 70 as later history");
+
+const emmaus = cities.find((c) => c.id === "emmaus");
+ok(emmaus && emmaus.lat && emmaus.lng, "Emmaus city pin missing");
+ok(emmaus && /traditional/i.test(emmaus.jewishDiasporaInfo + (emmaus.overview || "")), "Emmaus pin should document traditional site identification");
+
+const magdala = cities.find((c) => c.id === "magdala");
+ok(magdala && magdala.teachings.passages.includes("Matthew 15:39"), "Magdala passages should include Matthew 15:39");
+ok(magdala && /Magadan/.test(magdala.teachings.whatWasTaught) && /No synagogue sermon/i.test(magdala.teachings.whatWasTaught), "Magdala should be honest about coasts of Magdala/Magadan and no synagogue sermon");
+
+ok(cities.find((c) => c.id === "antioch-syria")?.hasSynagogue === false, "Antioch on the Orontes synagogue badge should be false (no narrated synagogue discourse)");
 
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);

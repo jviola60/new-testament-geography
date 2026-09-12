@@ -181,6 +181,22 @@ const CITIES_DATA = [
     significance: "Peter raised Tabitha from the dead and received the rooftop vision of the clean/unclean animals at Simon the Tanner's house (Acts 9:36–10:23)."
   },
   {
+    id: "emmaus",
+    name: "Emmaus",
+    ancientName: "Emmaus (threescore furlongs from Jerusalem)",
+    region: "Judea",
+    lat: 31.8394,
+    lng: 34.9886,
+    isMajor: false,
+    hasSynagogue: false,
+    hasChurch: true,
+    population: "Village",
+    jewishDiasporaInfo: "Map pin: Luke 24:13 names a village called Emmaus about threescore furlongs from Jerusalem. Traditional western identification for study; more than one site has been proposed.",
+    christianChurchInfo: "The risen Lord walked with two disciples and was known of them in breaking of bread (Luke 24:13–35).",
+    epistles: [],
+    significance: "City pin for Luke 24. Site identification is traditional, not a named modern ruin in the text."
+  },
+  {
     id: "damascus",
     name: "Damascus",
     ancientName: "Dimeshq",
@@ -206,10 +222,10 @@ const CITIES_DATA = [
     lat: 36.2021,
     lng: 36.1606,
     isMajor: true,
-    hasSynagogue: true,
+    hasSynagogue: false,
     hasChurch: true,
     population: "~350,000 (3rd largest metropolis in the Roman Empire)",
-    jewishDiasporaInfo: "Thriving Hellenistic Jewish population granted citizenship by Seleucus I. Synagogues enjoyed legal protections and attracted many God-fearing Greeks.",
+    jewishDiasporaInfo: "Thriving Hellenistic Jewish population granted citizenship by Seleucus I. Civic Jewish community (later-attested synagogues). Acts 11:26: they assembled themselves with the church and taught much people—no synagogue discourse is narrated.",
     christianChurchInfo: "Disciples were first called 'Christians' here (Acts 11:26). The launching base for all of Paul and Barnabas's missionary journeys. Home of Barnabas, Paul, and the prophet Agabus.",
     epistles: ["Galatians (dispute with Peter, Gal 2)"],
     significance: "Birthplace of the Gentile mission; primary hub of early Christian expansion outside Jerusalem."

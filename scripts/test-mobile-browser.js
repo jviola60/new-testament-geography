@@ -35,6 +35,60 @@ async function measureOverflow(page) {
   });
 }
 
+async function measureViewportFill(page) {
+  return page.evaluate(() => {
+    const header = document.querySelector(".app-header").getBoundingClientRect();
+    const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    const main = document.querySelector(".app-main-container").getBoundingClientRect();
+    const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
+    const slider = document.getElementById("timelineSlider").getBoundingClientRect();
+    const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    return {
+      headerTop: header.top,
+      headerBottom: header.bottom,
+      barTop: bar.top,
+      barBottom: bar.bottom,
+      mapTop: main.top,
+      mapBottom: main.bottom,
+      mapH: main.height,
+      footerTop: footer.top,
+      footerBottom: footer.bottom,
+      sliderBottom: slider.bottom,
+      viewH: window.innerHeight,
+      vvH,
+      appVh: getComputedStyle(document.documentElement).getPropertyValue("--app-vh").trim(),
+      unusedBelow: window.innerHeight - footer.bottom
+    };
+  });
+}
+
+function assertViewportFill(label, fill) {
+  if (fill.headerTop > 1) fail(`${label}: unused band above header (top=${fill.headerTop})`);
+  if (Math.abs(fill.barTop - fill.headerBottom) > 2) {
+    fail(`${label}: gap between header and command row (${fill.headerBottom} → ${fill.barTop})`);
+  }
+  if (Math.abs(fill.mapTop - fill.barBottom) > 2) {
+    fail(`${label}: gap between command row and map (${fill.barBottom} → ${fill.mapTop})`);
+  }
+  if (Math.abs(fill.footerTop - fill.mapBottom) > 2) {
+    fail(`${label}: gap between map and footer (${fill.mapBottom} → ${fill.footerTop})`);
+  }
+  if (fill.unusedBelow > 2) {
+    fail(`${label}: unused space below footer: ${fill.unusedBelow}px (footerBottom=${fill.footerBottom} view=${fill.viewH})`);
+  }
+  if (fill.footerBottom > fill.viewH + 1) {
+    fail(`${label}: footer extends past the viewport: ${fill.footerBottom} > ${fill.viewH}`);
+  }
+  if (fill.sliderBottom > fill.viewH - 12) {
+    fail(`${label}: scrubber clipped: bottom=${fill.sliderBottom} view=${fill.viewH}`);
+  }
+  const appVhPx = parseFloat(fill.appVh);
+  if (!(appVhPx > 0)) fail(`${label}: --app-vh should be set, got "${fill.appVh}"`);
+  if (Math.abs(appVhPx - fill.vvH) > 2) {
+    fail(`${label}: --app-vh ${appVhPx}px should match visual viewport ${fill.vvH}px`);
+  }
+}
+
 (async () => {
   const browser = await chromium.launch({
     executablePath: "/usr/bin/google-chrome-stable",
@@ -280,6 +334,10 @@ async function measureOverflow(page) {
   }
   if (gain < 36) fail(`Expected ≥36px chrome savings vs PR #6 main (collapsed period chips), got ${gain}px`);
   if (mapChrome.footerH > 168) fail(`Timeline footer grew past main's 168px: ${mapChrome.footerH}px`);
+  const fill390 = await measureViewportFill(page);
+  console.log("Phone 390 fill:", fill390);
+  assertViewportFill("390x844", fill390);
+  await page.screenshot({ path: path.join(OUT, "phone_390x844_fill.png"), fullPage: false });
   const footerPad = await page.evaluate(() => getComputedStyle(document.querySelector(".app-timeline-footer")).paddingBottom);
   const padPx = parseFloat(footerPad);
   if (!(padPx >= 27.5)) fail(`Footer padding-bottom ${footerPad} must restore PR #4's 28px clearance`);
@@ -668,6 +726,32 @@ async function measureOverflow(page) {
   }
   await page.screenshot({ path: path.join(OUT, "phone_holy_land.png"), fullPage: false });
 
+  // Taller iPhone-like viewport: map must grow with the extra height
+  const tallPhone = await browser.newContext({
+    viewport: { width: 430, height: 932 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true
+  });
+  const tallPage = await tallPhone.newPage();
+  await tallPage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await tallPage.waitForFunction(() => window.app && window.app.map && window.app.ui, { timeout: 20000 });
+  await tallPage.waitForTimeout(800);
+  const fill932 = await measureViewportFill(tallPage);
+  console.log("Phone 430x932 fill:", fill932);
+  assertViewportFill("430x932", fill932);
+  const extraH = fill932.viewH - fill390.viewH;
+  const extraMap = fill932.mapH - fill390.mapH;
+  console.log(`Tall-phone map gain: +${extraMap}px map for +${extraH}px viewport`);
+  if (extraH >= 80 && extraMap < extraH - 8) {
+    fail(`Map did not grow with the taller phone: map +${extraMap}px vs viewport +${extraH}px`);
+  }
+  if (fill932.mapH <= fill390.mapH) {
+    fail(`Taller phone map (${fill932.mapH}px) must exceed 390×844 map (${fill390.mapH}px)`);
+  }
+  await tallPage.screenshot({ path: path.join(OUT, "phone_430x932_fill.png"), fullPage: false });
+  await tallPhone.close();
+
   // Narrow phone + large text: command row and footer must still fit
   const narrow = await browser.newContext({
     viewport: { width: 360, height: 640 },
@@ -727,6 +811,9 @@ async function measureOverflow(page) {
     fail(`360px scrubber clipped: bottom=${narrowState.sliderBottom} view=${narrowState.viewH}`);
   }
   if (narrowState.mapH < 300) fail(`360px map viewport too short: ${narrowState.mapH}px`);
+  if (narrowState.viewH - narrowState.footerBottom > 2) {
+    fail(`360px unused space below footer: ${narrowState.viewH - narrowState.footerBottom}px`);
+  }
   await npage.screenshot({ path: path.join(OUT, "phone_360_large_text.png"), fullPage: false });
   await narrow.close();
 

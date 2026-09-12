@@ -1272,7 +1272,7 @@ class UIController {
         audience: "The Mixed Congregation of Hellenistic Jews and Greek Believers",
         whatWasTaught: "The grace of God extended to the Gentiles; discipleship where believers were first called 'Christians' (Acts 11:26); world evangelism.",
         whyTaught: "To build a welcoming multi-ethnic church and launch the world missionary journeys into Asia Minor and Europe.",
-        context: "The capital of Roman Syria along the Orontes River—not Pisidian Antioch (Acts 11:26; 13:1–4).",
+        context: "The capital of Roman Syria along the Orontes River—not Pisidian Antioch (Acts 11:26; 13:1–4). They assembled with the church (Acts 11:26). A Jewish community is historical setting; no synagogue discourse is narrated.",
         howAccepted: "A great multitude believed and turned unto the Lord; disciples were first called Christians here; the congregation sent generous famine relief to Judean saints and, under the guidance of the Holy Ghost, commissioned Paul and Barnabas on their missionary journeys.",
         passages: data.scriptures || ["Acts 11:19-26", "Acts 13:1-4"]
       };

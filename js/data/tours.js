@@ -36,7 +36,7 @@ const TOURS_DATA = [
         zoom: 9,
         eventId: "savior-flight-egypt",
         year: -4,
-        summary: "Joseph and Mary escape Herod's wrath, finding refuge in Alexandria and the Nile Delta."
+        summary: "Joseph is told to flee into Egypt (Matthew 2:13–15). A city pin (Alexandria / Nile Delta) is traditional/uncertain, not a verse."
       },
       {
         title: "Growing up in Nazareth",
@@ -90,7 +90,7 @@ const TOURS_DATA = [
         zoom: 14,
         eventId: "savior-sermon-mount",
         year: 28,
-        summary: "On the mount overlooking the Sea of Galilee, Jesus teaches the Beatitudes."
+        summary: "He went up into a mountain (Matthew 5:1). Mount of Beatitudes / Tabgha is a traditional identification."
       },
       {
         title: "Calming the Tempest",
@@ -171,7 +171,7 @@ const TOURS_DATA = [
         zoom: 16,
         eventId: "savior-last-supper",
         year: 30,
-        summary: "Jesus washes feet and institutes the Holy Sacrament on Mount Zion."
+        summary: "A large upper room furnished (Luke 22:12). The Cenacle on Mount Zion is a traditional identification."
       },
       {
         title: "The Agony in Gethsemane",

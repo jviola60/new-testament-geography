@@ -376,6 +376,45 @@ ok(/Acts 10/.test(cornelius.teacher + cornelius.whatWasTaught + JSON.stringify(c
 ok(!/apostolic overseer/.test((ephesusD.overview || "") + (ephesusD.peopleAndChurch || "")), "Ephesus still calls Timothy apostolic overseer");
 ok(/abide still at Ephesus|abide at Ephesus/.test((ephesusD.overview || "") + (ephesusD.peopleAndChurch || "")), "Ephesus lost 1 Timothy 1:3 abide wording");
 
+// --- Joseph second full pass (same PR) ---
+const flightEgypt = events.find((e) => e.id === "savior-flight-egypt") || {};
+ok(/Matthew 2:13/.test(flightEgypt.locationName || ""), "Flight to Egypt lost Matthew 2:13–15 in locationName");
+ok(/traditional|uncertain/i.test(flightEgypt.locationName || ""), "Flight to Egypt should label any city pin as traditional/uncertain");
+ok(!/^Alexandria/.test(flightEgypt.locationName || ""), "Flight to Egypt still names Alexandria as the verse location");
+
+const temptation = events.find((e) => e.id === "savior-temptation") || {};
+ok(/wilderness of Judea|wilderness/i.test(temptation.locationName || ""), "Temptation lost wilderness of Judea");
+ok(/Matthew 4:1/.test(temptation.locationName || temptation.description || ""), "Temptation lost Matthew 4:1–11");
+ok(/traditional/i.test(temptation.locationName || temptation.description || ""), "Temptation should label Mount of Temptation as traditional");
+
+const sermonMount = events.find((e) => e.id === "savior-sermon-mount") || {};
+ok(/Matthew 5:1/.test(sermonMount.locationName || ""), "Sermon on the Mount lost Matthew 5:1");
+ok(/traditional/i.test(sermonMount.locationName || ""), "Sermon on the Mount should label Beatitudes/Tabgha as traditional");
+ok(!/^Mount of Beatitudes \(near Tabgha\)/.test(sermonMount.locationName || ""), "Sermon on the Mount still treats Tabgha as the verse site");
+
+const lastSupper = events.find((e) => e.id === "savior-last-supper") || {};
+ok(/Luke 22:12/.test(lastSupper.locationName || ""), "Last Supper lost Luke 22:12–13");
+ok(/traditional/i.test(lastSupper.locationName || ""), "Last Supper should label Cenacle/Zion as traditional");
+
+const athensD = cities.find((c) => c.id === "athens") || {};
+ok(/Acts 17:34/.test(athensD.peopleAndChurch || ""), "Athens lost Acts 17:34 for Dionysius");
+ok(/Later Christian memory/.test(athensD.peopleAndChurch || "") && /bishop/i.test(athensD.peopleAndChurch || ""), "Athens should prefix Dionysius bishopric as later memory");
+
+const smyrnaPin = cities.find((c) => c.id === "smyrna") || {};
+ok(/Later Christian memory/.test(smyrnaPin.christianChurchInfo || "") && /155/.test(smyrnaPin.christianChurchInfo || ""), "Smyrna pin still states Polycarp ~155 as bare fact");
+
+const nazarethD = cities.find((c) => c.id === "nazareth") || {};
+ok(!/likely found employment rebuilding Sepphoris, exposing/.test(nazarethD.politicalInsights || ""), "Nazareth still states Sepphoris employment as fact");
+ok(/conjecture|not a NT verse/.test(nazarethD.politicalInsights || ""), "Nazareth should label Sepphoris employment as historical conjecture");
+
+ok(/Later Christian memory/.test(ephesusD.eraChronology || "") && /Ignatius/.test(ephesusD.eraChronology || ""), "Ephesus era should prefix Ignatius as later memory");
+
+const romeD = cities.find((c) => c.id === "rome") || {};
+ok(/Later Christian memory/.test(romeD.eraChronology || "") && /Ignatius/.test(romeD.eraChronology || ""), "Rome era should prefix Ignatius as later memory");
+
+ok(/Revelation 2:12/.test(pergD.peopleAndChurch || ""), "Pergamum lost Revelation 2:12 for the angel");
+ok(/later interpretation/i.test(pergD.peopleAndChurch || ""), "Pergamum should label angel=bishop as later interpretation");
+
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);
   fails.forEach((f) => console.error(" -", f));

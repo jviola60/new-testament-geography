@@ -1280,7 +1280,7 @@ class UIController {
         audience: "The apostles (Luke 22:14)",
         whatWasTaught: "This is my body which is given for you... this cup is the new testament in my blood (Luke 22:19–20). A new commandment I give unto you, That ye love one another (John 13:34).",
         whyTaught: "With desire I have desired to eat this passover with you before I suffer (Luke 22:15).",
-        context: "A large upper room furnished (Luke 22:12). Not Pentecost (Acts 2).",
+        context: "A large upper room furnished (Luke 22:12–13). The Cenacle on Mount Zion is a traditional identification, not named in Luke. Not Pentecost (Acts 2).",
         howAccepted: "They asked, Lord, is it I? (Matthew 26:22). Judas went immediately out (John 13:30).",
         passages: data.scriptures || ["Luke 22:14-20", "John 13:34-35"]
       };

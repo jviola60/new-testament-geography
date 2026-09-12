@@ -370,7 +370,7 @@ const CITIES_DATA = [
     hasChurch: true,
     population: "~100,000",
     jewishDiasporaInfo: "Wealthy Aegean seaport with strong imperial cult and hostile Jewish leadership in 90 AD.",
-    christianChurchInfo: "Faithful church under persecution. Commended unconditionally in Revelation. Bishop Polycarp martyred here ~155 AD.",
+    christianChurchInfo: "Faithful church under persecution. Commended unconditionally in Revelation 2:8–11. Later Christian memory (~155 AD, not a NT verse): Bishop Polycarp martyred here.",
     epistles: ["Revelation 2:8-11"],
     significance: "2nd of the Seven Churches: 'Be thou faithful unto death, and I will give thee a crown of life.'"
   },

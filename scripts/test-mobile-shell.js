@@ -27,11 +27,28 @@ assert(html.includes("viewport-fit=cover"), "Expected notch-safe viewport");
 assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mobile");
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
+assert(mobileCss.includes("--tap: 44px"), "Expected --tap token at 44px");
+["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "speed-btn", "sheet-handle"].forEach(sel => {
+  const re = new RegExp(`html\\.layout-mobile \\.${sel}(?:[\\s,:][^{]*)?\\{([\\s\\S]{0,240})`);
+  const match = mobileCss.match(re);
+  assert(match, `Expected mobile rule for .${sel}`);
+  assert(/var\(--tap\)|44px/.test(match[1]), `${sel} should use a 44px tap target`);
+});
+assert(!mobileCss.includes("min-height: 34px"), "Filter chips must not stay at 34px");
+assert(!mobileCss.includes("min-height: 32px"), "Speed buttons must not stay at 32px");
+assert(mobileCss.includes("font-size: 12px"), "Primary zoomed city labels should be at least 12px");
 assert(mobileCss.includes("@media (max-width: 768px)"), "Expected phone breakpoint at 768px");
+assert(mobileCss.includes("z-index: 1400"), "Details sheet must stack above the timeline");
+assert(mobileCss.includes("overflow-x: auto"), "Chips/tabs/eras must be horizontally scrollable");
+assert(mobileCss.includes("contain: layout paint") || mobileCss.includes("isolation: isolate"), "Tour cards must not paint over each other");
+assert(!mobileCss.includes("CORINTHS"), "No CORINTHS typo in mobile CSS");
 
 assert(mobileJs.includes("class MobileShell"), "Expected MobileShell class");
 assert(mobileJs.includes("invalidateSize"), "Expected Leaflet invalidateSize on layout changes");
 assert(mobileJs.includes("getQuickJumpCatalog"), "City picker should reuse the desktop catalog");
+assert(mobileJs.includes("mobile-zoomed"), "Mobile shell should gate map labels by zoom");
+assert(mobileJs.includes("sheet-open"), "Mobile shell should flag an open details sheet");
+assert(mobileJs.includes("bottomleft"), "Zoom control should move off the Holy Land city cluster");
 
 assert(uiJs.includes("getQuickJumpCatalog"), "uiController should expose the shared place catalog");
 assert(uiJs.includes("jumpToQuickJumpValue"), "uiController should expose shared jump logic");

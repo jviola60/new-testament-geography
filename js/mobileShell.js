@@ -37,6 +37,7 @@ class MobileShell {
     if (this.isPhone()) {
       this.setSheet("hidden", { silent: true });
       if (this.sidebar) this.sidebar.classList.add("closed");
+      this.collapseLegend();
     }
   }
 
@@ -49,16 +50,21 @@ class MobileShell {
   }
 
   applyLayout() {
+    const root = document.documentElement;
     const body = document.body;
-    body.classList.toggle("layout-mobile", this.isPhone());
-    body.classList.toggle("layout-tablet", this.isTablet());
-    body.classList.toggle("layout-desktop", !this.isPhone() && !this.isTablet());
+    const phone = this.isPhone();
+    const tablet = this.isTablet();
+    root.classList.toggle("layout-mobile", phone);
+    body.classList.toggle("layout-mobile", phone);
+    body.classList.toggle("layout-tablet", tablet);
+    body.classList.toggle("layout-desktop", !phone && !tablet);
 
     if (!this.isPhone()) {
+      root.classList.remove("search-open");
       body.classList.remove("search-open");
       this.closeOverlays();
       if (this.sidebar) {
-        this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging");
+        this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging", "closed");
         this.sidebar.style.height = "";
       }
     }
@@ -111,6 +117,7 @@ class MobileShell {
       this.searchBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         const open = document.body.classList.toggle("search-open");
+        document.documentElement.classList.toggle("search-open", open);
         this.searchBtn.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
           const input = document.getElementById("globalSearchInput");
@@ -121,6 +128,8 @@ class MobileShell {
 
     if (this.toursBtn) {
       this.toursBtn.addEventListener("click", () => {
+        this.closeSearch();
+        this.closeOverlays();
         const desktopTours = document.getElementById("storyToursBtn");
         if (desktopTours) desktopTours.click();
       });
@@ -129,16 +138,29 @@ class MobileShell {
     if (this.moreBtn) {
       this.moreBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+        this.closeSearch();
         this.openMoreSheet();
       });
     }
 
     document.addEventListener("click", (e) => {
-      if (!document.body.classList.contains("search-open")) return;
+      if (!document.documentElement.classList.contains("search-open") && !document.body.classList.contains("search-open")) return;
       if (e.target.closest(".header-center") || e.target.closest("#mobileSearchBtn")) return;
-      document.body.classList.remove("search-open");
-      if (this.searchBtn) this.searchBtn.setAttribute("aria-expanded", "false");
+      this.closeSearch();
     });
+  }
+
+  closeSearch() {
+    document.documentElement.classList.remove("search-open");
+    document.body.classList.remove("search-open");
+    if (this.searchBtn) this.searchBtn.setAttribute("aria-expanded", "false");
+  }
+
+  collapseLegend() {
+    const legendBody = document.getElementById("legendBody");
+    const legendCollapseBtn = document.getElementById("legendCollapseBtn");
+    if (legendBody) legendBody.style.display = "none";
+    if (legendCollapseBtn) legendCollapseBtn.textContent = "+";
   }
 
   bindSheet() {
@@ -223,7 +245,7 @@ class MobileShell {
       this.invalidateMap(320);
       return;
     }
-    document.body.classList.remove("search-open");
+    this.closeSearch();
     this.setSheet(this.sheetMode === "full" ? "full" : "half");
     this.nudgeMapForSheet();
   }
@@ -249,7 +271,10 @@ class MobileShell {
   bindCityPicker() {
     if (!this.cityBtn) return;
 
-    this.cityBtn.addEventListener("click", () => this.openCityPicker());
+    this.cityBtn.addEventListener("click", () => {
+      this.closeSearch();
+      this.openCityPicker();
+    });
 
     const closeBtn = document.getElementById("mobileCityPickerClose");
     if (closeBtn) closeBtn.addEventListener("click", () => this.closeOverlays());

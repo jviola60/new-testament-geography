@@ -104,7 +104,7 @@
 }
 
 .modal-card {
-  background: var(--bg-card);
+  background: #FBF6EA;
   border: 1px solid var(--border-parchment-dark);
   border-top: 4px solid var(--color-gold);
   border-radius: 12px;

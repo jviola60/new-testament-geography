@@ -187,6 +187,12 @@ async function measureOverflow(page) {
     fail(`Timeline footer extends past the viewport: ${thumbFit.footerBottom} > ${thumbFit.viewH}`);
   }
 
+  await page.locator("#timelineSlider").evaluate(el => {
+    el.value = "-6";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+
   const cityBar = page.locator("#mobileCityPickerBtn");
   const filterBtn = page.locator("#mobileFilterBtn");
   const periodBtn = page.locator("#mobilePeriodBtn");
@@ -230,8 +236,14 @@ async function measureOverflow(page) {
   if (/JUMP TO ANY CITY OR REGION/i.test(commandRow.jumpLabel)) {
     fail("Jump idle label must not use the long all-caps city/region sentence");
   }
-  if (!/^Period · /i.test(commandRow.periodLabel)) {
-    fail(`Period trigger should read Period · {current}, got "${commandRow.periodLabel}"`);
+  const jumpFits = await page.evaluate(() => {
+    const label = document.querySelector(".mobile-city-picker-label");
+    if (!label) return false;
+    return label.scrollWidth <= label.clientWidth + 1;
+  });
+  if (!jumpFits) fail('Idle "Jump to place" should fit without ellipsis at 390px');
+  if (!/^Period · Nativity$/i.test(commandRow.periodLabel)) {
+    fail(`Period trigger should read Period · Nativity at 6 BC, got "${commandRow.periodLabel}"`);
   }
   assertTap("mobile-filter-trigger", commandRow.filter);
   assertTap("mobile-period-trigger", commandRow.period);
@@ -339,8 +351,16 @@ async function measureOverflow(page) {
   const openEra = await page.locator(".era-tab").nth(1).boundingBox();
   assertTap("era-tab", openEra);
   await page.screenshot({ path: path.join(OUT, "phone_period_dropdown.png"), fullPage: false });
-  await page.locator('.era-tab[data-start-year="-4"]').click();
-  await page.waitForTimeout(250);
+  await page.evaluate(() => {
+    const tab = document.querySelectorAll(".era-tab")[1];
+    if (tab) tab.click();
+  });
+  await page.waitForFunction(() => {
+    const year = (document.getElementById("displayYear") || {}).textContent || "";
+    const open = document.documentElement.classList.contains("period-menu-open");
+    const label = (document.getElementById("mobilePeriodLabel") || {}).textContent || "";
+    return /4 BC/.test(year) && !open && /Period · Nazareth/i.test(label);
+  }, { timeout: 4000 });
   const afterPeriod = await page.evaluate(() => ({
     open: document.documentElement.classList.contains("period-menu-open"),
     label: (document.getElementById("mobilePeriodLabel") || {}).textContent || "",

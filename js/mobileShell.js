@@ -488,8 +488,8 @@ class MobileShell {
 
     document.querySelectorAll(".era-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        this.syncPeriodLabel();
         this.closePeriodMenu();
+        this.syncPeriodLabel(tab);
       });
     });
 
@@ -542,8 +542,9 @@ class MobileShell {
     return cut || text || "Period";
   }
 
-  syncPeriodLabel() {
-    const active = document.querySelector(".era-tab.active") || document.querySelector(".era-tab");
+  syncPeriodLabel(preferred) {
+    const actives = [...document.querySelectorAll(".era-tab.active")];
+    const active = preferred || actives[actives.length - 1] || document.querySelector(".era-tab");
     const name = this.shortEraName(active);
     const label = `Period · ${name}`;
     if (this.periodLabel) this.periodLabel.textContent = label;

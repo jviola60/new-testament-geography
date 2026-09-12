@@ -59,6 +59,52 @@ async function measureOverflow(page) {
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");
   if (phoneOverflow.overflowX > 2) fail(`Horizontal overflow on phone: ${phoneOverflow.overflowX}px`);
 
+  const basemap = page.locator("#mobileBasemapToggle");
+  if (!(await basemap.isVisible())) fail("Map/Satellite toggle must be visible on phone");
+  await page.locator('#mobileBasemapToggle [data-style="satellite"]').click();
+  await page.waitForTimeout(400);
+  const satOn = await page.evaluate(() => {
+    const theme = window.app.map.currentTheme;
+    const pressed = document.querySelector('#mobileBasemapToggle [data-style="satellite"]').getAttribute("aria-pressed");
+    return { theme, pressed };
+  });
+  if (satOn.theme !== "satellite") fail(`Satellite toggle did not switch basemap, theme=${satOn.theme}`);
+  if (satOn.pressed !== "true") fail("Satellite toggle did not show pressed state");
+  await page.locator('#mobileBasemapToggle [data-style="parchment"]').click();
+  await page.waitForTimeout(300);
+  await page.locator("#mobileBasemapMoreBtn").click();
+  await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
+  const styleItems = await page.locator("#mobileMapStyleList .mobile-more-item").allTextContents();
+  if (!styleItems.some(t => /satellite/i.test(t))) fail("More styles sheet missing satellite");
+  if (!styleItems.some(t => /parchment|relief|ancient/i.test(t))) fail("More styles sheet missing parchment/relief");
+  if (styleItems.length < 3) fail(`Expected desktop basemap list in More, found ${styleItems.length}`);
+  await page.locator("#mobileMoreClose").click();
+  await page.screenshot({ path: path.join(OUT, "phone_basemap.png"), fullPage: false });
+
+  await page.locator("#timelineSlider").evaluate(el => {
+    el.value = "100";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForTimeout(200);
+  const thumbFit = await page.evaluate(() => {
+    const slider = document.getElementById("timelineSlider");
+    const footer = document.querySelector(".app-timeline-footer");
+    const r = slider.getBoundingClientRect();
+    const fr = footer.getBoundingClientRect();
+    return {
+      sliderBottom: r.bottom,
+      footerBottom: fr.bottom,
+      viewH: window.innerHeight,
+      footerPad: getComputedStyle(footer).paddingBottom
+    };
+  });
+  if (thumbFit.sliderBottom > thumbFit.viewH - 16) {
+    fail(`Timeline track is clipped at the viewport: bottom=${thumbFit.sliderBottom} view=${thumbFit.viewH}`);
+  }
+  if (thumbFit.footerBottom > thumbFit.viewH + 1) {
+    fail(`Timeline footer extends past the viewport: ${thumbFit.footerBottom} > ${thumbFit.viewH}`);
+  }
+
   const cityBar = page.locator("#mobileCityPickerBtn");
   if (!(await cityBar.isVisible())) fail("City picker bar not visible on phone");
 
@@ -277,15 +323,23 @@ async function measureOverflow(page) {
       return s.display !== "none" && s.visibility !== "hidden" && el.offsetParent !== null;
     }).map(el => el.textContent.trim());
     const primary = document.querySelector(".city-label-text.city-label-primary");
+    const zoomR = zoom.getBoundingClientRect();
+    const fabR = fabs.getBoundingClientRect();
+    const toggle = document.getElementById("mobileBasemapToggle").getBoundingClientRect();
+    const overlap = zoomR.left < fabR.right && zoomR.right > fabR.left && zoomR.top < fabR.bottom && zoomR.bottom > fabR.top;
     return {
-      zoomLeft: zoom ? zoom.getBoundingClientRect().left : -1,
-      fabLeft: fabs.getBoundingClientRect().left,
+      zoomLeft: zoomR.left,
+      fabRight: fabR.right,
+      toggleVisible: toggle.width > 0,
+      overlap,
       labels,
       zoomClass: document.documentElement.classList.contains("mobile-zoomed"),
       primaryLabelPx: primary ? parseFloat(getComputedStyle(primary).fontSize) : null
     };
   });
-  if (holy.zoomLeft > 120) fail(`Zoom control should be bottom-left on Holy Land, left=${holy.zoomLeft}`);
+  if (holy.zoomLeft < 200) fail(`Zoom control should sit on the right, left=${holy.zoomLeft}`);
+  if (holy.overlap) fail("Zoom control overlaps the left FAB stack");
+  if (!holy.toggleVisible) fail("Basemap toggle missing on Holy Land view");
   if (holy.labels.some(n => /smyrna/i.test(n))) fail("Smyrna label should stay hidden at Holy Land zoom");
   if (holy.primaryLabelPx != null && holy.primaryLabelPx < 11) {
     fail(`Primary zoomed city labels are ${holy.primaryLabelPx}px; need ≥11px`);
@@ -318,12 +372,14 @@ async function measureOverflow(page) {
   const deskState = await dpage.evaluate(() => ({
     layout: document.body.className,
     cityBar: getComputedStyle(document.getElementById("mobileCityBar")).display,
+    basemap: getComputedStyle(document.getElementById("mobileBasemapToggle")).display,
     sidebar: getComputedStyle(document.getElementById("detailSidebar")).width,
     headerRight: getComputedStyle(document.querySelector(".header-right")).display
   }));
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
+  if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();
 

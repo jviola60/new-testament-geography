@@ -9,7 +9,8 @@
 .mobile-city-bar,
 .mobile-backdrop,
 .mobile-picker-sheet,
-.mobile-action-sheet {
+.mobile-action-sheet,
+.mobile-basemap-toggle {
   display: none;
 }
 
@@ -33,7 +34,7 @@
     --header-height: 48px;
     --filterbar-height: 52px;
     --citybar-height: 52px;
-    --footer-height: 136px;
+    --footer-height: 176px;
     --tap: 44px;
   }
 
@@ -323,7 +324,7 @@
 
   html.layout-mobile .map-legend-box {
     bottom: 12px;
-    left: 52px;
+    left: 10px;
     max-width: min(200px, 58vw);
     max-height: 36%;
     overflow: hidden;
@@ -334,9 +335,61 @@
     overflow-y: auto;
   }
 
+  html.layout-mobile .mobile-basemap-toggle {
+    display: flex;
+    align-items: stretch;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 860;
+    background: #FFFDF8;
+    border: 1.5px solid var(--border-parchment-dark);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  }
+
+  html.layout-mobile .mobile-basemap-btn {
+    min-height: var(--tap);
+    min-width: var(--tap);
+    padding: 0 0.7rem;
+    border: none;
+    border-right: 1px solid var(--border-parchment);
+    background: #FFFDF8;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  html.layout-mobile .mobile-basemap-btn:last-child {
+    border-right: none;
+  }
+
+  html.layout-mobile .mobile-basemap-btn.active,
+  html.layout-mobile .mobile-basemap-btn[aria-pressed="true"] {
+    background: #1B130E;
+    color: #FDE047;
+  }
+
   html.layout-mobile .leaflet-control-zoom {
-    margin-bottom: 8px !important;
-    margin-left: 8px !important;
+    margin-top: 4px !important;
+    margin-right: 8px !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  html.layout-mobile .leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 20px !important;
+  }
+
+  html.layout-mobile .leaflet-top.leaflet-right {
+    top: 56px;
+    right: 8px;
   }
 
   html.layout-mobile .leaflet-bottom.leaflet-left {
@@ -492,8 +545,10 @@
 
   /* Timeline: keep era chips, enlarge controls */
   html.layout-mobile .app-timeline-footer {
-    height: calc(var(--footer-height) + env(safe-area-inset-bottom));
-    padding: 0.45rem 0.7rem calc(0.4rem + env(safe-area-inset-bottom));
+    height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
+    padding: 0.45rem 0.7rem max(28px, calc(20px + env(safe-area-inset-bottom, 0px)));
+    box-sizing: border-box;
+    overflow: visible;
   }
 
   html.layout-mobile .timeline-control-bar {
@@ -566,8 +621,16 @@
     border-radius: 999px;
   }
 
+  html.layout-mobile .timeline-slider-track-wrap {
+    margin-top: 0.35rem;
+    margin-bottom: 0;
+    padding: 10px 2px 18px;
+    box-sizing: border-box;
+  }
+
   html.layout-mobile .timeline-slider {
     height: 12px;
+    margin: 0;
   }
 
   html.layout-mobile .timeline-slider::-webkit-slider-thumb {
@@ -580,7 +643,7 @@
     height: 28px;
   }
 
-  html.layout-mobile .timeline-labels .t-label:not(.start):not(.end):not(.highlight-gold):not(.highlight-crimson) {
+  html.layout-mobile .timeline-labels {
     display: none;
   }
 
@@ -869,7 +932,7 @@ html.layout-mobile .mobile-picker-empty {
   html.layout-mobile {
     --filterbar-height: 52px;
     --citybar-height: 52px;
-    --footer-height: 104px;
+    --footer-height: 120px;
   }
 
   html.layout-mobile .filter-chip-rows {

@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=4.7">
+  <link rel="stylesheet" href="css/mobile.css?v=4.9">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -241,6 +241,12 @@
       <button id="jerusalemQuickBtn" class="floating-btn" title="Zoom to Jerusalem & Passion Week Inset" aria-label="Zoom to Jerusalem">
         <span style="font-size: 14px;">🏛️</span>
       </button>
+    </div>
+
+    <div class="mobile-basemap-toggle" id="mobileBasemapToggle" role="group" aria-label="Choose map or satellite basemap">
+      <button type="button" class="mobile-basemap-btn active" data-style="parchment" aria-pressed="true">Map</button>
+      <button type="button" class="mobile-basemap-btn" data-style="satellite" aria-pressed="false">Satellite</button>
+      <button type="button" class="mobile-basemap-btn mobile-basemap-more" id="mobileBasemapMoreBtn" aria-label="More map styles" title="More map styles">···</button>
     </div>
 
     <!-- Floating Map Legend (Hidden by default; appears when any overlay layer is active) -->
@@ -555,7 +561,7 @@
   <script src="js/timelineController.js?v=3.5"></script>
   <script src="js/uiController.js?v=4.2"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=4.4"></script>
+  <script src="js/mobileShell.js?v=4.8"></script>
   <script src="js/app.js?v=4.2"></script>
 </body>
 </html>

@@ -1676,6 +1676,60 @@ class UIController {
             </ul>
           </div>
 
+          <!-- Growth of Christianity Showcase Card -->
+          <div class="feature-card christian-growth-showcase" style="border-left: 4px solid #DC2626; background: linear-gradient(180deg, #FFFDF9 0%, #FEF2F2 100%);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;">
+              <span style="font-size: 1.25rem;">🔥</span>
+              <h3 style="margin: 0; color: #991B1B; font-family: var(--font-serif-title); font-size: 0.98rem;">The Exponential Growth of Christianity (~30–100 AD)</h3>
+            </div>
+            
+            <p style="font-size: 0.82rem; line-height: 1.55; color: var(--text-primary); margin-bottom: 0.75rem;">
+              The New Testament records one of the most astonishing transformations in human history: the exponential multiplication of a humble gathering in Roman Judea into a vibrant spiritual movement spanning the entire Mediterranean world within a single generation.
+            </p>
+
+            <div style="background: rgba(220,38,38,0.06); border: 1px dashed rgba(220,38,38,0.3); border-radius: 6px; padding: 0.65rem 0.8rem; margin-bottom: 0.75rem;">
+              <div style="display:flex; align-items:center; gap:6px; font-weight:700; color:#B91C1C; font-size:0.8rem; margin-bottom:3px;">
+                <span>🔴 Interactive Growth Heatmap</span>
+              </div>
+              <p style="font-size:0.77rem; line-height:1.4; color:#7F1D1D; margin:0;">
+                Click <strong>Growth Heatmap</strong> in the top layers bar and scrub the timeline. Radiant diffusion halos emerge at Pentecost (~30 AD) and swell across the Mediterranean as churches multiply from Jerusalem to Rome.
+              </p>
+            </div>
+
+            <div class="demographic-stats-grid" style="margin-bottom: 0.75rem;">
+              <div class="demographic-stat-box" style="border-left: 2px solid #DC2626;">
+                <span class="demographic-label">Upper Room (30 AD)</span>
+                <span class="demographic-value" style="font-size: 0.95rem; color: #991B1B;">~120 Disciples</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 1:15</span>
+              </div>
+              <div class="demographic-stat-box" style="border-left: 2px solid #D97706;">
+                <span class="demographic-label">Pentecost Ingathering</span>
+                <span class="demographic-value" style="font-size: 0.95rem; color: #B45309;">+3,000 Souls</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 2:41</span>
+              </div>
+              <div class="demographic-stat-box" style="border-left: 2px solid #059669;">
+                <span class="demographic-label">Early Jerusalem Church</span>
+                <span class="demographic-value" style="font-size: 0.95rem; color: #047857;">5,000+ Men</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 4:4</span>
+              </div>
+              <div class="demographic-stat-box" style="border-left: 2px solid #2563EB;">
+                <span class="demographic-label">Empire-Wide (100 AD)</span>
+                <span class="demographic-value" style="font-size: 0.95rem; color: #1D4ED8;">100,000s of Saints</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted);">Across 40+ Hubs</span>
+              </div>
+            </div>
+
+            <h4 style="font-family: var(--font-serif-title); font-size: 0.84rem; color: #991B1B; margin: 0 0 0.4rem 0;">
+              Four Waves of Apostolic Expansion
+            </h4>
+            <ul class="feature-steps" style="font-size: 0.78rem; line-height: 1.45;">
+              <li><strong>Wave 1 — Pentecost & Judea (30–34 AD):</strong> Endowed with the Holy Ghost, apostles bore eyewitness testimony of Christ's resurrection.</li>
+              <li><strong>Wave 2 — Samaria & Syrian Antioch (34–44 AD):</strong> Scattered by persecution, disciples shared the Word beyond Jewish borders; Gentiles poured in at Antioch.</li>
+              <li><strong>Wave 3 — Paul's Missionary Journeys (47–62 AD):</strong> Crossing 10,000+ miles via Roman roads and seas, Paul planted assemblies in Galatia, Macedonia, Greece, and Asia.</li>
+              <li><strong>Wave 4 — Apostolic Consolidation (62–100 AD):</strong> Surviving imperial persecutions and Jerusalem's 70 AD fall, the Church matured into resilient regional networks across three continents.</li>
+            </ul>
+          </div>
+
           <div class="curated-shortcut-grid">
             <h4>Quick Focus Tours</h4>
             <div class="tour-mini-cards">
@@ -1824,6 +1878,21 @@ class UIController {
             </a>
           </div>
         </div>
+
+        <div class="teachings-card teachings-card-gold" style="margin-top:0.75rem; border-left: 3px solid #DC2626;">
+          <div class="teachings-card-title">
+            <span>🌱</span>
+            <span>The Prophesied Growth of the Kingdom</span>
+          </div>
+          <div class="teachings-card-body">
+            Jesus taught through vivid parables that His Church, though beginning as the smallest of seeds, possessed divine vital power that would fill the earth:
+            <ul style="padding-left:1.2rem; margin:0.4rem 0; font-size:0.83rem; line-height:1.5;">
+              <li><strong>The Mustard Seed (Matt 13:31–32):</strong> <em>"The kingdom of heaven is like to a grain of mustard seed... which indeed is the least of all seeds: but when it is grown, it is the greatest among herbs, and becometh a tree."</em></li>
+              <li><strong>The Three Measures of Meal (Matt 13:33):</strong> <em>"The kingdom of heaven is like unto leaven, which a woman took, and hid in three measures of meal, till the whole was leavened."</em></li>
+              <li><strong>The Great Commission (Matt 28:19–20; Acts 1:8):</strong> <em>"Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost... and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth."</em></li>
+            </ul>
+          </div>
+        </div>
       `;
     } else if (this.currentTab === "videos") {
       html = this.renderVideosTab(null, "welcome");
@@ -1856,10 +1925,16 @@ class UIController {
           </p>
         </div>
 
-        <div class="history-block" style="margin-bottom:1rem;">
-          <h4>Multiplication of the Early Church</h4>
+        <div class="history-block" style="margin-bottom:1rem; border-left: 3px solid #DC2626;">
+          <h4>The Multiplication & Dynamics of Early Christian Communities</h4>
           <p>
-            From ~120 believers gathered in Jerusalem's upper room (Acts 1:15), the Church grew by 3,000 souls on the day of Pentecost (Acts 2:41) and soon 5,000 men (Acts 4:4). Following Stephen's martyrdom, believers dispersed preaching throughout Samaria, Phoenicia, Cyprus, and Antioch, where disciples were first called Christians (Acts 11:26).
+            From ~120 disciples praying in Jerusalem's upper room (Acts 1:15), the Church exploded by 3,000 souls on the day of Pentecost (Acts 2:41) and soon reached over 5,000 men (Acts 4:4). Following Stephen's martyrdom, dispersed disciples carried the Gospel to Samaria, Phoenicia, Cyprus, and Antioch, where believers were first named Christians (Acts 11:26).
+          </p>
+          <p style="margin-top:0.45rem;">
+            Early Christianity multiplied primarily through a dynamic network of <strong>house churches</strong> (e.g., Philemon in Colossae, Lydia in Philippi, Priscilla and Aquila in Rome and Corinth). Gathering in domestic spaces, believers broke bread, shared all things common, and welcomed people across every social divide—slaves and masters, Greek philosophers and Roman centurions, wealthy patronesses and humble laborers—united as one in Christ Jesus (Galatians 3:28).
+          </p>
+          <p style="margin-top:0.45rem;">
+            Historians note that early Christian growth averaged an estimated <strong>40% per decade</strong>, fueled by unflinching apostolic witness of the Resurrection, profound moral integrity, and unprecedented communal charity—such as rescuing exposed infants, nursing the plague-stricken, and providing burial for the impoverished.
           </p>
         </div>
 
@@ -1873,12 +1948,12 @@ class UIController {
             <span class="demographic-value" style="font-size:0.95rem; color:#B45309;">3,000+ Souls (Acts 2)</span>
           </div>
           <div class="demographic-stat-box">
-            <span class="demographic-label">Mediterranean Churches</span>
-            <span class="demographic-value" style="font-size:0.95rem;">40+ Major Hubs</span>
+            <span class="demographic-label">Estimated 100 AD Faithful</span>
+            <span class="demographic-value" style="font-size:0.95rem; color:#DC2626;">100,000–500,000</span>
           </div>
           <div class="demographic-stat-box">
-            <span class="demographic-label">Diaspora Population</span>
-            <span class="demographic-value" style="font-size:0.95rem;">~4–5 Million</span>
+            <span class="demographic-label">Decadal Growth Rate</span>
+            <span class="demographic-value" style="font-size:0.95rem; color:#047857;">~40% per Decade</span>
           </div>
         </div>
       `;

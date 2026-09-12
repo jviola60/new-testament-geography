@@ -379,6 +379,7 @@ async function measureOverflow(page) {
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
+  if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();
 

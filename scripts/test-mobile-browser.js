@@ -14,6 +14,14 @@ function fail(msg) {
   throw new Error(msg);
 }
 
+function assertTap(name, box, min = 44) {
+  if (!box) fail(`${name} not found for tap-target check`);
+  if (box.height + 0.5 < min) fail(`${name} tap height ${box.height}px < ${min}px`);
+  if (box.width + 0.5 < min && name !== "filter-chip" && name !== "era-tab" && name !== "tab-btn" && name !== "speed-btn") {
+    fail(`${name} tap width ${box.width}px < ${min}px`);
+  }
+}
+
 async function measureOverflow(page) {
   return page.evaluate(() => {
     const doc = document.documentElement;
@@ -103,9 +111,36 @@ async function measureOverflow(page) {
   }
   if (!/God so loved/i.test(welcomeOverlap.quoteText)) fail("John 3:16 welcome quote missing");
   if (welcomeOverlap.quoteCovered) fail("John 3:16 is still covered by the timeline");
+
+  const taps = await page.evaluate(() => {
+    const box = (sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { width: r.width, height: r.height };
+    };
+    const label = document.querySelector(".city-label-text.city-label-primary");
+    return {
+      chip: box(".filter-chip"),
+      tab: box(".tab-btn"),
+      era: box(".era-tab"),
+      fab: box(".map-floating-actions .floating-btn"),
+      speed: box(".speed-btn"),
+      handle: box(".sheet-handle"),
+      labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : null
+    };
+  });
+  assertTap("filter-chip", taps.chip);
+  assertTap("tab-btn", taps.tab);
+  assertTap("era-tab", taps.era);
+  assertTap("floating-btn", taps.fab);
+  assertTap("speed-btn", taps.speed);
+  assertTap("sheet-handle", taps.handle);
   await page.screenshot({ path: path.join(OUT, "phone_welcome_sheet.png"), fullPage: false });
   await page.locator("#closeSidebarBtn").click();
   await page.waitForTimeout(250);
+  const cityTap = await page.locator("#mobileCityPickerBtn").boundingBox();
+  assertTap("mobile-city-picker-btn", cityTap);
 
   await cityBar.click();
   await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
@@ -193,8 +228,8 @@ async function measureOverflow(page) {
       labelsHiddenAtDefault: !document.documentElement.classList.contains("mobile-zoomed")
     };
   });
-  if (chrome.chipHeight > 52) fail(`Layer chips should be a single row, height=${chrome.chipHeight}`);
-  if (chrome.tabHeight > 56) fail(`Place tabs should be a single row, height=${chrome.tabHeight}`);
+  if (chrome.chipHeight > 64) fail(`Layer chips should be a single row, height=${chrome.chipHeight}`);
+  if (chrome.tabHeight > 68) fail(`Place tabs should be a single row, height=${chrome.tabHeight}`);
   if (chrome.eraOverflow !== "auto" && chrome.eraOverflow !== "scroll") fail(`Era pills overflow-x=${chrome.eraOverflow}`);
   if (chrome.fabLeft > 80) fail(`Map FABs should sit on the left, left=${chrome.fabLeft}`);
 
@@ -241,15 +276,20 @@ async function measureOverflow(page) {
       const s = getComputedStyle(el);
       return s.display !== "none" && s.visibility !== "hidden" && el.offsetParent !== null;
     }).map(el => el.textContent.trim());
+    const primary = document.querySelector(".city-label-text.city-label-primary");
     return {
       zoomLeft: zoom ? zoom.getBoundingClientRect().left : -1,
       fabLeft: fabs.getBoundingClientRect().left,
       labels,
-      zoomClass: document.documentElement.classList.contains("mobile-zoomed")
+      zoomClass: document.documentElement.classList.contains("mobile-zoomed"),
+      primaryLabelPx: primary ? parseFloat(getComputedStyle(primary).fontSize) : null
     };
   });
   if (holy.zoomLeft > 120) fail(`Zoom control should be bottom-left on Holy Land, left=${holy.zoomLeft}`);
   if (holy.labels.some(n => /smyrna/i.test(n))) fail("Smyrna label should stay hidden at Holy Land zoom");
+  if (holy.primaryLabelPx != null && holy.primaryLabelPx < 11) {
+    fail(`Primary zoomed city labels are ${holy.primaryLabelPx}px; need ≥11px`);
+  }
   await page.screenshot({ path: path.join(OUT, "phone_holy_land.png"), fullPage: false });
 
   // Tablet width

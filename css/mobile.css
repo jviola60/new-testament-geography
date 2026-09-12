@@ -258,11 +258,14 @@
     min-width: 0;
   }
 
+  /* Period title: the 5px crimson left edge is the badge's own accent
+     (map.css border-left), not a covered control. FABs sit under it. */
   html.layout-mobile .floating-era-badge {
     top: 8px;
     left: 8px;
     max-width: min(54vw, 190px);
     padding: 0.28rem 0.5rem;
+    z-index: 800;
   }
 
   html.layout-mobile .era-tag {
@@ -279,10 +282,11 @@
   }
 
   html.layout-mobile .map-floating-actions {
-    top: 48px;
+    top: var(--left-fab-top, 56px);
     right: auto;
     left: 8px;
     bottom: auto;
+    z-index: 850;
   }
 
   html.layout-mobile #holyLandQuickBtn {
@@ -374,7 +378,7 @@
   }
 
   html.layout-mobile .leaflet-control-zoom {
-    margin-top: 4px !important;
+    margin-top: 0 !important;
     margin-right: 8px !important;
     margin-bottom: 0 !important;
     margin-left: 0 !important;
@@ -388,7 +392,7 @@
   }
 
   html.layout-mobile .leaflet-top.leaflet-right {
-    top: 56px;
+    top: var(--zoom-stack-top, calc(8px + var(--tap) + 10px));
     right: 8px;
   }
 

@@ -34,6 +34,7 @@ class MobileShell {
     this.bindBasemapToggle();
     this.bindMapInvalidation();
     this.bindMobileMapZoom();
+    this.bindLeftMapStack();
 
     if (this.isPhone()) {
       this.setSheet("hidden", { silent: true });
@@ -68,6 +69,7 @@ class MobileShell {
     }
 
     this.syncZoomControl();
+    this.syncLeftMapStack();
     this.invalidateMap(80);
   }
 
@@ -97,8 +99,10 @@ class MobileShell {
     clearTimeout(this._resizeTimer);
     this._resizeTimer = setTimeout(() => {
       const map = window.app && window.app.map && window.app.map.map;
-      if (!map || typeof map.invalidateSize !== "function") return;
-      map.invalidateSize({ animate: false, pan: false });
+      if (map && typeof map.invalidateSize === "function") {
+        map.invalidateSize({ animate: false, pan: false });
+      }
+      this.syncLeftMapStack();
     }, delay);
   }
 
@@ -106,6 +110,52 @@ class MobileShell {
     const map = window.app && window.app.map && window.app.map.map;
     if (!map || !map.zoomControl) return;
     map.zoomControl.setPosition(this.isPhone() ? "topright" : "topleft");
+  }
+
+  bindLeftMapStack() {
+    const badge = document.getElementById("floatingEraBadge");
+    if (badge && !badge.__leftStackObs) {
+      badge.__leftStackObs = new MutationObserver(() => this.syncLeftMapStack());
+      badge.__leftStackObs.observe(badge, { childList: true, subtree: true, characterData: true });
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => this.syncLeftMapStack()).catch(() => {});
+    }
+    this.syncLeftMapStack();
+  }
+
+  syncLeftMapStack() {
+    const root = document.documentElement;
+    const badge = document.getElementById("floatingEraBadge");
+    if (!this.isPhone()) {
+      root.style.removeProperty("--left-fab-top");
+      root.style.removeProperty("--zoom-stack-top");
+      if (badge) badge.style.maxWidth = "";
+      return;
+    }
+
+    const main = document.querySelector(".app-main-container");
+    const toggle = document.getElementById("mobileBasemapToggle");
+    const mainTop = main ? main.getBoundingClientRect().top : 0;
+
+    if (badge && badge.offsetParent && toggle && toggle.offsetParent) {
+      const sideGap = 10;
+      const maxW = Math.floor(toggle.getBoundingClientRect().left - badge.getBoundingClientRect().left - sideGap);
+      badge.style.maxWidth = `${Math.max(96, maxW)}px`;
+    }
+
+    if (badge && badge.offsetParent) {
+      const gap = 8;
+      const top = Math.ceil(badge.getBoundingClientRect().bottom - mainTop + gap);
+      root.style.setProperty("--left-fab-top", `${Math.max(top, 56)}px`);
+    }
+
+    if (toggle && toggle.offsetParent) {
+      const gap = 10;
+      const top = Math.ceil(toggle.getBoundingClientRect().bottom - mainTop + gap);
+      const fallback = 8 + 44 + 10;
+      root.style.setProperty("--zoom-stack-top", `${Math.max(top, fallback)}px`);
+    }
   }
 
   bindMobileMapZoom() {

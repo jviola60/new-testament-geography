@@ -52,8 +52,13 @@ assert(mobileJs.includes("mobile-zoomed"), "Mobile shell should gate map labels 
 assert(mobileJs.includes("sheet-open"), "Mobile shell should flag an open details sheet");
 assert(mobileJs.includes("topright"), "Zoom control should sit top-right, away from left FABs");
 assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the visible basemap toggle");
+assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell should stack left FABs below the period title");
+assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the period-title height");
 assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
 assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
+assert(mobileCss.includes("calc(8px + var(--tap) + 10px)"), "Zoom stack should clear the Map|Satellite chip");
+assert(mobileCss.includes("--left-fab-top"), "Mobile CSS should place FABs under the period title");
+assert(/crimson left edge/.test(mobileCss), "Period-title crimson accent should stay documented as decorative");
 
 assert(uiJs.includes("getQuickJumpCatalog"), "uiController should expose the shared place catalog");
 assert(uiJs.includes("jumpToQuickJumpValue"), "uiController should expose shared jump logic");

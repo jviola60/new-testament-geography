@@ -59,6 +59,83 @@ async function measureOverflow(page) {
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");
   if (phoneOverflow.overflowX > 2) fail(`Horizontal overflow on phone: ${phoneOverflow.overflowX}px`);
 
+  const stack = await page.evaluate(() => {
+    const badge = document.getElementById("floatingEraBadge");
+    const fabs = document.querySelector(".map-floating-actions");
+    const recenter = document.getElementById("recenterBtn");
+    const jerusalem = document.getElementById("jerusalemQuickBtn");
+    const zoom = document.querySelector(".leaflet-control-zoom");
+    const toggle = document.getElementById("mobileBasemapToggle");
+    const left = document.querySelector(".leaflet-top.leaflet-left");
+    const badgeR = badge.getBoundingClientRect();
+    const fabR = fabs.getBoundingClientRect();
+    const zoomR = zoom.getBoundingClientRect();
+    const toggleR = toggle.getBoundingClientRect();
+    const stripeX = badgeR.left + 2;
+    const stripeY = badgeR.top + badgeR.height / 2;
+    const hit = (x, y) => document.elementsFromPoint(x, y);
+    const underStripe = hit(stripeX, stripeY).map(el => ({
+      id: el.id || "",
+      tag: el.tagName,
+      cls: typeof el.className === "string" ? el.className : (el.className.baseVal || el.tagName)
+    }));
+    const underBadge = hit(badgeR.left + badgeR.width / 2, badgeR.top + badgeR.height / 2)
+      .filter(el => el !== badge && !badge.contains(el))
+      .map(el => el.id || (typeof el.className === "string" ? el.className : el.tagName));
+    const interactiveUnder = hit(stripeX, stripeY)
+      .concat(hit(badgeR.left + badgeR.width / 2, stripeY))
+      .filter((el, i, arr) => arr.indexOf(el) === i)
+      .filter(el => el.closest("button, a, .floating-btn, .leaflet-control-zoom, .mobile-basemap-toggle"))
+      .filter(el => !badge.contains(el) && el !== badge)
+      .map(el => el.id || el.className);
+    const topleftControls = left ? left.querySelectorAll(".leaflet-control").length : 0;
+    const borderLeft = getComputedStyle(badge).borderLeft;
+    const borderColor = getComputedStyle(badge).borderLeftColor;
+    return {
+      title: (document.getElementById("eraTitle") || {}).textContent || "",
+      badge: { left: badgeR.left, top: badgeR.top, right: badgeR.right, bottom: badgeR.bottom, width: badgeR.width, height: badgeR.height },
+      fabs: { left: fabR.left, top: fabR.top, right: fabR.right, bottom: fabR.bottom, width: fabR.width, height: fabR.height },
+      recenter: recenter.getBoundingClientRect(),
+      jerusalem: jerusalem.getBoundingClientRect(),
+      zoom: { left: zoomR.left, top: zoomR.top, bottom: zoomR.bottom },
+      toggle: { top: toggleR.top, bottom: toggleR.bottom, right: toggleR.right, height: toggleR.height },
+      gapBadgeFabs: fabR.top - badgeR.bottom,
+      gapToggleZoom: zoomR.top - toggleR.bottom,
+      overlapBadgeFabs: badgeR.left < fabR.right && badgeR.right > fabR.left && badgeR.top < fabR.bottom && badgeR.bottom > fabR.top,
+      overlapBadgeZoom: badgeR.left < zoomR.right && badgeR.right > zoomR.left && badgeR.top < zoomR.bottom && badgeR.bottom > zoomR.top,
+      underStripe,
+      underBadge,
+      interactiveUnder,
+      topleftControls,
+      borderLeft,
+      borderColor,
+      fabTopVar: getComputedStyle(document.documentElement).getPropertyValue("--left-fab-top").trim(),
+      zoomTopVar: getComputedStyle(document.documentElement).getPropertyValue("--zoom-stack-top").trim()
+    };
+  });
+  console.log("Period-title stack:", JSON.stringify({
+    title: stack.title,
+    gapBadgeFabs: stack.gapBadgeFabs,
+    gapToggleZoom: stack.gapToggleZoom,
+    borderLeft: stack.borderLeft,
+    borderColor: stack.borderColor,
+    interactiveUnder: stack.interactiveUnder,
+    topleftControls: stack.topleftControls
+  }, null, 2));
+  if (!/nativity/i.test(stack.title)) fail(`Expected Nativity period title, got "${stack.title}"`);
+  if (stack.overlapBadgeFabs) fail("Period title overlaps the left FAB stack");
+  if (stack.overlapBadgeZoom) fail("Period title overlaps the zoom control");
+  if (stack.gapBadgeFabs < 6) fail(`Left FABs must clear the period title, gap=${stack.gapBadgeFabs}`);
+  if (stack.gapToggleZoom < 8) fail(`Zoom stack must clear Map|Satellite chip, gap=${stack.gapToggleZoom}`);
+  if (stack.topleftControls > 0) fail(`Leaflet top-left still has ${stack.topleftControls} control(s) under the period title`);
+  if (stack.interactiveUnder.length) fail(`Interactive control under the period-title stripe: ${JSON.stringify(stack.interactiveUnder)}`);
+  if (stack.recenter.height + 0.5 < 44) fail(`Reset FAB tap height ${stack.recenter.height}px < 44px`);
+  if (stack.jerusalem.height + 0.5 < 44) fail(`Jerusalem FAB tap height ${stack.jerusalem.height}px < 44px`);
+  if (!/rgb\(163,\s*40,\s*34\)|#A32822/i.test(stack.borderColor) && !/5px/.test(stack.borderLeft)) {
+    fail(`Expected decorative crimson period-title accent, got border=${stack.borderLeft} color=${stack.borderColor}`);
+  }
+  await page.screenshot({ path: path.join(OUT, "phone_nativity_stack.png"), fullPage: false });
+
   const basemap = page.locator("#mobileBasemapToggle");
   if (!(await basemap.isVisible())) fail("Map/Satellite toggle must be visible on phone");
   await page.locator('#mobileBasemapToggle [data-style="satellite"]').click();

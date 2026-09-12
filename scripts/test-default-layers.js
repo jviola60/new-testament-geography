@@ -67,7 +67,7 @@ global.L = {
   polyline: () => ({ bindTooltip: () => {}, on: () => {} }),
   rectangle: () => ({ bindTooltip: () => {}, on: () => {} }),
   imageOverlay: () => ({ addTo: () => {}, bindTooltip: () => {}, on: () => {} }),
-  circle: () => ({}),
+  circle: () => ({ bindTooltip: () => {}, on: () => {} }),
   circleMarker: () => ({ bindTooltip: () => {}, on: () => {} }),
   DomEvent: { stopPropagation: () => {} }
 };
@@ -90,7 +90,13 @@ global.JERUSALEM_GEOGRAPHY = {
 };
 global.SAVIOR_EVENTS = [{ id: "s1", year: 28, lat: 32, lng: 35, title: "Ministry Event", scriptures: [] }];
 global.MISSIONARY_JOURNEYS = [];
-global.COMMUNITIES_DATA = { diasporaSettlements: [{ city: "Rome" }], churchesMultiplication: [] };
+global.COMMUNITIES_DATA = {
+  diasporaSettlements: [{ city: "Rome" }],
+  churchesMultiplication: [
+    { city: "Jerusalem", foundedYear: 30, region: "Judea", lat: 31.77, lng: 35.23, founders: "Apostles" },
+    { city: "Corinth", foundedYear: 50, region: "Achaia", lat: 37.93, lng: 22.93, founders: "Paul" }
+  ]
+};
 
 // DOM mock elements
 const domElements = {
@@ -163,11 +169,20 @@ assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorRoute), 'saviorRoute shou
 assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend should appear when savior is active');
 console.log('✓ Clicking layer chip mounts overlay and displays Atlas Legend.');
 
-// Turn off savior
+// Test Growth Heatmap independently of churches filter at year 95
+mapCtrl.updateTimelineYear(95);
+mapCtrl.setLayerFilter("heatmaps", true);
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'heatmaps should be mounted on map');
+assert.strictEqual(mapCtrl.filterState.churches, false, 'Churches filter is false');
+assert(mapCtrl.layers.heatmaps._layers.size > 0, 'Heatmap circles must be generated even when churches filter is off');
+assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend should appear for heatmaps');
+console.log('✓ Growth Heatmap renders independently of Christian Churches filter.');
+
+// Turn off heatmaps and savior
+mapCtrl.setLayerFilter("heatmaps", false);
 mapCtrl.setLayerFilter("savior", false);
-assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorMarkers), 'saviorMarkers removed from map');
-assert.strictEqual(domElements.mapLegend.style.display, 'none', '#mapLegend hides when all layers off');
-console.log('✓ Turning off all layers hides the Atlas Legend.');
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'heatmaps removed from map');
+assert.strictEqual(domElements.mapLegend.style.display, 'none', '#mapLegend hidden again when all layers off');
 
 // 3. Verify UIController Quick Jump Dropdown population and interaction
 const uiControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'uiController.js'), 'utf8');

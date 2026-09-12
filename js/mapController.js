@@ -859,52 +859,113 @@ class MapController {
 
     // 3. Render Christian Churches that have multiplied by this year
     let activeChurchesCount = 0;
-    if (this.filterState.churches) {
+    if (typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.churchesMultiplication) {
       COMMUNITIES_DATA.churchesMultiplication.forEach(church => {
         if (church.foundedYear <= year) {
           activeChurchesCount++;
-          const isRecentlyPlanted = (year - church.foundedYear) <= 2;
 
-          const iconHtml = `
-            <div class="custom-marker-church ${isRecentlyPlanted ? 'recent-church' : ''}">
-              <div class="church-pulse-ring"></div>
-              <div class="church-icon-inner" title="Church at ${church.city}">☩</div>
-            </div>`;
+          if (this.filterState.churches) {
+            const isRecentlyPlanted = (year - church.foundedYear) <= 2;
 
-          const marker = L.marker([church.lat, church.lng], {
-            icon: L.divIcon({
-              className: "leaflet-div-church",
-              html: iconHtml,
-              iconSize: [26, 26],
-              iconAnchor: [13, 13]
-            }),
-            zIndexOffset: 600
-          });
+            const iconHtml = `
+              <div class="custom-marker-church ${isRecentlyPlanted ? 'recent-church' : ''}">
+                <div class="church-pulse-ring"></div>
+                <div class="church-icon-inner" title="Church at ${church.city}">☩</div>
+              </div>`;
 
-          marker.bindTooltip(`
-            <div class="tooltip-title">Christian Church • ${church.city}</div>
-            <div style="font-size:11px; color:#991B1B;">Founded ~${church.foundedYear} AD by ${church.founders}</div>
-          `, { className: "custom-bible-tooltip", direction: "top" });
-
-          marker.on("click", () => {
-            window.app.ui.showChurchDetail(church);
-          });
-
-          this.layers.churches.addLayer(marker);
-
-          // If growth heatmap is enabled, add circular density glow
-          if (this.filterState.heatmaps) {
-            const circle = L.circle([church.lat, church.lng], {
-              radius: Math.min(180000, 30000 + (year - church.foundedYear) * 4000),
-              color: "#DC2626",
-              weight: 0,
-              fillColor: "#DC2626",
-              fillOpacity: 0.14
+            const marker = L.marker([church.lat, church.lng], {
+              icon: L.divIcon({
+                className: "leaflet-div-church",
+                html: iconHtml,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+              }),
+              zIndexOffset: 600
             });
-            this.layers.heatmaps.addLayer(circle);
+
+            marker.bindTooltip(`
+              <div class="tooltip-title">Christian Church • ${church.city}</div>
+              <div style="font-size:11px; color:#991B1B;">Founded ~${church.foundedYear} AD by ${church.founders}</div>
+            `, { className: "custom-bible-tooltip", direction: "top" });
+
+            marker.on("click", () => {
+              window.app.ui.showChurchDetail(church);
+            });
+
+            this.layers.churches.addLayer(marker);
           }
         }
       });
+    }
+
+    // 4. Render Christian Growth Heatmap (independent of church markers filter)
+    if (this.filterState.heatmaps && typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.churchesMultiplication) {
+      let heatmapCirclesCount = 0;
+      COMMUNITIES_DATA.churchesMultiplication.forEach(church => {
+        if (church.foundedYear <= year) {
+          heatmapCirclesCount++;
+          const age = Math.max(0, year - church.foundedYear);
+          const outerRadius = Math.min(240000, 45000 + age * 4200);
+          const innerRadius = Math.min(110000, 22000 + age * 1900);
+
+          // Outer luminous diffusion glow
+          const outerCircle = L.circle([church.lat, church.lng], {
+            radius: outerRadius,
+            color: "#DC2626",
+            weight: 1.2,
+            opacity: 0.55,
+            fillColor: "#EF4444",
+            fillOpacity: 0.22,
+            interactive: false
+          });
+          this.layers.heatmaps.addLayer(outerCircle);
+
+          // Concentrated density core
+          const innerCircle = L.circle([church.lat, church.lng], {
+            radius: innerRadius,
+            color: "#991B1B",
+            weight: 1.8,
+            opacity: 0.85,
+            fillColor: "#F59E0B",
+            fillOpacity: 0.48,
+            interactive: true
+          });
+
+          innerCircle.bindTooltip(`
+            <div class="custom-bible-tooltip">
+              <strong>🔥 Christian Growth & Community Diffusion</strong><br>
+              <span style="font-weight:700; color:#B91C1C;">${church.city}</span> (${church.region})<br>
+              <small>Planted ~${church.foundedYear} AD by ${church.founders}</small><br>
+              <span style="color:#D97706; font-size:10px; font-weight:700;">Diffusion Age: ${Math.floor(age)} years (at ${Math.floor(year)} AD)</span>
+            </div>
+          `, { sticky: true });
+
+          innerCircle.on("click", () => {
+            window.app.ui.showChurchDetail(church);
+          });
+
+          this.layers.heatmaps.addLayer(innerCircle);
+        }
+      });
+
+      // If before Pentecost (~30 AD), show nascent seed prompt over Jerusalem
+      if (heatmapCirclesCount === 0) {
+        const seedCircle = L.circle([31.7767, 35.2345], {
+          radius: 35000,
+          color: "#D97706",
+          weight: 1.8,
+          dashArray: "4, 4",
+          fillColor: "#F59E0B",
+          fillOpacity: 0.32
+        });
+        seedCircle.bindTooltip(`
+          <div class="custom-bible-tooltip">
+            <strong>🌱 Nascent Seed of the Gospel (-6 BC – 29 AD)</strong><br>
+            <small>Advance timeline past 30 AD (Pentecost) to watch early Christian growth multiply across the Roman Empire!</small>
+          </div>
+        `, { sticky: true });
+        this.layers.heatmaps.addLayer(seedCircle);
+      }
     }
 
     // 4. Update UI Stat counters
@@ -912,7 +973,7 @@ class MapController {
       document.getElementById("statEventsCount").textContent = visibleEventsCount;
     }
     if (document.getElementById("statChurchesCount")) {
-      document.getElementById("statChurchesCount").textContent = activeChurchesCount;
+      document.getElementById("statChurchesCount").textContent = this.filterState.churches ? activeChurchesCount : 0;
     }
     if (document.getElementById("statDiasporaCount")) {
       document.getElementById("statDiasporaCount").textContent = this.filterState.diaspora && typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.diasporaSettlements ? COMMUNITIES_DATA.diasporaSettlements.length : 0;

@@ -33,22 +33,27 @@ class MapController {
       modernOverlay: null
     };
 
-    // Filter states (default: all overlays off until user clicks a layer chip)
+    // Overlay keys driven by the Layers chip bar. "All Visible" masters these
+    // core overlays only — Growth Heatmap (heatmaps) is independent and starts OFF.
+    this.coreOverlayKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+
+    // Fresh-load defaults (no localStorage / URL-hash restore):
+    // every place/route overlay ON, Growth Heatmap OFF, year 100 AD.
     this.filterState = {
-      all: false,
-      savior: false,
-      diaspora: false,
-      churches: false,
-      journeys: false,
+      all: true,
+      savior: true,
+      diaspora: true,
+      churches: true,
+      journeys: true,
       heatmaps: false,
-      provinces: false,
+      provinces: true,
       modernOverlay: false,
-      jerusalemSites: false,
-      jerusalemGeography: false,
+      jerusalemSites: true,
+      jerusalemGeography: true,
       firstCenturySatellite: false
     };
 
-    this.currentYear = -6;
+    this.currentYear = 100;
     this.activeHighlightMarker = null;
   }
 
@@ -71,8 +76,8 @@ class MapController {
     // Setup Tile Layers
     this.setupTileLayers();
 
-    // Attach Base Geographic Layers to Map (hydrography and cities)
-    // All thematic overlays remain unmounted until user activates their layer chip.
+    // Base geography is always on. Thematic overlays follow filterState defaults
+    // (applied at the end of init) and user chip toggles after that.
     this.layers.hydrography.addTo(this.map);
     this.layers.cities.addTo(this.map);
 
@@ -143,9 +148,8 @@ class MapController {
       }
     });
 
-    // Initial update based on starting year (-6 BC)
-    this.updateTimelineYear(-6);
-    this.updateLegend();
+    // Mount default-on overlays and paint the start year (100 AD).
+    this.applyLayerVisibility();
   }
 
   setupTileLayers() {
@@ -989,26 +993,28 @@ class MapController {
   setLayerFilter(filterType, isEnabled) {
     if (filterType === "all") {
       this.filterState.all = isEnabled;
-      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
-      coreKeys.forEach(k => {
+      this.coreOverlayKeys.forEach(k => {
         this.filterState[k] = isEnabled;
       });
-      // Synchronize DOM chip visual states
+      // Synchronize DOM chip visual states (does not touch Growth Heatmap)
       document.querySelectorAll(".filter-chip").forEach(chip => {
         const k = chip.dataset.filter;
-        if (k === "all" || coreKeys.includes(k)) {
+        if (k === "all" || this.coreOverlayKeys.includes(k)) {
           chip.classList.toggle("active", isEnabled);
         }
       });
     } else {
       this.filterState[filterType] = isEnabled;
-      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
-      const allActive = coreKeys.every(k => this.filterState[k]);
+      const allActive = this.coreOverlayKeys.every(k => this.filterState[k]);
       this.filterState.all = allActive;
       const allChip = document.querySelector('.filter-chip[data-filter="all"]');
       if (allChip) allChip.classList.toggle("active", allActive);
     }
 
+    this.applyLayerVisibility();
+  }
+
+  applyLayerVisibility() {
     // Savior's Ministry
     if (this.filterState.savior) {
       if (!this.map.hasLayer(this.layers.saviorMarkers)) this.map.addLayer(this.layers.saviorMarkers);

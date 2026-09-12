@@ -108,6 +108,46 @@ function assertViewportFill(label, fill) {
   await page.waitForFunction(() => window.app && window.app.map && window.app.ui, { timeout: 20000 });
   await page.waitForTimeout(1200);
 
+  const coldStart = await page.evaluate(() => {
+    const chips = [...document.querySelectorAll(".filter-chip")].map((chip) => ({
+      key: chip.dataset.filter,
+      active: chip.classList.contains("active"),
+      label: (chip.textContent || "").replace(/\s+/g, " ").trim()
+    }));
+    return {
+      year: ((document.getElementById("displayYear") || {}).textContent || "").trim(),
+      slider: document.getElementById("timelineSlider") ? document.getElementById("timelineSlider").value : "",
+      period: ((document.getElementById("mobilePeriodLabel") || {}).textContent || "").trim(),
+      filterLabel: ((document.getElementById("mobileFilterLabel") || {}).textContent || "").trim(),
+      chips,
+      heatmaps: window.app.map.filterState.heatmaps,
+      savior: window.app.map.filterState.savior,
+      diaspora: window.app.map.filterState.diaspora,
+      churches: window.app.map.filterState.churches,
+      journeys: window.app.map.filterState.journeys,
+      provinces: window.app.map.filterState.provinces,
+      timelineYear: window.app.timeline.currentYear
+    };
+  });
+  console.log("Cold start:", coldStart);
+  if (coldStart.year !== "100 AD" || Number(coldStart.slider) !== 100 || coldStart.timelineYear !== 100) {
+    fail(`Cold start year should be 100 AD, got year="${coldStart.year}" slider=${coldStart.slider} js=${coldStart.timelineYear}`);
+  }
+  if (coldStart.heatmaps) fail("Growth Heatmap must start OFF");
+  ["savior", "diaspora", "churches", "journeys", "provinces"].forEach((key) => {
+    if (!coldStart[key]) fail(`${key} overlay must start ON`);
+  });
+  const growthChip = coldStart.chips.find((chip) => chip.key === "heatmaps");
+  if (!growthChip || growthChip.active) fail("Growth Heatmap chip must start inactive");
+  const coreOff = coldStart.chips.filter((chip) => chip.key !== "heatmaps" && !chip.active);
+  if (coreOff.length) fail(`Core overlay chips must start ON, off=${coreOff.map((c) => c.key).join(",")}`);
+  if (!/All Visible/i.test(coldStart.filterLabel)) {
+    fail(`Mobile layer trigger should read All Visible, got "${coldStart.filterLabel}"`);
+  }
+  if (!/Period · Apostolic Age/i.test(coldStart.period)) {
+    fail(`Mobile period trigger should read Period · Apostolic Age, got "${coldStart.period}"`);
+  }
+
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");

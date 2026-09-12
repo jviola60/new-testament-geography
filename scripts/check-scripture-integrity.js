@@ -168,6 +168,12 @@ ok(emmaus && /traditional/i.test(emmaus.jewishDiasporaInfo + (emmaus.overview ||
 const magdala = cities.find((c) => c.id === "magdala");
 ok(magdala && magdala.teachings.passages.includes("Matthew 15:39"), "Magdala passages should include Matthew 15:39");
 ok(magdala && /Magadan/.test(magdala.teachings.whatWasTaught) && /No synagogue sermon/i.test(magdala.teachings.whatWasTaught), "Magdala should be honest about coasts of Magdala/Magadan and no synagogue sermon");
+ok(magdala && !/^Jesus Christ$/.test(magdala.teachings.teacher), `Magdala teacher still invents a local office: "${magdala && magdala.teachings && magdala.teachings.teacher}"`);
+ok(magdala && /Matthew 15:39/.test(magdala.teachings.teacher) && /no synagogue sermon/i.test(magdala.teachings.teacher), "Magdala teacher should mirror Malta-style honesty (coasts recorded; no narrated synagogue sermon)");
+
+const capernaumContext = cities.find((c) => c.id === "capernaum");
+ok(capernaumContext && /Archaeological color \(not a verse\)/.test(capernaumContext.teachings.context), "Capernaum context should label basalt/Peter's house as archaeological color, not a verse");
+ok(capernaumContext && /Mark 1:21/.test(capernaumContext.teachings.context), "Capernaum context should keep the synagogue on a verse (Mark 1:21)");
 
 ok(cities.find((c) => c.id === "antioch-syria")?.hasSynagogue === false, "Antioch on the Orontes synagogue badge should be false (no narrated synagogue discourse)");
 

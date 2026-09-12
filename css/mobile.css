@@ -641,11 +641,11 @@
   /* Timeline: denser chrome, same core controls, thumb above safe-area */
   html.layout-mobile .app-timeline-footer {
     height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
-    padding: 0.25rem 0.5rem max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
+    padding: 4px 8px max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
     overflow: visible;
     justify-content: flex-start;
-    gap: 0.15rem;
+    gap: 2px;
   }
 
   html.layout-mobile .timeline-control-bar {
@@ -654,14 +654,14 @@
     grid-template-areas:
       "playback date"
       "eras eras";
-    gap: 0.2rem 0.4rem;
+    gap: 2px 6px;
     align-items: center;
     min-width: 0;
   }
 
   html.layout-mobile .playback-controls {
     grid-area: playback;
-    gap: 0.22rem;
+    gap: 4px;
     min-width: 0;
   }
 
@@ -675,7 +675,7 @@
     grid-area: date;
     min-width: 0;
     width: 100%;
-    padding: 0.08rem 0.4rem;
+    padding: 1px 6px;
   }
 
   html.layout-mobile .badge-year {
@@ -722,15 +722,15 @@
 
   html.layout-mobile .era-tab {
     min-height: var(--tap);
-    padding: 0.2rem 0.65rem;
+    padding: 3px 10px;
     font-size: 0.68rem;
     border-radius: 999px;
   }
 
   html.layout-mobile .timeline-slider-track-wrap {
-    margin-top: 0.1rem;
+    margin-top: 2px;
     margin-bottom: 0;
-    padding: 4px 2px 14px;
+    padding: 4px 2px 16px;
     box-sizing: border-box;
   }
 

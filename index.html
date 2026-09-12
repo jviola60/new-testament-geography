@@ -91,11 +91,13 @@
         <span>Guided Tours</span>
       </button>
 
-      <!-- 1st Century Satellite Reconnaissance Explorer Button -->
-      <button id="openSatelliteExplorerBtn" class="btn btn-sat-nav glow-satellite" title="Open 1st Century High-Resolution Satellite Explorer">
-        <span class="sat-nav-icon">🛰️</span>
-        <span>1st-C. Satellite View</span>
-      </button>
+      <!-- Location Quick Jump Dropdown in Header (Replaces redundant 1st-C Satellite button) -->
+      <div class="header-quick-jump-container" id="quickJumpContainer" title="Jump directly to any Biblical City, Holy Site, or Region">
+        <span class="quick-jump-icon">📍</span>
+        <select id="quickJumpSelect" class="header-quick-jump-select" aria-label="Jump to Any Biblical Location">
+          <option value="" disabled selected>Jump to Biblical Location...</option>
+        </select>
+      </div>
 
       <!-- Map Style Mode Dropdown / Toggle -->
       <div class="dropdown-container">
@@ -111,12 +113,6 @@
           <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
         </div>
       </div>
-
-      <!-- Ambient Audio Toggle -->
-      <button id="ambientAudioBtn" class="btn btn-icon" title="Toggle peaceful ambient biblical harp sounds" aria-label="Toggle ambient audio">
-        <svg id="audioIconOff" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-        <svg id="audioIconOn" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-      </button>
 
       <!-- Sidebar Toggle -->
       <button id="sidebarToggleBtn" class="btn btn-icon sidebar-toggle-btn" title="Toggle Information Panel" aria-label="Toggle drawer">
@@ -157,9 +153,6 @@
         <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
           <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
         </button>
-        <button class="filter-chip" data-filter="modernOverlay" id="modernOverlayChip" title="Overlay modern 21st-century streets, roads, and cities over the biblical map">
-          <span class="chip-dot dot-modern"></span>Modern Streets Overlay
-        </button>
       </div>
 
       <div class="filter-group-right">
@@ -184,14 +177,6 @@
   <main class="app-main-container">
     <!-- Map Container -->
     <div id="map" class="map-viewport" role="region" aria-label="Interactive Map of New Testament Lands"></div>
-
-    <!-- Floating Location Quick Jump Dropdown -->
-    <div class="quick-jump-container" id="quickJumpContainer" title="Jump directly to any Biblical City or Holy Site">
-      <span class="quick-jump-icon">📍</span>
-      <select id="quickJumpSelect" class="quick-jump-select" aria-label="Jump to Any Biblical Location">
-        <option value="" disabled selected>Jump to City or Holy Site...</option>
-      </select>
-    </div>
 
     <!-- Active Era Banner / Watermark (Floating on Map) -->
     <div class="floating-era-badge" id="floatingEraBadge">
@@ -233,7 +218,6 @@
         <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul4"></span> <span>Paul's Voyage to Rome (59–60 AD)</span></div>
         <div class="legend-item" data-layer="provinces"><span class="legend-line line-province"></span> <span>Roman Provincial Boundaries</span></div>
         <div class="legend-item" data-layer="heatmaps"><span class="legend-marker" style="background: rgba(220,38,38,0.5); border: 1px solid #DC2626;"></span> <span>Christian Growth Heatmap</span></div>
-        <div class="legend-item" data-layer="modernOverlay"><span class="legend-line" style="background: #475569; height: 2px; border-top: 1px dashed #94a3b8;"></span> <span>Modern Streets Overlay</span></div>
       </div>
     </div>
 
@@ -409,25 +393,25 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=2.8"></script>
-  <script src="js/data/regions.js?v=2.8"></script>
-  <script src="js/data/cities.js?v=2.8"></script>
-  <script src="js/data/jerusalemSites.js?v=2.8"></script>
-  <script src="js/data/jerusalemGeography.js?v=2.8"></script>
-  <script src="js/data/saviorEvents.js?v=2.8"></script>
-  <script src="js/data/missionaryJourneys.js?v=2.8"></script>
-  <script src="js/data/communities.js?v=2.8"></script>
-  <script src="js/data/placeDossiers.js?v=2.8"></script>
-  <script src="js/data/scriptureTranslations.js?v=2.8"></script>
-  <script src="js/data/churchVideos.js?v=2.8"></script>
-  <script src="js/data/timelineEvents.js?v=2.8"></script>
-  <script src="js/data/tours.js?v=2.8"></script>
+  <script src="js/data/hydrography.js?v=2.9"></script>
+  <script src="js/data/regions.js?v=2.9"></script>
+  <script src="js/data/cities.js?v=2.9"></script>
+  <script src="js/data/jerusalemSites.js?v=2.9"></script>
+  <script src="js/data/jerusalemGeography.js?v=2.9"></script>
+  <script src="js/data/saviorEvents.js?v=2.9"></script>
+  <script src="js/data/missionaryJourneys.js?v=2.9"></script>
+  <script src="js/data/communities.js?v=2.9"></script>
+  <script src="js/data/placeDossiers.js?v=2.9"></script>
+  <script src="js/data/scriptureTranslations.js?v=2.9"></script>
+  <script src="js/data/churchVideos.js?v=2.9"></script>
+  <script src="js/data/timelineEvents.js?v=2.9"></script>
+  <script src="js/data/tours.js?v=2.9"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=2.8"></script>
-  <script src="js/timelineController.js?v=2.8"></script>
-  <script src="js/uiController.js?v=2.8"></script>
-  <script src="js/satelliteExplorer.js?v=2.8"></script>
-  <script src="js/app.js?v=2.8"></script>
+  <script src="js/mapController.js?v=2.9"></script>
+  <script src="js/timelineController.js?v=2.9"></script>
+  <script src="js/uiController.js?v=2.9"></script>
+  <script src="js/satelliteExplorer.js?v=2.9"></script>
+  <script src="js/app.js?v=2.9"></script>
 </body>
 </html>

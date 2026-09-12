@@ -332,26 +332,6 @@ class MapController {
       this.layers.hydrography.addLayer(baptismRipple);
     }
 
-    // 4. Historic 1st-Century Roman & Pilgrim Highways
-    if (HYDROGRAPHY_DATA.roads) {
-      HYDROGRAPHY_DATA.roads.forEach(road => {
-        const roadLine = L.polyline(road.coordinates, {
-          color: "#92400E",
-          weight: 2.2,
-          opacity: 0.65,
-          dashArray: "5, 6",
-          lineCap: "round",
-          lineJoin: "round"
-        });
-        roadLine.bindTooltip(`
-          <div class="custom-bible-tooltip">
-            <strong>🛣️ ${road.name}</strong><br>
-            <small>${road.desc}</small>
-          </div>
-        `, { sticky: true });
-        this.layers.hydrography.addLayer(roadLine);
-      });
-    }
   }
 
   // Draw 1st-Century High-Resolution Satellite & Aerial Reconnaissance Overlays

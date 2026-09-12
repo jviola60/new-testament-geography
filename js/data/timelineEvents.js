@@ -221,7 +221,7 @@ const TIMELINE_EVENTS = [
     scriptures: [
       { ref: "2 Timothy 4:6-7", text: "For I am now ready to be offered, and the time of my departure is at hand. I have fought a good fight, I have finished my course, I have kept the faith." }
     ],
-    description: "Following the devastating Great Fire of Rome, Emperor Nero blames Christians. Believers are wrapped in animal skins, torn by dogs, and burned as night torches. Peter is crucified upside-down on Vatican Hill, and Paul is beheaded on the Ostian Way (~64–67 AD)."
+    description: "Following the devastating Great Fire of Rome, Emperor Nero blames Christians. Believers are wrapped in animal skins, torn by dogs, and burned as night torches (Tacitus; later history). Early church testimony (not a New Testament verse): Peter was crucified upside-down on Vatican Hill, and Paul was beheaded on the Ostian Way (~64–67 AD)."
   },
 
   // --- JEWISH WAR & DESTRUCTION OF JERUSALEM (66 AD - 70 AD) ---
@@ -236,9 +236,9 @@ const TIMELINE_EVENTS = [
     locationName: "Jerusalem & Judea",
     category: "historical",
     scriptures: [
-      { ref: "Luke 21:20", text: "And when ye shall see Jerusalem compassed with armies, then know that the desolation thereof is nigh." }
+      { ref: "Luke 21:20-21", text: "And when ye shall see Jerusalem compassed with armies, then know that the desolation thereof is nigh. Then let them which are in Judaea flee to the mountains; and let them which are in the midst of it depart out; and let not them that are in the countries enter thereinto." }
     ],
-    description: "Provoked by Roman procurator Gessius Florus robbing the Temple treasury, Zealots seize Jerusalem and defeat the Roman 12th Legion. Christians, heeding Christ's Olivet warning, flee across the Jordan to Pella."
+    description: "Provoked by Roman procurator Gessius Florus robbing the Temple treasury, Zealots seize Jerusalem and defeat the Roman 12th Legion. Jesus had said, when ye shall see Jerusalem compassed with armies, then let them which are in Judaea flee to the mountains (Luke 21:20–21). Later Christian memory (Eusebius, not a New Testament verse) places that flight at Pella."
   },
   {
     id: "event-destruction-jerusalem",
@@ -280,12 +280,12 @@ const TIMELINE_EVENTS = [
     era: "Apostolic Age",
     lat: 37.3090,
     lng: 26.5460,
-    locationName: "Cave of the Apocalypse, Patmos",
+    locationName: "Patmos (Revelation 1:9)",
     category: "prophecy",
     scriptures: [
       { ref: "Revelation 1:10-11, 18", text: "I was in the Spirit on the Lord's day, and heard behind me a great voice, as of a trumpet, Saying, I am Alpha and Omega, the first and the last: and, What thou seest, write in a book, and send it unto the seven churches which are in Asia... I am he that liveth, and was dead; and, behold, I am alive for evermore." }
     ],
-    description: "Exiled to the Aegean penal island of Patmos under Emperor Domitian, the elderly Apostle John receives the cosmic vision of the glorified Christ, sending letters to the Seven Churches of Asia (Ephesus, Smyrna, Pergamum, Thyatira, Sardis, Philadelphia, Laodicea) and concluding the canon of Holy Scripture."
+    description: "John was in the isle that is called Patmos, for the word of God, and for the testimony of Jesus Christ (Revelation 1:9). There he received the vision of the glorified Christ and was told to write to the seven churches which are in Asia (Revelation 1:11). Later Christian memory names a Cave of the Apocalypse; Revelation names the isle, not a cave."
   },
   {
     id: "event-close-apostolic-age",
@@ -300,7 +300,7 @@ const TIMELINE_EVENTS = [
     scriptures: [
       { ref: "Revelation 22:20", text: "He which testifieth these things saith, Surely I come quickly. Amen. Even so, come, Lord Jesus." }
     ],
-    description: "By 100 AD, Christian communities span from Spain, Gaul, and Rome to North Africa, Egypt, the Levant, Asia Minor, Greece, and Parthia. The death of the Apostle John in Ephesus marks the transition to the Early Church Fathers."
+    description: "By 100 AD, Christian communities span from Spain, Gaul, and Rome to North Africa, Egypt, the Levant, Asia Minor, Greece, and Parthia. Traditional close of the apostolic age (later memory of John's death at Ephesus)—not an Acts sermon."
   }
 ];
 

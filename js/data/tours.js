@@ -108,7 +108,7 @@ const TOURS_DATA = [
         zoom: 13,
         eventId: "savior-feeding-5000",
         year: 29,
-        summary: "Five loaves and two fishes feed the multitude on the plain of Bethsaida."
+        summary: "A desert place belonging to Bethsaida (Luke 9:10–17); Mark 6 and Matthew 14. John's lad-and-loaves account is John 6 (Capernaum/Tiberias arc)."
       },
       {
         title: "Peter's Confession at Caesarea Philippi",
@@ -369,13 +369,13 @@ const TOURS_DATA = [
     description: "Journey to the rocky island of Patmos where John saw the vision of the glorified Lord, and visit the seven cities of Asia addressed in Revelation 2–3.",
     stops: [
       {
-        title: "Isle of Patmos (Cave of the Apocalypse)",
+        title: "Isle of Patmos (Revelation 1:9)",
         lat: 37.3090,
         lng: 26.5460,
         zoom: 11,
         eventId: "event-john-patmos-revelation",
         year: 95,
-        summary: "John hears the voice as of a trumpet: 'I am the first and the last: I am he that liveth, and was dead.'"
+        summary: "John was in the isle that is called Patmos (Revelation 1:9). Later memory names a Cave of the Apocalypse; the book names the isle, not a cave."
       },
       {
         title: "Ephesus: The Desirable Church",

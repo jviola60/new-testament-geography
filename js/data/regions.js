@@ -138,9 +138,9 @@ const REGIONS_DATA = {
           churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/4?lang=eng#25"
         }
       ],
-      peopleAndChurch: "Predominantly Greek-speaking gentiles, Syrian merchants, Roman colonists, and minority Jewish diaspora enclaves. Pella in the Decapolis served as the divine refuge for early Jerusalem Christians fleeing the Roman siege in 68 AD, heeding Christ's warning to 'flee into the mountains'.",
+      peopleAndChurch: "Predominantly Greek-speaking gentiles, Syrian merchants, Roman colonists, and minority Jewish diaspora enclaves. Jesus said, when ye shall see Jerusalem compassed with armies, then let them which are in Judaea flee to the mountains (Luke 21:20–21). Later Christian memory (Eusebius, not a New Testament verse) places that flight at Pella in the Decapolis.",
       politicalInsights: "Self-governing Hellenistic city republics allied under Roman imperial protection. Each city minted its own coinage and fielded its own municipal militia under ultimate supervision of the Legate of Syria.",
-      eraChronology: "63 BC: Pompey frees Greek cities; ~29 AD: Jesus heals in Decapolis; 68 AD: Jerusalem Christians evacuate to Pella."
+      eraChronology: "63 BC: Pompey frees Greek cities; ~29 AD: Jesus heals in Decapolis; Luke 21:20–21: flee to the mountains; later memory (Eusebius, not a New Testament verse): Pella."
     },
     {
       id: "perea",

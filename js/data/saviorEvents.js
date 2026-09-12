@@ -224,12 +224,14 @@ const SAVIOR_EVENTS = [
     era: "Galilean Ministry",
     lat: 32.9090,
     lng: 35.6310,
-    locationName: "Bethsaida / Plain of Bethsaida",
+    locationName: "A desert place belonging to Bethsaida (Luke 9:10)",
     category: "miracle",
     scriptures: [
-      { ref: "John 6:9-11", text: "There is a lad here, which hath five barley loaves, and two small fishes: but what are they among so many?... And Jesus took the loaves; and when he had given thanks, he distributed to the disciples." }
+      { ref: "Luke 9:10-17", text: "And he took them, and went aside privately into a desert place belonging to the city called Bethsaida... And they did eat, and were all filled: and there was taken up of fragments that remained to them twelve baskets." },
+      { ref: "Mark 6:34-44", text: "And Jesus, when he came out, saw much people, and was moved with compassion toward them... And they took up twelve baskets full of the fragments, and of the fishes." },
+      { ref: "Matthew 14:15-21", text: "They say unto him, We have here but five loaves, and two fishes... And they that had eaten were about five thousand men, beside women and children." }
     ],
-    description: "Compassionate upon the multitudes who followed Him into a desert place, Jesus multiplies a lad's five loaves and two small fish to feed five thousand men besides women and children."
+    description: "He went aside into a desert place belonging to the city called Bethsaida (Luke 9:10) and fed about five thousand men (Luke 9:14; Mark 6:44; Matthew 14:21). John's lad-and-loaves account and the sea of Tiberias / Capernaum sequel belong to John 6, not this Bethsaida citation."
   },
   {
     id: "savior-walks-water",
@@ -263,18 +265,18 @@ const SAVIOR_EVENTS = [
   },
   {
     id: "savior-transfiguration",
-    title: "The Transfiguration on Mount Hermon",
+    title: "The Transfiguration on a High Mountain",
     year: 29,
     season: "Summer 29 AD",
     era: "Galilean Ministry",
     lat: 33.4167,
     lng: 35.8500,
-    locationName: "Mount Hermon / High Mountain",
+    locationName: "A high mountain apart (Matthew 17:1); Hermon is a traditional identification",
     category: "miracle",
     scriptures: [
-      { ref: "Matthew 17:1-5", text: "And was transfigured before them: and his face did shine as the sun, and his raiment was white as the light. And, behold, there appeared unto them Moses and Elias talking with him." }
+      { ref: "Matthew 17:1-5", text: "And after six days Jesus taketh Peter, James, and John his brother, and bringeth them up into an high mountain apart, And was transfigured before them: and his face did shine as the sun, and his raiment was white as the light." }
     ],
-    description: "Jesus takes Peter, James, and John up into a high mountain apart. Moses and Elijah appear in glory talking of His decease, and the Father speaks from a bright cloud."
+    description: "Jesus takes Peter, James, and John up into a high mountain apart (Matthew 17:1). Moses and Elijah appear in glory, and the Father speaks from a bright cloud. The Gospels do not name the peak; Mount Hermon is a traditional identification only."
   },
   {
     id: "savior-raising-lazarus",

@@ -52,6 +52,7 @@
   /* Header & Footer Dimensions */
   --header-height: 64px;
   --filterbar-height: 44px;
+  --citybar-height: 0px;
   --footer-height: 118px;
   --sidebar-width: 440px;
 }
@@ -339,6 +340,18 @@ html, body {
   gap: 0.45rem;
 }
 
+.filter-chip-rows {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.filter-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .filter-label {
   font-family: var(--font-serif-title);
   font-size: 0.76rem;
@@ -428,7 +441,7 @@ html, body {
 .app-main-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--header-height) - var(--filterbar-height) - var(--footer-height));
+  height: calc(100vh - var(--header-height) - var(--filterbar-height) - var(--citybar-height) - var(--footer-height));
   display: flex;
   overflow: hidden;
 }
@@ -441,22 +454,23 @@ html, body {
   z-index: 10;
 }
 
-/* Responsive adjustments */
-@media (max-width: 900px) {
-  :root {
-    --sidebar-width: 100%;
-  }
-  
+/* Compact desktop / large-tablet tweaks (phone shell lives in mobile.css) */
+@media (max-width: 1100px) {
   .brand-subtitle {
     display: none;
   }
-  
+
   .header-center {
-    max-width: 220px;
+    max-width: 240px;
     margin: 0 0.5rem;
   }
-  
-  .stat-pill {
-    display: none;
-  }
+}
+
+/* Mobile-only chrome is hidden until the phone/tablet shell activates */
+.mobile-header-actions,
+.mobile-city-bar,
+.mobile-backdrop,
+.mobile-picker-sheet,
+.mobile-action-sheet {
+  display: none;
 }

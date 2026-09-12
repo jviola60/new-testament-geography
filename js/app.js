@@ -8,6 +8,7 @@ class App {
     this.timeline = new TimelineController();
     this.ui = new UIController();
     this.satelliteExplorer = new SatelliteExplorer();
+    this.mobile = new MobileShell();
   }
 
   init() {
@@ -33,9 +34,14 @@ class App {
     // 5. Generate Slider Track Tick Marks
     this.generateSliderTicks();
 
-    // 5. Handle Responsive Window Resizing
+    // 6. Mobile / tablet shell (layout class, bottom sheet, city picker)
+    this.mobile.init();
+
+    // 7. Handle Responsive Window Resizing + Leaflet invalidSize
     window.addEventListener("resize", () => {
-      if (this.map && this.map.map) {
+      if (this.mobile) {
+        this.mobile.invalidateMap(80);
+      } else if (this.map && this.map.map) {
         this.map.map.invalidateSize();
       }
     });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>New Testament Geography - Interactive Atlas (~6 BC – 100 AD)</title>
   <meta name="description" content="An interactive cartographic atlas of the New Testament world spanning 6 BC to 100 AD. Explore the life and ministry of Jesus Christ, Paul's missionary journeys, Jewish diaspora communities, and the exponential growth of early Christian churches across the Roman Empire.">
   <meta name="keywords" content="New Testament Geography, Bible Atlas, Life of Jesus Christ, Paul's Missionary Journeys, Holy Land Map, Early Christian Church, Jewish Diaspora, Roman Empire">
@@ -25,11 +25,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=3.1">
-  <link rel="stylesheet" href="css/map.css?v=3.1">
-  <link rel="stylesheet" href="css/timeline.css?v=3.1">
-  <link rel="stylesheet" href="css/sidebar.css?v=3.1">
-  <link rel="stylesheet" href="css/components.css?v=3.1">
+  <link rel="stylesheet" href="css/main.css?v=4.0">
+  <link rel="stylesheet" href="css/map.css?v=4.0">
+  <link rel="stylesheet" href="css/timeline.css?v=4.0">
+  <link rel="stylesheet" href="css/sidebar.css?v=4.0">
+  <link rel="stylesheet" href="css/components.css?v=4.0">
+  <link rel="stylesheet" href="css/mobile.css?v=4.0">
 </head>
 <body class="parchment-theme">
   <!-- Top Navigation Bar -->
@@ -118,41 +119,60 @@
       <button id="sidebarToggleBtn" class="btn btn-icon sidebar-toggle-btn" title="Toggle Information Panel" aria-label="Toggle drawer">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
       </button>
+
+      <!-- Mobile-only header actions (hidden on desktop) -->
+      <div class="mobile-header-actions" id="mobileHeaderActions">
+        <button id="mobileSearchBtn" class="btn btn-icon" type="button" title="Search the atlas" aria-label="Search the atlas" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <button id="mobileToursBtn" class="btn btn-icon" type="button" title="Guided Tours" aria-label="Open guided tours">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <button id="mobileMoreBtn" class="btn btn-icon" type="button" title="More tools" aria-label="More tools" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- Filter & Layer Command Bar -->
   <nav class="layer-filter-bar" id="filterBar" aria-label="Map layers and category filters">
     <div class="filter-scroll-track">
-      <div class="filter-group">
+      <div class="filter-group filter-group-layers">
         <span class="filter-label">Layers:</span>
-        <button class="filter-chip" data-filter="all">
-          <span class="chip-dot dot-all"></span>All Visible
-        </button>
-        <button class="filter-chip" data-filter="savior">
-          <span class="chip-dot dot-savior"></span>Savior's Ministry
-        </button>
-        <button class="filter-chip" data-filter="diaspora">
-          <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
-        </button>
-        <button class="filter-chip" data-filter="churches">
-          <span class="chip-dot dot-church"></span>Christian Churches
-        </button>
-        <button class="filter-chip" data-filter="journeys">
-          <span class="chip-dot dot-journey"></span>Paul's Journeys
-        </button>
-        <button class="filter-chip" data-filter="heatmaps">
-          <span class="chip-dot dot-heatmap"></span>Growth Heatmap
-        </button>
-        <button class="filter-chip" data-filter="provinces">
-          <span class="chip-dot dot-provinces"></span>Roman Provinces
-        </button>
-        <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
-          <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
-        </button>
-        <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
-          <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
-        </button>
+        <div class="filter-chip-rows">
+          <div class="filter-chip-row" id="filterRowPrimary">
+            <button class="filter-chip" data-filter="all">
+              <span class="chip-dot dot-all"></span>All Visible
+            </button>
+            <button class="filter-chip" data-filter="savior">
+              <span class="chip-dot dot-savior"></span>Savior's Ministry
+            </button>
+            <button class="filter-chip" data-filter="diaspora">
+              <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
+            </button>
+            <button class="filter-chip" data-filter="churches">
+              <span class="chip-dot dot-church"></span>Christian Churches
+            </button>
+            <button class="filter-chip" data-filter="journeys">
+              <span class="chip-dot dot-journey"></span>Paul's Journeys
+            </button>
+          </div>
+          <div class="filter-chip-row" id="filterRowSecondary">
+            <button class="filter-chip" data-filter="heatmaps">
+              <span class="chip-dot dot-heatmap"></span>Growth Heatmap
+            </button>
+            <button class="filter-chip" data-filter="provinces">
+              <span class="chip-dot dot-provinces"></span>Roman Provinces
+            </button>
+            <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
+              <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
+            </button>
+            <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
+              <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="filter-group-right">
@@ -172,6 +192,18 @@
       </div>
     </div>
   </nav>
+
+  <!-- Mobile city / region picker (hidden on desktop) -->
+  <div class="mobile-city-bar" id="mobileCityBar">
+    <button type="button" id="mobileCityPickerBtn" class="mobile-city-picker-btn" aria-haspopup="dialog" aria-expanded="false">
+      <span class="mobile-city-picker-icon" aria-hidden="true">📍</span>
+      <span class="mobile-city-picker-text">
+        <span class="mobile-city-picker-label">Jump to any city or region</span>
+        <span class="mobile-city-picker-current" id="mobileCityPickerCurrent">Searchable list of every place</span>
+      </span>
+      <span class="mobile-city-picker-caret" aria-hidden="true">▾</span>
+    </button>
+  </div>
 
   <!-- Main Map Viewport & Overlays Container -->
   <main class="app-main-container">
@@ -221,8 +253,11 @@
       </div>
     </div>
 
-    <!-- Detail Drawer / Sidebar -->
+    <!-- Detail Drawer / Sidebar (bottom sheet on mobile) -->
     <aside class="detail-sidebar" id="detailSidebar" aria-label="Scripture & Information Panel">
+      <div class="sheet-handle" id="sheetHandle" role="button" tabindex="0" aria-label="Drag or tap to resize place details">
+        <span class="sheet-handle-bar"></span>
+      </div>
       <div class="sidebar-header">
         <div class="sidebar-title-wrap">
           <span class="sidebar-eyebrow" id="sidebarEyebrow">SELECTION DETAILS</span>
@@ -232,13 +267,17 @@
       </div>
 
       <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="overview">Overview</button>
-        <button class="tab-btn" data-tab="scripture">Scriptures</button>
-        <button class="tab-btn" data-tab="teachings">Teachings & Context</button>
-        <button class="tab-btn" data-tab="videos">Bible Videos</button>
-        <button class="tab-btn" data-tab="people">People & Church</button>
-        <button class="tab-btn" data-tab="political">Political Insights</button>
-        <button class="tab-btn" data-tab="chronology">Era Events</button>
+        <div class="sidebar-tab-row">
+          <button class="tab-btn active" data-tab="overview">Overview</button>
+          <button class="tab-btn" data-tab="scripture">Scriptures</button>
+          <button class="tab-btn" data-tab="teachings">Teachings & Context</button>
+          <button class="tab-btn" data-tab="videos">Bible Videos</button>
+        </div>
+        <div class="sidebar-tab-row">
+          <button class="tab-btn" data-tab="people">People & Church</button>
+          <button class="tab-btn" data-tab="political">Political Insights</button>
+          <button class="tab-btn" data-tab="chronology">Era Events</button>
+        </div>
       </div>
 
       <div class="sidebar-content" id="sidebarContent">
@@ -417,6 +456,43 @@
     </div>
   </footer>
 
+  <!-- Mobile overlays: city picker, more tools, backdrops -->
+  <div class="mobile-backdrop" id="mobileBackdrop" hidden></div>
+
+  <div class="mobile-picker-sheet" id="mobileCityPickerSheet" hidden role="dialog" aria-modal="true" aria-labelledby="mobileCityPickerTitle">
+    <div class="mobile-picker-card">
+      <div class="mobile-picker-header">
+        <h3 id="mobileCityPickerTitle">Jump to a biblical place</h3>
+        <button type="button" class="close-btn" id="mobileCityPickerClose" aria-label="Close place picker">&times;</button>
+      </div>
+      <div class="mobile-picker-search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="mobileCitySearch" placeholder="Search cities, sites, regions..." autocomplete="off" aria-label="Search places">
+      </div>
+      <div class="mobile-picker-list" id="mobileCityList"></div>
+    </div>
+  </div>
+
+  <div class="mobile-action-sheet" id="mobileMoreSheet" hidden role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle">
+    <div class="mobile-picker-card">
+      <div class="mobile-picker-header">
+        <h3 id="mobileMoreTitle">Atlas tools</h3>
+        <button type="button" class="close-btn" id="mobileMoreClose" aria-label="Close tools">&times;</button>
+      </div>
+      <div class="mobile-more-body">
+        <p class="mobile-more-label">Map style</p>
+        <div class="mobile-more-list" id="mobileMapStyleList"></div>
+        <p class="mobile-more-label">Focus a region</p>
+        <div class="mobile-more-list" id="mobileRegionList"></div>
+        <p class="mobile-more-label">Place panel</p>
+        <button type="button" class="mobile-more-item" id="mobileOpenPanelBtn">Open place details</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal for Guided Story Tour -->
   <div class="modal-backdrop" id="tourModal" style="display: none;">
     <div class="modal-card">
@@ -462,10 +538,11 @@
   <script src="js/data/tours.js?v=3.5"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=3.5"></script>
+  <script src="js/mapController.js?v=4.0"></script>
   <script src="js/timelineController.js?v=3.5"></script>
-  <script src="js/uiController.js?v=3.5"></script>
+  <script src="js/uiController.js?v=4.0"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/app.js?v=3.5"></script>
+  <script src="js/mobileShell.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
 </body>
 </html>

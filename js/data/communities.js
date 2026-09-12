@@ -284,7 +284,7 @@ const COMMUNITIES_DATA = {
       lat: 37.3090,
       lng: 26.5460,
       founders: "The Apostle John (the Beloved / the Revelator)",
-      growthMilestone: "Celestial apocalypse received and transcribed in the Cave of the Apocalypse (Revelation 1:9-11).",
+      growthMilestone: "John was in the isle called Patmos 'for the word of God, and for the testimony of Jesus Christ' (Revelation 1:9). The Cave of the Apocalypse is later Christian memory, not named in the text.",
       significance: "Penal exile island where the glorified Savior unveiled His cosmic victory, messages to the Seven Churches, and vision of the New Jerusalem."
     }
   ],

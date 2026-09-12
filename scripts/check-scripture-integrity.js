@@ -177,6 +177,165 @@ ok(capernaumContext && /Mark 1:21/.test(capernaumContext.teachings.context), "Ca
 
 ok(cities.find((c) => c.id === "antioch-syria")?.hasSynagogue === false, "Antioch on the Orontes synagogue badge should be false (no narrated synagogue discourse)");
 
+// --- Year-gate: no mortal-Jesus teacher on post-33 events (Joseph · Gospel) ---
+const events = sandbox.TIMELINE_EVENTS || [];
+const appearanceIds = new Set([
+  "event-saul-conversion",
+  "event-john-patmos-revelation",
+  "savior-emmaus",
+  "savior-resurrection",
+  "savior-ascension"
+]);
+
+function isAllowedAppearance(ev) {
+  if (!ev) return false;
+  if (ev.id === "savior-emmaus") return ev.year == null || ev.year <= 30;
+  if (appearanceIds.has(ev.id)) return true;
+  return false;
+}
+
+events.forEach((ev) => {
+  const t = ui.normalizeTeachings("event", ev);
+  const teacher = (t && t.teacher) || "";
+  if (ev.year > 33 && /^Jesus Christ/.test(teacher) && !isAllowedAppearance(ev)) {
+    ok(false, `year ${ev.year} event "${ev.id}" teacher starts with Jesus Christ: "${teacher}"`);
+  }
+  const loc = `${ev.locationName || ""} ${ev.title || ""} ${ev.id || ""}`.toLowerCase();
+  if (ev.year >= 34 && /samaria|ethiopian eunuch|philip/.test(loc) && /Jesus(\s+Christ)?/.test(teacher) && !/not this|not the earlier|not a later/.test(teacher)) {
+    ok(false, `Samaria year ${ev.year} event "${ev.id}" still has Jesus teacher: "${teacher}"`);
+  }
+  if (ev.year >= 34 && /jerusalem/.test(loc) && /Jesus/.test(teacher) && !isAllowedAppearance(ev)) {
+    ok(false, `Jerusalem year ${ev.year} event "${ev.id}" still has Jesus in teacher: "${teacher}"`);
+  }
+});
+
+const fall = ui.normalizeTeachings("event", events.find((e) => e.id === "event-destruction-jerusalem") || {
+  id: "event-destruction-jerusalem", year: 70, title: "Fall of Jerusalem & Burning of the Second Temple",
+  locationName: "Temple Mount, Jerusalem", category: "historical"
+});
+ok(!/^Jesus Christ/.test(fall.teacher), `Fall of Jerusalem teacher starts with Jesus Christ: "${fall.teacher}"`);
+ok(/Matthew 24:1-2|Matthew 24:1–2/.test(fall.teacher + fall.whatWasTaught + JSON.stringify(fall.passages)), "Fall of Jerusalem lost Matt 24:1–2");
+ok(/Luke 21:20/.test(fall.teacher + fall.whatWasTaught + JSON.stringify(fall.passages)), "Fall of Jerusalem lost Luke 21:20");
+ok(!/Apostles Peter and John/.test(fall.teacher), "Fall of Jerusalem still names Peter and John as 70 AD teachers");
+
+const council = ui.normalizeTeachings("event", events.find((e) => e.id === "event-council-jerusalem") || {
+  id: "event-council-jerusalem", year: 49, title: "The Apostolic Council of Jerusalem",
+  locationName: "Jerusalem, Judea", category: "apostolic"
+});
+ok(/James/.test(council.teacher) && /Acts 15/.test(council.teacher + council.whatWasTaught), `Council teacher is "${council.teacher}"`);
+ok(/Peter/.test(council.teacher) && /Paul/.test(council.teacher), "Council teacher missing Peter or Paul");
+ok(!/^Jesus/.test(council.teacher) && !/Jesus Christ &/.test(council.teacher), `Council still uses a Jesus+Apostles teacher: "${council.teacher}"`);
+
+const philip = ui.normalizeTeachings("event", events.find((e) => e.id === "event-philip-samaria-gaza") || {
+  id: "event-philip-samaria-gaza", year: 34, title: "Philip in Samaria & the Ethiopian Eunuch",
+  locationName: "Desert Road to Gaza", category: "apostolic"
+});
+ok(/^Philip/.test(philip.teacher) || /Philip \(Acts 8/.test(philip.teacher), `Philip event teacher is "${philip.teacher}"`);
+ok(/Acts 8:5/.test(philip.teacher + philip.whatWasTaught + JSON.stringify(philip.passages)), "Philip event lost Acts 8:5");
+ok(!/^Jesus Christ$/.test(philip.teacher) && !/^Jesus Christ \(/.test(philip.teacher), `Philip/Samaria year 34 still hardcodes Jesus: "${philip.teacher}"`);
+
+const annunciation = ui.normalizeTeachings("event", {
+  id: "savior-annunciation", year: -6, title: "The Annunciation in Nazareth",
+  locationName: "Nazareth, Galilee", category: "nativity",
+  scriptures: [{ ref: "Luke 1:26-38" }]
+});
+ok(/Gabriel/i.test(annunciation.teacher), `Annunciation teacher is "${annunciation.teacher}"`);
+ok(!/^Jesus Christ$/.test(annunciation.teacher) && !/Jesus Christ \(/.test(annunciation.teacher), `Annunciation still uses Nazareth Jesus hardcode: "${annunciation.teacher}"`);
+ok(/Luke 1:26/.test(annunciation.teacher + JSON.stringify(annunciation.passages)), "Annunciation lost Luke 1:26");
+
+const settlement = ui.normalizeTeachings("event", {
+  id: "savior-return-nazareth", year: -3, title: "Settlement in Nazareth",
+  locationName: "Nazareth, Galilee", category: "childhood"
+});
+ok(!/^Jesus Christ$/.test(settlement.teacher), `Settlement Nazareth still uses Jesus hardcode: "${settlement.teacher}"`);
+ok(/Matthew 2:19/.test(settlement.teacher + settlement.whatWasTaught + JSON.stringify(settlement.passages)), "Settlement lost Matthew 2:19–23");
+
+const romeFire = ui.normalizeTeachings("event", events.find((e) => e.id === "event-neronian-persecution") || {
+  id: "event-neronian-persecution", year: 64, title: "Great Fire of Rome & Neronian Persecution",
+  locationName: "Rome", category: "persecution"
+});
+ok(!/hired house|Acts 28:30/.test(romeFire.teacher), `Rome fire still inherits Acts 28 hired-house teacher: "${romeFire.teacher}"`);
+ok(/2 Timothy 4/.test(romeFire.teacher + romeFire.whatWasTaught + JSON.stringify(romeFire.passages)), "Rome fire lost 2 Timothy 4");
+
+const templeSite = ui.normalizeTeachings("jerusalemSite", {
+  id: "jer-temple-sanctuary", name: "The Second Temple (Herod's Temple)", category: "temple"
+});
+ok(/Matthew 21:12/.test(templeSite.teacher + templeSite.whatWasTaught + templeSite.context), "Temple site missing Matt 21:12–13 era");
+ok(/Acts 3:1/.test(templeSite.teacher + templeSite.whatWasTaught + templeSite.context), "Temple site missing Acts 3:1–16 apostolic era");
+ok(/not the Lord teaching after|thereafter Peter and John/.test(templeSite.teacher), `Temple site did not split eras: "${templeSite.teacher}"`);
+
+const magdalaEventish = ui.normalizeTeachings("event", {
+  id: "later-galilee", year: 67, title: "Later Galilee note", locationName: "Magdala, Galilee", category: "historical"
+});
+ok(!/^Jesus Christ$/.test(magdalaEventish.teacher), `Galilee catch-all still assigns Jesus to Magdala/post-33: "${magdalaEventish.teacher}"`);
+
+const emmausOk = ui.normalizeTeachings("event", {
+  id: "savior-emmaus", year: 30, title: "Appearance on the Road to Emmaus",
+  locationName: "Road to Emmaus", category: "resurrection"
+});
+ok(/Risen|risen|Emmaus|Luke 24/.test(emmausOk.teacher + emmausOk.whatWasTaught + JSON.stringify(emmausOk.passages)), `Emmaus year 30 lost the resurrection appearance: "${emmausOk.teacher}"`);
+
+const damascusOk = ui.normalizeTeachings("event", events.find((e) => e.id === "event-saul-conversion") || {
+  id: "event-saul-conversion", year: 35, title: "Conversion of Saul on the Damascus Road",
+  locationName: "Road to Damascus", category: "apostolic"
+});
+ok(/appeared|Acts 9/.test(damascusOk.teacher), `Damascus appearance teacher is "${damascusOk.teacher}"`);
+
+const patmosOk = ui.normalizeTeachings("event", events.find((e) => e.id === "event-john-patmos-revelation") || {
+  id: "event-john-patmos-revelation", year: 95, title: "John on Patmos: The Apocalypse",
+  locationName: "Patmos", category: "prophecy"
+});
+ok(/glorified|vision|Patmos|Revelation 1/i.test(patmosOk.teacher), `Patmos teacher is "${patmosOk.teacher}"`);
+
+// --- Joseph supplement (same PR) ---
+const feeding = events.find((e) => e.id === "savior-feeding-5000") || {};
+const feedingRefs = JSON.stringify(feeding.scriptures || []);
+ok(/Luke 9:10/.test(feedingRefs), "Feeding 5,000 at Bethsaida lost Luke 9:10–17");
+ok(/Mark 6/.test(feedingRefs) && /Matthew 14/.test(feedingRefs), "Feeding 5,000 lost Mark 6 / Matthew 14");
+ok(!/John 6:9/.test(feedingRefs), "Feeding 5,000 still cites John 6:9–11 as the Bethsaida verse (John 6 does not name Bethsaida)");
+const feedingT = ui.normalizeTeachings("event", feeding);
+ok(/Luke 9:10/.test(feedingT.context + JSON.stringify(feedingT.passages)), "Feeding 5,000 teachings lost the Bethsaida desert-place cite");
+ok(/John 6/.test(feedingT.context) && /Capernaum|Tiberias/.test(feedingT.context), "Feeding 5,000 should keep John 6 on the Capernaum/Tiberias arc");
+
+const tiberiasD = cities.find((c) => c.id === "tiberias") || {};
+ok(!/palace in Tiberias/.test((tiberiasD.overview || "") + (tiberiasD.eraChronology || "")), "Tiberias still invents a palace venue for Luke 9:7–9");
+ok(/Luke 9:7/.test((tiberiasD.overview || "") + (tiberiasD.eraChronology || "")), "Tiberias lost Luke 9:7–9 for Herod hearing");
+
+const ephesusD = cities.find((c) => c.id === "ephesus") || {};
+ok(!/Timothy serves as bishop of Ephesus/.test(ephesusD.eraChronology || ""), "Ephesus era still titles Timothy bishop 63–66");
+ok(/1 Timothy 1:3/.test(ephesusD.eraChronology || ""), "Ephesus era lost 1 Timothy 1:3");
+
+const revolt = events.find((e) => e.id === "event-jewish-revolt") || {};
+ok(/Luke 21:20/.test(JSON.stringify(revolt.scriptures || []) + (revolt.description || "")), "Jewish revolt lost Luke 21:20–21");
+ok(/Eusebius|later (Christian )?memory/i.test(revolt.description || ""), "Jewish revolt should label Pella as later memory");
+
+const neronian = events.find((e) => e.id === "event-neronian-persecution") || {};
+ok(/early church testimony/i.test(neronian.description || "") && /not a New Testament verse/i.test(neronian.description || ""), "Neronian description should prefix Peter/Paul martyrdoms as early church testimony");
+
+const transfig = events.find((e) => e.id === "savior-transfiguration") || {};
+ok(!/on Mount Hermon/.test(transfig.title || ""), "Transfiguration title still treats Mount Hermon as a named fact");
+ok(/high mountain/i.test(transfig.locationName || transfig.title || ""), "Transfiguration lost Matthew 17:1 high mountain");
+ok(/traditional/i.test((transfig.locationName || "") + (transfig.description || "")), "Transfiguration should label Hermon as traditional ID only");
+const transfigT = ui.normalizeTeachings("event", transfig);
+ok(/traditional/i.test(transfigT.context), "Transfiguration teachings should label Hermon as traditional");
+
+const patmosD = cities.find((c) => c.id === "patmos") || {};
+ok(/Later Christian memory/.test(patmosD.eraChronology || ""), "Patmos era should label John's return to Ephesus as later memory");
+ok(!/late 96 AD: John returns to Ephesus, where he spends his final years/.test(patmosD.eraChronology || ""), "Patmos era still states return to Ephesus as fact");
+
+const philD = cities.find((c) => c.id === "philadelphia") || {};
+ok(!/1390|14th/.test((philD.eraChronology || "") + (philD.teachings && philD.teachings.howAccepted || "")), "Philadelphia chronology/howAccepted still runs to 1390 / 14th century");
+ok(/Revelation 3/.test(philD.eraChronology || ""), "Philadelphia era should stop at Revelation 3 (+ optional Ignatius)");
+
+const tours = sandbox.TOURS_DATA || [];
+ok(!JSON.stringify(tours).includes("Isle of Patmos (Cave of the Apocalypse)"), "Tours still title Patmos as Cave of the Apocalypse");
+ok(/Patmos \(Revelation 1:9\)/.test(JSON.stringify(tours) + ((events.find((e) => e.id === "event-john-patmos-revelation") || {}).locationName || "")), "Patmos tour/event should name the isle (Rev 1:9)");
+
+const pergD = cities.find((c) => c.id === "pergamum") || {};
+ok(/Revelation 2:13/.test(pergD.peopleAndChurch || ""), "Pergamum lost Revelation 2:13 for Antipas");
+ok(/legend|not a New Testament verse/i.test(pergD.peopleAndChurch || ""), "Pergamum should legend-label the bronze bull");
+ok(/not a New Testament verse/.test(pergD.eraChronology || ""), "Pergamum era should legend-label ~92");
+
 if (fails.length) {
   console.error(`FAIL ${fails.length}`);
   fails.forEach((f) => console.error(" -", f));

@@ -1057,102 +1057,486 @@ class UIController {
     return null;
   }
 
+  teachingsYear(data) {
+    if (!data) return null;
+    if (typeof data.year === "number" && !Number.isNaN(data.year)) return data.year;
+    if (data.extra && typeof data.extra.year === "number") return data.extra.year;
+    return null;
+  }
+
+  teachingsSearchBlob(data) {
+    return [
+      data && data.id,
+      data && data.name,
+      data && data.title,
+      data && data.city,
+      data && data.locationName,
+      data && data.category
+    ].filter(Boolean).join(" ").toLowerCase();
+  }
+
+  isAppearanceOrVision(data) {
+    const year = this.teachingsYear(data);
+    const blob = this.teachingsSearchBlob(data);
+    if (/emmaus/.test(blob)) return year == null || year <= 30;
+    if (/(^|[^a-z])ascension([^a-z]|$)|mount of olives summit/.test(blob)) return year == null || year <= 33;
+    if (/damascus|saul-conversion|event-saul/.test(blob)) return true;
+    if (/patmos|apocalypse|revelation/.test(blob)) return true;
+    if (/savior-resurrection|garden tomb|empty tomb|holy sepulchre/.test(blob)) return year == null || year <= 30;
+    if (/sea of tiberias|john 21/.test(blob) && (year == null || year <= 30)) return true;
+    return false;
+  }
+
+  shouldSkipPlaceHardcode(type, data) {
+    const year = this.teachingsYear(data);
+    const category = String((data && data.category) || "").toLowerCase();
+    if (type === "event" && /^(apostolic|persecution|war|historical)$/.test(category)) return true;
+    if (this.isAppearanceOrVision(data)) return false;
+    if (year != null && year > 33) return true;
+    if (type === "event" && year != null && year < 26) return true;
+    return false;
+  }
+
+  yearGateInherited(teachings, data) {
+    if (!teachings) return this.conservativeTeachingsFallback(data);
+    if (this.isAppearanceOrVision(data)) return teachings;
+    const year = this.teachingsYear(data);
+    const namesJesus = /Jesus(\s+Christ)?/i.test(teachings.teacher || "");
+    if (year != null && year > 33 && namesJesus) {
+      return {
+        ...this.conservativeTeachingsFallback(data),
+        passages: teachings.passages || data.scriptures || [],
+        context: `${teachings.context || ""} This card's year is after the crucifixion (~30–33 AD); the atlas does not keep a mortal-Jesus teacher on a later event.`.trim()
+      };
+    }
+    if (year != null && year < 26 && namesJesus) {
+      return this.conservativeTeachingsFallback(data);
+    }
+    return teachings;
+  }
+
+  eventSpecificTeachings(data) {
+    if (!data) return null;
+    const id = String(data.id || "");
+    const blob = this.teachingsSearchBlob(data);
+
+    if (id === "savior-annunciation" || /annunciation/.test(blob)) {
+      return {
+        teacher: "The angel Gabriel (Luke 1:26–38)",
+        audience: "Mary of Nazareth (Luke 1:27)",
+        whatWasTaught: "Thou shalt conceive in thy womb, and bring forth a son, and shalt call his name JESUS. He shall be great, and shall be called the Son of the Highest (Luke 1:31–32).",
+        whyTaught: "Gabriel was sent from God unto a city of Galilee, named Nazareth (Luke 1:26).",
+        context: "Nazareth, before the birth. This is an announcement, not Jesus teaching.",
+        howAccepted: "Mary said, Behold the handmaid of the Lord; be it unto me according to thy word (Luke 1:38).",
+        passages: data.scriptures || ["Luke 1:26-38"]
+      };
+    }
+    if (id === "savior-feeding-5000" || /feeding the 5,000|feeding the 5000/.test(blob)) {
+      return {
+        teacher: "Jesus Christ (Luke 9:10–17; Mark 6:30–44; Matthew 14:13–21)—mortal ministry",
+        audience: "About five thousand men (Luke 9:14)",
+        whatWasTaught: "He received them, and spake unto them of the kingdom of God, and healed them that had need of healing; then they did eat, and were all filled (Luke 9:11, 17).",
+        whyTaught: "He was moved with compassion toward them (Mark 6:34).",
+        context: "A desert place belonging to the city called Bethsaida (Luke 9:10). John's lad-and-loaves account and the sea of Tiberias / Capernaum sequel are John 6, not this Bethsaida citation.",
+        howAccepted: "They did eat, and were all filled; twelve baskets of fragments remained (Luke 9:17).",
+        passages: data.scriptures || ["Luke 9:10-17", "Mark 6:30-44", "Matthew 14:13-21"]
+      };
+    }
+    if (id === "savior-transfiguration" || /transfiguration/.test(blob)) {
+      return {
+        teacher: "Jesus Christ on a high mountain (Matthew 17:1–8)—mortal ministry",
+        audience: "Peter, James, and John (Matthew 17:1)",
+        whatWasTaught: "This is my beloved Son, in whom I am well pleased; hear ye him (Matthew 17:5).",
+        whyTaught: "He bringeth them up into an high mountain apart (Matthew 17:1).",
+        context: "A high mountain apart (Matthew 17:1). Mount Hermon is a traditional identification only; the Gospels do not name the peak.",
+        howAccepted: "The disciples fell on their face, and were sore afraid (Matthew 17:6). Tell the vision to no man, until the Son of man be risen again from the dead (Matthew 17:9).",
+        passages: data.scriptures || ["Matthew 17:1-9"]
+      };
+    }
+    if (id === "savior-return-nazareth" || /^settlement in nazareth/.test(blob)) {
+      return {
+        teacher: "No teaching discourse is recorded (Matthew 2:19–23)",
+        audience: "Joseph, Mary, and the young child (Matthew 2:20–21)",
+        whatWasTaught: "An angel of the Lord told Joseph in Egypt that they were dead which sought the young child's life; he came and dwelt in a city called Nazareth (Matthew 2:19–23).",
+        whyTaught: "To record the Holy Family's dwelling, not a synagogue sermon.",
+        context: "Nazareth of Galilee after Herod's death (Matthew 2:19–23).",
+        howAccepted: "He came and dwelt in a city called Nazareth: that it might be fulfilled which was spoken by the prophets, He shall be called a Nazarene (Matthew 2:23).",
+        passages: data.scriptures || ["Matthew 2:19-23", "Luke 2:39-40"]
+      };
+    }
+    if (id === "savior-temple-12") {
+      return {
+        teacher: "Jesus, age twelve, in the temple (Luke 2:46–49)—not later apostolic preaching",
+        audience: "The doctors, both hearing them, and asking them questions (Luke 2:46)",
+        whatWasTaught: "Wist ye not that I must be about my Father's business? (Luke 2:49).",
+        whyTaught: "They found him in the temple after three days (Luke 2:46).",
+        context: "Passover pilgrimage, about 8 AD (Luke 2:41–49).",
+        howAccepted: "All that heard him were astonished at his understanding and answers (Luke 2:47).",
+        passages: data.scriptures || ["Luke 2:46-49"]
+      };
+    }
+    if (id === "event-philip-samaria-gaza" || /philip in samaria|ethiopian eunuch/.test(blob)) {
+      return {
+        teacher: "Philip (Acts 8:5–8, 26–35); Peter and John later in Samaria (Acts 8:14–17)",
+        audience: "The people of the city of Samaria (Acts 8:5–8); the Ethiopian eunuch on the Gaza road (Acts 8:27–35)",
+        whatWasTaught: "Philip preached Christ unto them (Acts 8:5). Beginning at Isaiah, he preached unto him Jesus (Acts 8:35).",
+        whyTaught: "They that were scattered went every where preaching the word (Acts 8:4). The angel of the Lord sent Philip toward Gaza (Acts 8:26).",
+        context: "Samaria, then the way that goeth down from Jerusalem unto Gaza (Acts 8:5, 26). Jesus at Jacob's well is the earlier Sychar scene (John 4), not this 34 AD mission.",
+        howAccepted: "The people with one accord gave heed... and there was great joy in that city (Acts 8:6–8). The eunuch went on his way rejoicing (Acts 8:39). Peter and John prayed that they might receive the Holy Ghost (Acts 8:14–17).",
+        passages: data.scriptures || ["Acts 8:5-8", "Acts 8:14-17", "Acts 8:26-39"]
+      };
+    }
+    if (id === "event-council-jerusalem" || /apostolic council/.test(blob)) {
+      return {
+        teacher: "The apostles and elders; James (Acts 15:6, 13–19); Peter and Paul (Acts 15:7–12)",
+        audience: "The church, the apostles, and elders, with the multitude (Acts 15:4, 12, 22)",
+        whatWasTaught: "Peter: God put no difference between us and them, purifying their hearts by faith (Acts 15:8–9). James: my sentence is, that we trouble not them, which from among the Gentiles are turned to God (Acts 15:19).",
+        whyTaught: "Certain men taught, Except ye be circumcised after the manner of Moses, ye cannot be saved (Acts 15:1).",
+        context: "Jerusalem, the council of Acts 15 (~49 AD). Not a mortal-Jesus teaching scene.",
+        howAccepted: "It pleased the apostles and elders, with the whole church, to send chosen men and a letter (Acts 15:22–29).",
+        passages: data.scriptures || ["Acts 15:1-29"]
+      };
+    }
+    if (id === "event-neronian-persecution" || /great fire of rome|neronian/.test(blob)) {
+      return {
+        teacher: "Not a teaching scene. 2 Timothy 4:6–7 is Paul's farewell, not a sermon at the Circus Maximus.",
+        audience: "No discourse audience is named for the fire itself.",
+        whatWasTaught: "The New Testament does not narrate Nero's fire. Paul wrote, 'I have fought a good fight, I have finished my course, I have kept the faith' (2 Timothy 4:7).",
+        whyTaught: "To keep this 64 AD persecution from inheriting Paul's earlier hired-house teaching (Acts 28:30–31).",
+        context: "Rome, after the fire (later history). Acts 28 is an earlier house-arrest scene.",
+        howAccepted: "Scripture does not describe how Rome received the fire or the persecution. 2 Timothy 4 looks toward Paul's departure.",
+        passages: data.scriptures || ["2 Timothy 4:6-8"]
+      };
+    }
+    if (id === "event-destruction-jerusalem" || id === "event-jewish-revolt" || /burning of the second temple|fall of jerusalem|first jewish-roman war/.test(blob)) {
+      return {
+        teacher: "Not a teaching scene in 66–70 AD. The destruction was foretold earlier (Matthew 24:1–2; Luke 21:20–24).",
+        audience: "The disciples, privately, upon the mount of Olives, during Passion Week (Matthew 24:3)",
+        whatWasTaught: "There shall not be left here one stone upon another (Matthew 24:2). When ye shall see Jerusalem compassed with armies, then know that the desolation thereof is nigh (Luke 21:20).",
+        whyTaught: "To warn the disciples before the Passion—not to narrate a later visit.",
+        context: "The prophecy is ~30 AD. The siege is 66–70 AD (Josephus; not a New Testament narrative).",
+        howAccepted: "The New Testament does not narrate Titus's siege. Luke 21:20 is the Lord's prior word.",
+        passages: data.scriptures || ["Matthew 24:1-2", "Luke 21:20-24"]
+      };
+    }
+    if (id === "event-stephen-martyrdom" || (blob.includes("stephen") && !blob.includes("gate beautiful"))) {
+      return {
+        teacher: "Stephen (Acts 6:8–7:60)—not a later earthly ministry of the Lord",
+        audience: "The council, and they that stoned him; Saul was consenting (Acts 7:54–58; 8:1)",
+        whatWasTaught: "Stephen's defense of Abraham, Moses, and the prophets (Acts 7:2–53). He looked up and said he saw the Son of man standing on the right hand of God (Acts 7:55–56)—a vision, not a sermon by the Lord at the stoning.",
+        whyTaught: "To keep this ~34 AD scene as Stephen's testimony.",
+        context: "They cast him out of the city and stoned him (Acts 7:58).",
+        howAccepted: "They were cut to the heart (Acts 7:54). Devout men carried Stephen to his burial (Acts 8:2).",
+        passages: data.scriptures || ["Acts 6:8-15", "Acts 7:54-60", "Acts 8:1-2"]
+      };
+    }
+    if (id === "event-pentecost" || /day of pentecost/.test(blob)) {
+      return {
+        teacher: "The Apostle Peter (Acts 2:14). The Lord had already been taken up (Acts 1:9).",
+        audience: "Jews, devout men, out of every nation under heaven (Acts 2:5)",
+        whatWasTaught: "Jesus of Nazareth, a man approved of God; crucified and raised; God hath made that same Jesus, whom ye have crucified, both Lord and Christ (Acts 2:22–36).",
+        whyTaught: "They were all filled with the Holy Ghost (Acts 2:4); Peter lifted up his voice.",
+        context: "Jerusalem, when the day of Pentecost was fully come (Acts 2:1).",
+        howAccepted: "They that gladly received his word were baptized: about three thousand souls (Acts 2:41).",
+        passages: data.scriptures || ["Acts 2:1-41"]
+      };
+    }
+    if (id === "savior-nicodemus") {
+      return {
+        teacher: "Jesus Christ (John 3:1–21)—mortal ministry",
+        audience: "Nicodemus, a ruler of the Jews (John 3:1)",
+        whatWasTaught: "Except a man be born again, he cannot see the kingdom of God (John 3:3). For God so loved the world, that he gave his only begotten Son (John 3:16).",
+        whyTaught: "Nicodemus came to Jesus by night (John 3:2).",
+        context: "Jerusalem, early ministry—not the later apostolic council.",
+        howAccepted: "Nicodemus later spoke in the council (John 7:50–51) and brought spices at the burial (John 19:39).",
+        passages: data.scriptures || ["John 3:1-21"]
+      };
+    }
+    if (id === "savior-triumphal-entry") {
+      return {
+        teacher: "Jesus Christ (Matthew 21:1–11; Luke 19:37–44)—Palm Sunday, not later ministry",
+        audience: "The multitude of the disciples (Luke 19:37)",
+        whatWasTaught: "If these should hold their peace, the stones would immediately cry out (Luke 19:40). He beheld the city, and wept over it (Luke 19:41).",
+        whyTaught: "All this was done, that it might be fulfilled which was spoken by the prophet (Matthew 21:4).",
+        context: "Descent of the mount of Olives into Jerusalem (Luke 19:37).",
+        howAccepted: "The multitude cried, Hosanna (Matthew 21:9). Some of the Pharisees said, Master, rebuke thy disciples (Luke 19:39).",
+        passages: data.scriptures || ["Matthew 21:1-11", "Luke 19:37-44"]
+      };
+    }
+    if (id === "savior-cleansing-temple") {
+      return {
+        teacher: "Jesus Christ (Matthew 21:12–13; John 2:13–17)—mortal ministry",
+        audience: "Them that sold and bought in the temple (Matthew 21:12)",
+        whatWasTaught: "My house shall be called the house of prayer; but ye have made it a den of thieves (Matthew 21:13).",
+        whyTaught: "He found in the temple those that sold oxen and sheep and doves (John 2:14).",
+        context: "The temple in Jerusalem, ~27–30 AD—not apostolic preaching in Acts 3.",
+        howAccepted: "The scribes and chief priests heard it, and sought how they might destroy him (Mark 11:18).",
+        passages: data.scriptures || ["Matthew 21:12-13", "John 2:13-17"]
+      };
+    }
+    if (id === "savior-last-supper") {
+      return {
+        teacher: "Jesus Christ (Luke 22:14–20; John 13–17)—eve of the crucifixion",
+        audience: "The apostles (Luke 22:14)",
+        whatWasTaught: "This is my body which is given for you... this cup is the new testament in my blood (Luke 22:19–20). A new commandment I give unto you, That ye love one another (John 13:34).",
+        whyTaught: "With desire I have desired to eat this passover with you before I suffer (Luke 22:15).",
+        context: "A large upper room furnished (Luke 22:12). Not Pentecost (Acts 2).",
+        howAccepted: "They asked, Lord, is it I? (Matthew 26:22). Judas went immediately out (John 13:30).",
+        passages: data.scriptures || ["Luke 22:14-20", "John 13:34-35"]
+      };
+    }
+    if (id === "savior-gethsemane") {
+      return {
+        teacher: "Jesus Christ (Matthew 26:36–46; Luke 22:39–46)—Passion Week",
+        audience: "Peter, James, and John (Matthew 26:37)",
+        whatWasTaught: "Watch and pray, that ye enter not into temptation (Matthew 26:41). Nevertheless not as I will, but as thou wilt (Matthew 26:39).",
+        whyTaught: "My soul is exceeding sorrowful, even unto death (Matthew 26:38).",
+        context: "A place called Gethsemane (Matthew 26:36).",
+        howAccepted: "He findeth them asleep (Matthew 26:40). All the disciples forsook him, and fled (Matthew 26:56).",
+        passages: data.scriptures || ["Matthew 26:36-46", "Luke 22:39-46"]
+      };
+    }
+    if (id === "savior-crucifixion") {
+      return {
+        teacher: "Jesus Christ from the cross (Luke 23:34, 46; John 19:30)—Friday of Passion Week",
+        audience: "They that passed by; the soldiers; Mary and John (John 19:25–27)",
+        whatWasTaught: "Father, forgive them; for they know not what they do (Luke 23:34). It is finished (John 19:30).",
+        whyTaught: "The Son of man must be delivered... and be crucified (Luke 24:7).",
+        context: "A place called Golgotha (Matthew 27:33).",
+        howAccepted: "The centurion said, Truly this was the Son of God (Matthew 27:54).",
+        passages: data.scriptures || ["Luke 23:33-46", "John 19:25-30"]
+      };
+    }
+    if (id === "savior-resurrection") {
+      return {
+        teacher: "The angel and the risen Lord (Matthew 28:5–10; John 20:16–17)",
+        audience: "Mary Magdalene and the other Mary (Matthew 28:1)",
+        whatWasTaught: "He is not here: for he is risen, as he said (Matthew 28:6). I ascend unto my Father, and your Father (John 20:17).",
+        whyTaught: "To shew that he was risen (Luke 24:46; John 20:20).",
+        context: "The sepulchre, first day of the week (Matthew 28:1). A recorded appearance.",
+        howAccepted: "Mary Magdalene came and told the disciples that she had seen the Lord (John 20:18).",
+        passages: data.scriptures || ["Matthew 28:1-10", "John 20:11-18"]
+      };
+    }
+    if (id === "savior-emmaus") {
+      return {
+        teacher: "The risen Jesus Christ (Luke 24:13–35)",
+        audience: "Cleopas and his companion (Luke 24:18)",
+        whatWasTaught: "Ought not Christ to have suffered these things, and to enter into his glory? Beginning at Moses and all the prophets, he expounded unto them in all the scriptures the things concerning himself (Luke 24:26–27).",
+        whyTaught: "A recorded resurrection-day appearance (Luke 24:13).",
+        context: "The way to Emmaus, about threescore furlongs from Jerusalem (Luke 24:13).",
+        howAccepted: "Their eyes were opened, and they knew him (Luke 24:31). They said, Did not our heart burn within us? (Luke 24:32).",
+        passages: data.scriptures || ["Luke 24:13-35"]
+      };
+    }
+    if (id === "savior-ascension") {
+      return {
+        teacher: "The risen Lord (Acts 1:3–11; Luke 24:50–51)—a recorded appearance, then taken up",
+        audience: "The apostles whom he had chosen (Acts 1:2)",
+        whatWasTaught: "Ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth (Acts 1:8). He lifted up his hands, and blessed them (Luke 24:50).",
+        whyTaught: "He shewed himself alive after his passion by many infallible proofs (Acts 1:3).",
+        context: "The mount called Olivet (Acts 1:12); as far as to Bethany (Luke 24:50).",
+        howAccepted: "They worshipped him, and returned to Jerusalem with great joy (Luke 24:52).",
+        passages: data.scriptures || ["Acts 1:3-12", "Luke 24:50-53"]
+      };
+    }
+    if (id === "event-saul-conversion" || /conversion of saul|damascus road/.test(blob)) {
+      return {
+        teacher: "The risen Lord appeared to Saul on the road (Acts 9:3–6). Ananias then spoke in the city (Acts 9:17). Saul preached in the synagogues (Acts 9:20).",
+        audience: "Saul of Tarsus (Acts 9:1–6)",
+        whatWasTaught: "I am Jesus whom thou persecutest (Acts 9:5). Ananias: the Lord, even Jesus, hath sent me, that thou mightest receive thy sight (Acts 9:17).",
+        whyTaught: "He is a chosen vessel unto me, to bear my name (Acts 9:15).",
+        context: "Near Damascus (Acts 9:3). A genuine appearance after the Ascension, not generic later ministry.",
+        howAccepted: "Saul was baptized (Acts 9:18) and straightway preached Christ in the synagogues (Acts 9:20).",
+        passages: data.scriptures || ["Acts 9:1-20"]
+      };
+    }
+    if (id === "event-john-patmos-revelation" || /john on patmos|apocalypse/.test(blob)) {
+      return {
+        teacher: "The glorified Christ, in vision to John on Patmos (Revelation 1:9–18). John was told to write to the seven churches (Revelation 1:11)—not a visit of the Lord to those cities.",
+        audience: "John, then the seven churches which are in Asia (Revelation 1:4, 11)",
+        whatWasTaught: "I am he that liveth, and was dead; and, behold, I am alive for evermore (Revelation 1:18). What thou seest, write in a book, and send it unto the seven churches (Revelation 1:11).",
+        whyTaught: "John was in the isle that is called Patmos, for the word of God, and for the testimony of Jesus Christ (Revelation 1:9).",
+        context: "Patmos. The Cave of the Apocalypse is later Christian memory, not named in the text.",
+        howAccepted: "John fell at his feet as dead, then was told to write (Revelation 1:17–19).",
+        passages: data.scriptures || ["Revelation 1:9-20"]
+      };
+    }
+    return null;
+  }
+
+  extractTeachingsObject(raw, data) {
+    return {
+      teacher: raw.teacher || "See scriptures for who taught here.",
+      audience: raw.audience || "See the cited verses.",
+      whatWasTaught: raw.whatWasTaught || raw.doctrine || raw.summary || "",
+      whyTaught: raw.whyTaught || raw.purpose || "Recorded so that readers may know what the New Testament actually says of this place.",
+      context: raw.context || raw.setting || raw.overview || "",
+      howAccepted: raw.howAccepted || raw.reception || raw.acceptance || "",
+      passages: raw.passages || data.scriptures || []
+    };
+  }
+
   normalizeTeachings(type, data, _inheritDepth = 0) {
     if (!data) return this.conservativeTeachingsFallback();
 
-    if (data.teachings && typeof data.teachings === "object") {
-      return {
-        teacher: data.teachings.teacher || "See scriptures for who taught here.",
-        audience: data.teachings.audience || "See the cited verses.",
-        whatWasTaught: data.teachings.whatWasTaught || data.teachings.doctrine || data.summary || "",
-        whyTaught: data.teachings.whyTaught || data.teachings.purpose || "Recorded so that readers may know what the New Testament actually says of this place.",
-        context: data.teachings.context || data.teachings.setting || data.overview || "",
-        howAccepted: data.teachings.howAccepted || data.teachings.reception || data.teachings.acceptance || "",
-        passages: data.teachings.passages || data.scriptures || []
-      };
+    const eventSpecific = this.eventSpecificTeachings(data);
+    if (eventSpecific && _inheritDepth === 0) return eventSpecific;
+
+    if (data.teachings && typeof data.teachings === "object" && type !== "event") {
+      const extracted = this.extractTeachingsObject(data.teachings, data);
+      if (_inheritDepth === 0) return this.yearGateInherited(extracted, data);
+      return extracted;
     }
 
     const name = String((data.name || data.city || data.title || data.locationName || "")).toLowerCase();
     const region = String((data.region || data.locationName || "")).toLowerCase();
     const searchBlob = `${name} ${region} ${data.id || ""}`.toLowerCase();
+    const skipPlaceHardcode = this.shouldSkipPlaceHardcode(type, data);
 
     if (searchBlob.includes("malta") || searchBlob.includes("melita")) {
       const malta = this.findCityByName("Malta");
       if (malta && malta.teachings && _inheritDepth < 2) {
-        return this.normalizeTeachings("city", malta, _inheritDepth + 1);
+        return this.yearGateInherited(this.normalizeTeachings("city", malta, _inheritDepth + 1), data);
       }
     }
 
-    // Jerusalem Sacred Sites
-    if (type === "jerusalemSite" || type === "jerusalemQuarter" || name.includes("jerusalem")) {
+    if (searchBlob.includes("antonia") || /jer-antonia/.test(String(data.id || ""))) {
+      return {
+        teacher: "The Apostle Paul (Acts 21:31–22:29). Scripture does not record a teaching of the Lord in the Antonia.",
+        audience: "The multitude on the stairs, then the chief captain and centurions in the castle (Acts 21:40; 22:24)",
+        whatWasTaught: "Paul's Hebrew defense: he is a Jew of Tarsus, taught at the feet of Gamaliel, and the risen Lord said unto him, 'I am Jesus of Nazareth, whom thou persecutest' (Acts 22:3–8).",
+        whyTaught: "To answer the uproar after they went about to kill him (Acts 21:31).",
+        context: "The castle / stairs of the Roman garrison overlooking the temple (Acts 21:34–40). Traditional identification: the Antonia.",
+        howAccepted: "They gave him audience unto 'Depart: for I will send thee far hence unto the Gentiles,' then lifted up their voices (Acts 22:21–22). The chief captain loosed him when he learned Paul was a Roman (Acts 22:25–29).",
+        passages: data.scriptures || ["Acts 21:31-40", "Acts 22:1-29"]
+      };
+    }
+
+    // Jerusalem sites/quarters only — never for category apostolic|persecution|war events.
+    if (!skipPlaceHardcode && (type === "jerusalemSite" || type === "jerusalemQuarter")) {
       if (name.includes("gethsemane")) {
         return {
-          teacher: "Jesus Christ (The Son of God)",
-          audience: "Peter, James, and John (the Inner Apostolic Circle)",
-          whatWasTaught: "Watch and pray that ye enter not into temptation; perfect submission to the Father: 'O my Father, if it be possible, let this cup pass from me: nevertheless not as I will, but as thou wilt.'",
-          whyTaught: "To accomplish the infinite suffering Atonement for the sins of the world and instruct the Apostles on endurance in times of severe spiritual trial.",
-          context: "Late Thursday night of Passion Week in an olive grove across the Brook Kidron, where Jesus was in an agony and sweat drops of blood (Luke 22:44).",
-          howAccepted: "Overcome with exhaustion and sorrow, the apostles slept; Judas led an armed band to betray Him with a kiss; the disciples initially drew a sword, then all forsook Him and fled as Jesus submitted to His arrest.",
+          teacher: "Jesus Christ (Passion Week, ~30 AD; Matthew 26:36–46; Luke 22:39–46)",
+          audience: "Peter, James, and John (Matthew 26:37)",
+          whatWasTaught: "Watch and pray, that ye enter not into temptation (Matthew 26:41). 'O my Father, if it be possible, let this cup pass from me: nevertheless not as I will, but as thou wilt' (Matthew 26:39).",
+          whyTaught: "He saith, 'My soul is exceeding sorrowful, even unto death' (Matthew 26:38).",
+          context: "A place called Gethsemane (Matthew 26:36); over the brook Cedron (John 18:1).",
+          howAccepted: "He findeth them asleep (Matthew 26:40). Judas came with a multitude; they laid hands on Jesus (Matthew 26:47–50). All the disciples forsook him and fled (Matthew 26:56).",
           passages: data.scriptures || ["Matthew 26:36-46", "Luke 22:39-46", "Mark 14:32-42"]
         };
       }
-      if (name.includes("temple") || name.includes("solomon") || name.includes("beautiful gate") || name.includes("antonia")) {
+      if (name.includes("caiaphas")) {
         return {
-          teacher: "Jesus Christ & the Apostles Peter and John",
-          audience: "Temple Pilgrims, Jewish Worshippers, Pharisees, Sadducees, and Sanhedrin",
-          whatWasTaught: "My house shall be called the house of prayer for all nations; the Light of the World; the Father who sent Me; healing of the lame man in the name of Jesus Christ of Nazareth (Acts 3).",
-          whyTaught: "To declare divine authority over the Temple, condemn hypocritical commercialism, and preach the resurrection through Christ to the rulers of Israel.",
-          context: "The vast marble and gold Second Temple complex rebuilt by Herod the Great during major Jewish pilgrimage festivals (Passover, Tabernacles, Hanukkah).",
-          howAccepted: "Multitudes marveled at Jesus's wisdom and Peter's miraculous healing, leading thousands to be baptized into the Church; however, the chief priests and Sadducees were indignant, repeatedly arresting the apostles and commanding them never to speak in Jesus's name.",
-          passages: data.scriptures || ["John 7:37-39", "John 8:12", "Acts 3:1-16", "Matthew 21:12-17"]
+          teacher: "Jesus Christ, answering the high priest (Matthew 26:63–64)—Passion Week, ~30 AD, not later ministry",
+          audience: "Caiaphas, the scribes and the elders (Matthew 26:57)",
+          whatWasTaught: "The high priest said, 'tell us whether thou be the Christ, the Son of God.' Jesus saith, 'Thou hast said: nevertheless I say unto you, Hereafter shall ye see the Son of man sitting on the right hand of power' (Matthew 26:63–64).",
+          whyTaught: "They sought false witness against him (Matthew 26:59).",
+          context: "The palace of the high priest (Matthew 26:58). Peter sat without in the palace and denied him (Matthew 26:69–75).",
+          howAccepted: "The high priest rent his clothes, saying, He hath spoken blasphemy (Matthew 26:65). They condemned him to be guilty of death (Matthew 26:66).",
+          passages: data.scriptures || ["Matthew 26:57-75", "Luke 22:54-62"]
         };
       }
-      if (name.includes("upper room") || name.includes("zion") || name.includes("caiaphas") || name.includes("last supper")) {
+      if (name.includes("praetorium") || name.includes("pilate")) {
         return {
-          teacher: "Jesus Christ",
-          audience: "The Twelve Apostles",
-          whatWasTaught: "The Sacrament of the Lord's Supper ('This is my body... this is my blood of the new testament'); foot washing as humble service; the promise of the Holy Ghost (Comforter); 'A new commandment I give unto you, That ye love one another.'",
-          whyTaught: "To institute the holy memorial sacrament of His sacrifice, comfort His disciples before His crucifixion, and establish covenant unity among the Apostles.",
-          context: "A furnished upper room on Mount Zion during the Passover meal on the eve of the Crucifixion (Spring 30 AD).",
-          howAccepted: "The Apostles were filled with sorrow and self-examination, each asking, 'Lord, is it I?' Judas departed into the night to consummate his betrayal, while the Eleven accepted the covenant sacrament and sang an hymn before going to Gethsemane.",
-          passages: data.scriptures || ["Luke 22:14-20", "John 13:34-35", "John 14:15-27", "1 Corinthians 11:23-26"]
+          teacher: "Jesus Christ before Pontius Pilate (John 18:33–19:11)—Friday of Passion Week, ~30 AD",
+          audience: "Pilate, and they who cried, Crucify him (John 19:6)",
+          whatWasTaught: "'My kingdom is not of this world' (John 18:36). 'To this end was I born... that I should bear witness unto the truth' (John 18:37).",
+          whyTaught: "Pilate asked, Art thou the King of the Jews? (John 18:33).",
+          context: "The hall of judgment / praetorium (John 18:28, 33).",
+          howAccepted: "Pilate sought to release him; they cried, Crucify him (John 19:6, 12). He delivered him unto them to be crucified (John 19:16).",
+          passages: data.scriptures || ["John 18:28-40", "John 19:1-16", "Luke 23:1-25"]
+        };
+      }
+      if (name.includes("solomon") || name.includes("beautiful gate")) {
+        return {
+          teacher: "Jesus Christ in Solomon's porch at the feast of the dedication (John 10:22–30); thereafter Peter and John (Acts 3:1–11; 5:12)—not Jesus teaching after ~33 AD",
+          audience: "The Jews who came round about him (John 10:24); later the people at the Beautiful Gate (Acts 3:9–11)",
+          whatWasTaught: "Jesus said, 'I and my Father are one' (John 10:30). Peter said, 'In the name of Jesus Christ of Nazareth rise up and walk' (Acts 3:6).",
+          whyTaught: "They said, If thou be the Christ, tell us plainly (John 10:24). The lame man asked alms (Acts 3:3).",
+          context: "Solomon's porch (John 10:23; Acts 3:11; 5:12). The Beautiful Gate (Acts 3:2).",
+          howAccepted: "They took up stones to stone him (John 10:31). The lame man walked and leaped and praised God (Acts 3:8).",
+          passages: data.scriptures || ["John 10:22-39", "Acts 3:1-16", "Acts 5:12"]
+        };
+      }
+      if (name.includes("temple") && !name.includes("antonia")) {
+        return {
+          teacher: "Jesus Christ in mortal ministry (Matthew 21:12–13; John 2:13–17); thereafter Peter and John (Acts 3:1–16)—not the Lord teaching after ~33 AD",
+          audience: "Them that sold and bought in the temple (Matthew 21:12); later the people at the Beautiful Gate (Acts 3:9–11)",
+          whatWasTaught: "My house shall be called the house of prayer; but ye have made it a den of thieves (Matthew 21:13; cf. John 2:16). Peter: In the name of Jesus Christ of Nazareth rise up and walk (Acts 3:6).",
+          whyTaught: "He taught daily in the temple (Luke 19:47). After Pentecost Peter and John went up into the temple at the hour of prayer (Acts 3:1).",
+          context: "Split eras: cleansing and teaching ~27–30 AD (Matthew 21:12–13; John 2:13–17); apostolic witness from Pentecost (Acts 3:1–16).",
+          howAccepted: "The chief priests sought to destroy him (Luke 19:47). Many that heard the word believed (Acts 4:4).",
+          passages: data.scriptures || ["Matthew 21:12-13", "John 2:13-17", "Acts 3:1-16"]
+        };
+      }
+      if (name.includes("upper room") || name.includes("last supper")) {
+        return {
+          teacher: "Jesus Christ at the Last Supper (Luke 22:14–20) and the risen Lord to the disciples (John 20:19–29). At Pentecost Peter preached (Acts 2:14)—not a later earthly ministry of Jesus.",
+          audience: "The apostles (Luke 22:14); later the disciples assembled (John 20:19); at Pentecost Jews from every nation (Acts 2:5)",
+          whatWasTaught: "This is my body... this is my blood of the new testament (Luke 22:19–20). Peace be unto you (John 20:19). Peter: God hath made that same Jesus both Lord and Christ (Acts 2:36).",
+          whyTaught: "He desired to eat the passover with them before he suffered (Luke 22:15).",
+          context: "A large upper room furnished (Luke 22:12). Identifying that room with the Pentecost gathering is later tradition.",
+          howAccepted: "They asked, Lord, is it I? (Matthew 26:22). Thomas answered, My Lord and my God (John 20:28). About three thousand were baptized (Acts 2:41).",
+          passages: data.scriptures || ["Luke 22:14-20", "John 20:19-29", "Acts 1:13-14", "Acts 2:1-41"]
         };
       }
       if (name.includes("olives") || name.includes("ascension") || name.includes("bethphage")) {
         return {
-          teacher: "Jesus Christ",
-          audience: "The Apostles & Disciples",
-          whatWasTaught: "The Olivet Discourse on the signs of the Second Coming and the destruction of the Temple; the Great Commission to be witnesses unto the uttermost part of the earth (Acts 1:8).",
-          whyTaught: "To fortify believers against deception in perilous times and empower the Apostles for the universal spread of the Gospel.",
-          context: "The ridge of the Mount of Olives looking down across the Kidron Valley upon the Temple Mount and the Holy City.",
-          howAccepted: "The disciples took His warnings to heart—tradition records that early Jerusalem Christians remembered Christ's words and escaped to Pella before the Roman siege of 70 AD; at the Ascension, the apostles returned to Jerusalem with great joy, continually praising God.",
-          passages: data.scriptures || ["Matthew 24:1-14", "Acts 1:6-12", "Luke 21:20-28"]
+          teacher: "Jesus Christ: Olivet Discourse (Matthew 24:3, Passion Week) and the risen Lord at the Ascension (Acts 1:9–12; Luke 24:50–51)",
+          audience: "The disciples (Matthew 24:3); the apostles whom he had chosen (Acts 1:2)",
+          whatWasTaught: "The signs of his coming (Matthew 24). Ye shall be witnesses unto me (Acts 1:8). He lifted up his hands, and blessed them (Luke 24:50).",
+          whyTaught: "They asked, when shall these things be? (Matthew 24:3). He shewed himself alive after his passion by many infallible proofs (Acts 1:3).",
+          context: "The mount of Olives (Matthew 24:3; Acts 1:12). Bethphage at the mount (Matthew 21:1).",
+          howAccepted: "They worshipped him, and returned to Jerusalem with great joy (Luke 24:52).",
+          passages: data.scriptures || ["Matthew 24:1-14", "Matthew 21:1-7", "Acts 1:6-12", "Luke 24:50-53"]
         };
       }
       if (name.includes("golgotha") || name.includes("calvary") || name.includes("tomb") || name.includes("sepulchre")) {
         return {
-          teacher: "Jesus Christ & the Angelic Messengers",
-          audience: "Mary the Mother of Jesus, John the Beloved, Mary Magdalene, Roman Soldiers, and Mourning Saints",
-          whatWasTaught: "The Seven Words from the Cross ('Father, forgive them... It is finished') and the proclamation of the Resurrection: 'He is not here: for he is risen, as he said' (Matt 28:6).",
-          whyTaught: "To finish the work of redemption, break the bands of physical death, and usher in the morning of the Resurrection for all mankind.",
-          context: "Outside the walls of Jerusalem at Golgotha and in the nearby garden tomb belonging to Joseph of Arimathea.",
-          howAccepted: "A Roman centurion cried, 'Truly this man was the Son of God'; crowds smote their breasts in remorse; on the third day, sorrowing women found the stone rolled away and became the first witnesses of the resurrected Lord, turning apostolic despair into triumph.",
+          teacher: "Jesus Christ from the cross (Luke 23:34, 46); the angel and the risen Lord at the sepulchre (Matthew 28:5–10; John 20:16–17)",
+          audience: "They that passed by; Mary Magdalene and the other Mary (Matthew 28:1)",
+          whatWasTaught: "'Father, forgive them' (Luke 23:34). 'It is finished' (John 19:30). 'He is not here: for he is risen' (Matthew 28:6).",
+          whyTaught: "To finish the work of the cross and to shew that he was risen (Luke 24:46; John 20:20).",
+          context: "A place called Golgotha (Matthew 27:33). A new sepulchre (John 19:41).",
+          howAccepted: "The centurion said, Truly this was the Son of God (Matthew 27:54). Mary Magdalene came and told the disciples that she had seen the Lord (John 20:18).",
           passages: data.scriptures || ["Luke 23:33-46", "John 19:25-30", "Matthew 28:1-10", "John 20:11-18"]
         };
       }
-      return {
-        teacher: "Jesus Christ & the Apostles",
-        audience: "Inhabitants of Jerusalem, Priests, Levites, and Roman Cohorts",
-        whatWasTaught: "Covenant repentance, fulfillment of the Law in Christ, and salvation through His name.",
-        whyTaught: "Jerusalem was the holy city of God where the Messiah had to accomplish His decease and resurrection.",
-        context: "1st-century Roman Judea under Pontius Pilate and High Priest Caiaphas.",
-        howAccepted: "On Pentecost, 3,000 were pricked in their hearts and baptized (Acts 2), quickly swelling to over 5,000; however, fierce aristocratic Sanhedrin persecution erupted, resulting in the martyrdom of Stephen and James.",
-        passages: data.scriptures || ["Acts 2:22-36", "Luke 24:44-48"]
-      };
+      if (name.includes("bethesda")) {
+        return {
+          teacher: "Jesus Christ (John 5:1–9)—mortal ministry, not after the crucifixion",
+          audience: "A man which had an infirmity thirty and eight years (John 5:5), and the Jews (John 5:10)",
+          whatWasTaught: "'Rise, take up thy bed, and walk' (John 5:8). 'My Father worketh hitherto, and I work' (John 5:17).",
+          whyTaught: "Jesus saw him lie, and knew that he had been now a long time in that case (John 5:6).",
+          context: "A pool... called... Bethesda, having five porches (John 5:2).",
+          howAccepted: "Immediately the man was made whole (John 5:9). The Jews sought to slay him, because he had done these things on the sabbath (John 5:16).",
+          passages: data.scriptures || ["John 5:1-18"]
+        };
+      }
+      if (name.includes("siloam")) {
+        return {
+          teacher: "Jesus Christ (John 9:1–11)—mortal ministry, not after the crucifixion",
+          audience: "A man which was blind from his birth (John 9:1)",
+          whatWasTaught: "'Go, wash in the pool of Siloam' (John 9:7). 'I am the light of the world' (John 9:5).",
+          whyTaught: "That the works of God should be made manifest in him (John 9:3).",
+          context: "The pool of Siloam, which is by interpretation, Sent (John 9:7).",
+          howAccepted: "He went his way therefore, and washed, and came seeing (John 9:7). The Jews did not believe concerning him (John 9:18).",
+          passages: data.scriptures || ["John 9:1-11"]
+        };
+      }
+      if (name.includes("hinnom") || name.includes("kidron") || name.includes("bezetha") || name.includes("wall")) {
+        return this.conservativeTeachingsFallback(data);
+      }
+      const jerusalemCity = this.findCityByName("Jerusalem");
+      if (jerusalemCity && jerusalemCity.teachings && _inheritDepth < 2) {
+        return this.normalizeTeachings("city", jerusalemCity, _inheritDepth + 1);
+      }
+      return this.conservativeTeachingsFallback(data);
     }
 
-    // Specific Cities
-    if (name.includes("capernaum")) {
+    // Specific Cities — skipped for post-33 / apostolic|persecution|war events.
+    if (!skipPlaceHardcode && name.includes("capernaum")) {
       return {
         teacher: "Jesus Christ",
         audience: "Galilean Disciples, Crowds from the Decapolis, Synagogue Elders, and Roman Centurion",
@@ -1163,7 +1547,7 @@ class UIController {
         passages: data.scriptures || ["John 6:35-51", "Matthew 4:13-17", "Mark 2:1-12"]
       };
     }
-    if (name.includes("nazareth")) {
+    if (!skipPlaceHardcode && name.includes("nazareth")) {
       return {
         teacher: "Jesus Christ",
         audience: "Townsfolk, Childhood Elders, and Synagogue Attendants",
@@ -1174,7 +1558,7 @@ class UIController {
         passages: data.scriptures || ["Luke 4:16-30", "Matthew 13:54-58"]
       };
     }
-    if (name.includes("beatitudes") || name.includes("sermon on the mount")) {
+    if (!skipPlaceHardcode && (name.includes("beatitudes") || name.includes("sermon on the mount"))) {
       return {
         teacher: "Jesus Christ",
         audience: "The Disciples and Multitudes gathered on the mountain slopes",
@@ -1185,7 +1569,7 @@ class UIController {
         passages: data.scriptures || ["Matthew 5:1-12", "Matthew 6:9-13", "Matthew 7:24-27"]
       };
     }
-    if (name.includes("sychar") || name.includes("samaria") || name.includes("jacob's well")) {
+    if (!skipPlaceHardcode && (name.includes("sychar") || name.includes("jacob's well"))) {
       return {
         teacher: "Jesus Christ",
         audience: "The Samaritan Woman and Townspeople of Sychar",
@@ -1196,7 +1580,7 @@ class UIController {
         passages: data.scriptures || ["John 4:5-26", "John 4:39-42"]
       };
     }
-    if (name.includes("athens")) {
+    if (!skipPlaceHardcode && name.includes("athens")) {
       return {
         teacher: "The Apostle Paul",
         audience: "Jews and devout persons in the synagogue (Acts 17:17), then Epicurean and Stoic philosophers and the Council of the Areopagus",
@@ -1207,7 +1591,7 @@ class UIController {
         passages: data.scriptures || ["Acts 17:22-34"]
       };
     }
-    if (name.includes("corinth")) {
+    if (!skipPlaceHardcode && name.includes("corinth")) {
       return {
         teacher: "The Apostle Paul (with Aquila, Priscilla, Silas, and Timothy; later Apollos)",
         audience: "Synagogue Chief Rulers (Crispus), Justus, Gaius, Erastus, and Cosmopolitan Gentile Converts",
@@ -1218,18 +1602,18 @@ class UIController {
         passages: data.scriptures || ["1 Corinthians 1:18-25", "1 Corinthians 6:19-20", "1 Corinthians 13:1-13", "1 Corinthians 15:12-22"]
       };
     }
-    if (name.includes("ephesus")) {
+    if (!skipPlaceHardcode && name.includes("ephesus")) {
       return {
-        teacher: "The Apostle Paul (Acts 19); the Apostle John by later Christian memory",
+        teacher: "The Apostle Paul (Acts 19). The glorified Christ addressed this church by letter through John on Patmos (Revelation 2:1–7)—not a visit of the Lord to Ephesus.",
         audience: "Ephesian Disciples, Students at the Hall of Tyrannus, and Asian Saints",
-        whatWasTaught: "The Holy Ghost and true baptism; grace through faith (Ephesians 2:8); the unity of the body of Christ; the Whole Armour of God (Eph 6); letters to the Seven Churches (Rev 2:1-7).",
+        whatWasTaught: "Paul: the Holy Ghost and true baptism; grace through faith (Ephesians 2:8); the unity of the body of Christ; the Whole Armour of God (Eph 6). Separately, the glorified Christ said they had left their first love (Revelation 2:1–7).",
         whyTaught: "To anchor believers against idolatrous commercial pressure (the cult of Diana/Artemis) and occult sorcery.",
         context: "The capital of Roman Asia, where Paul reasoned daily for two years in the lecture hall of Tyrannus.",
         howAccepted: "Enormous regional harvest: all who dwelt in Asia heard the word; repentant magicians burned occult books worth 50,000 drachmas; Demetrius the silversmith incited a massive 2-hour riot in the 25,000-seat Great Theater shouting 'Great is Diana of the Ephesians!', but the church stood firm and became the apostolic hub of Asia Minor.",
         passages: data.scriptures || ["Acts 19:1-20", "Acts 19:23-41", "Ephesians 2:8-10", "Ephesians 6:10-18"]
       };
     }
-    if (name.includes("rome")) {
+    if (!skipPlaceHardcode && name.includes("rome")) {
       return {
         teacher: "The Apostle Paul (Acts 28); the Apostle Peter by later Christian memory",
         audience: "Jewish elders summoned to Paul's hired house, Gentile saints, Praetorian guards, and members of Caesar's household",
@@ -1240,7 +1624,7 @@ class UIController {
         passages: data.scriptures || ["Romans 1:16-17", "Romans 8:31-39", "Acts 28:23-31", "Philippians 4:22"]
       };
     }
-    if (name.includes("galilee") || region.includes("galilee")) {
+    if (!skipPlaceHardcode && (name.includes("galilee") || region.includes("galilee")) && !name.includes("magdala") && !name.includes("tiberias") && /sea of galilee|gennesaret|beatitudes|sermon on the mount|capernaum|bethsaida|cana|nazareth|mount of beatitudes/.test(name + " " + (data.id || ""))) {
       return {
         teacher: "Jesus Christ",
         audience: "Galilean Fishermen, Tax Collectors, Farmers, and Village Disciples",
@@ -1277,7 +1661,7 @@ class UIController {
         passages: data.scriptures || ["Acts 11:19-26", "Acts 13:1-4"]
       };
     }
-    if (name.includes("bethany")) {
+    if (!skipPlaceHardcode && name.includes("bethany")) {
       return {
         teacher: "Jesus Christ",
         audience: "Martha, Mary, Lazarus, and Jewish Mourners from Jerusalem",
@@ -1303,7 +1687,7 @@ class UIController {
     if (_inheritDepth < 2) {
       const related = this.lookupRelatedCity(data);
       if (related && related.teachings && related !== data) {
-        return this.normalizeTeachings("city", related, _inheritDepth + 1);
+        return this.yearGateInherited(this.normalizeTeachings("city", related, _inheritDepth + 1), data);
       }
     }
 

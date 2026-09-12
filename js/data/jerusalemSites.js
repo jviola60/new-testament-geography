@@ -34,7 +34,7 @@ const JERUSALEM_SITES = [
     ],
     peopleAndChurch: "Zechariah the priest (father of John the Baptist) burning incense; Simeon and the prophetess Anna blessing the infant Christ; the twelve-year-old Jesus with the doctors of the law; the Sanhedrin priests; the Apostles Peter and John continuing in daily prayer.",
     politicalInsights: "Herod the Great poured colossal treasury wealth into expanding the Temple Mount esplanade into the largest sacred precinct of the classical Mediterranean to curry favor with his Jewish subjects. The Roman Prefect in Caesarea kept custody of the High Priest's holy vestments in the adjacent Antonia Fortress, releasing them only during pilgrimage festivals.",
-    eraChronology: "Rebuilt starting ~20 BC under Herod; visited by Jesus ~8 AD and 27–30 AD; early Christian meeting place ~30–66 AD; totally incinerated and razed by Roman Legions under Titus in 70 AD."
+    eraChronology: "• ~20 BC: Herod begins rebuilding the Temple.\n• ~8 AD: The twelve-year-old Jesus in the temple (Luke 2:46–49).\n• ~27–30 AD: Jesus teaches and cleanses the Temple (Matthew 21:12–13; John 2:13–17)—mortal ministry, not later.\n• After Pentecost: Peter and John in the temple (Acts 3:1–16); apostolic meeting place ~30–66 AD.\n• 70 AD: Destroyed by Titus (not a New Testament narrative)."
   },
   {
     id: "jer-court-gentiles",
@@ -88,7 +88,7 @@ const JERUSALEM_SITES = [
     ],
     peopleAndChurch: "Peter, John, the healed lame man walking and leaping and praising God; the thousands of believers gathering for apostolic teaching (Acts 5:12).",
     politicalInsights: "The Apostles boldly utilized public space within the Temple precinct under the eyes of the Temple Guard (commanded by the Saggan) to proclaim Christ's resurrection, resulting in their repeated arrests and miraculous angelic deliverances from prison.",
-    eraChronology: "Winter 29 AD (Christ's discourse) and 30–35 AD (early Church assemblies)."
+    eraChronology: "• Winter ~29 AD: Jesus walked in Solomon's porch at the feast of the dedication (John 10:22–30)—mortal ministry.\n• After Pentecost: Peter and John, and the church in Solomon's porch (Acts 3:11; 5:12)—apostolic, not the Lord discoursing in 30–35 AD."
   },
   {
     id: "jer-antonia-fortress",

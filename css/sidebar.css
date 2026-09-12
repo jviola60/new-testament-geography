@@ -84,6 +84,14 @@
   padding: 0.4rem 0.5rem;
 }
 
+.sidebar-tab-row {
+  display: contents;
+}
+
+.sheet-handle {
+  display: none;
+}
+
 .tab-btn {
   padding: 0.5rem 0.25rem;
   background: rgba(255, 255, 255, 0.45);
@@ -100,12 +108,12 @@
 }
 
 /* Row 1: 4 tabs (Overview, Scriptures, Teachings, Videos) */
-.tab-btn:nth-child(-n+4) {
+.sidebar-tab-row:first-child .tab-btn {
   flex: 1 1 calc(25% - 4px);
 }
 
 /* Row 2: 3 tabs (People, Political, Era Events) */
-.tab-btn:nth-child(n+5) {
+.sidebar-tab-row:last-child .tab-btn {
   flex: 1 1 calc(33.333% - 4px);
 }
 

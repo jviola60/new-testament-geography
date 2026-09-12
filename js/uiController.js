@@ -298,6 +298,141 @@ class UIController {
     this.initQuickJumpDropdown();
   }
 
+  getQuickJumpCatalog() {
+    const groups = [];
+
+    if (typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.length > 0) {
+      groups.push({
+        label: "🏛️ Jerusalem Sacred Landmarks",
+        items: JERUSALEM_SITES.map(site => ({
+          value: `jerusalemSite:${site.id}`,
+          label: `${site.icon || "🏛️"} ${site.name} (${site.area})`,
+          searchText: `${site.name} ${site.area} ${site.ancientName || ""} jerusalem`
+        }))
+      });
+    }
+
+    if (typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters && JERUSALEM_GEOGRAPHY.quarters.length > 0) {
+      groups.push({
+        label: "🏔️ Jerusalem Quarters & Topography",
+        items: JERUSALEM_GEOGRAPHY.quarters.map(quarter => ({
+          value: `jerusalemQuarter:${quarter.id}`,
+          label: `🏔️ ${quarter.name} (${quarter.elevation || "Jerusalem"})`,
+          searchText: `${quarter.name} ${quarter.elevation || ""} jerusalem quarter`
+        }))
+      });
+    }
+
+    const geoList = (typeof GEO_FEATURES !== "undefined" && GEO_FEATURES) || (typeof window !== "undefined" && window.GEO_FEATURES) || [];
+    if (geoList.length > 0) {
+      groups.push({
+        label: "🌊 Holy Land Waters & Landscapes",
+        items: geoList.map(geo => ({
+          value: `geo:${geo.id}`,
+          label: `🌊 ${geo.name} (${geo.region || geo.category || "Holy Land"})`,
+          searchText: `${geo.name} ${geo.region || ""} ${geo.category || ""}`
+        }))
+      });
+    }
+
+    const holyLandCities = this.citiesList()
+      .filter(c => ["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    if (holyLandCities.length > 0) {
+      groups.push({
+        label: "📍 Holy Land Cities (Galilee, Judea, Samaria)",
+        items: holyLandCities.map(city => ({
+          value: `city:${city.id}`,
+          label: `${city.name} (${city.region})`,
+          searchText: `${city.name} ${city.region} ${city.modernName || ""}`
+        }))
+      });
+    }
+
+    const apostolicCities = this.citiesList()
+      .filter(c => !["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    if (apostolicCities.length > 0) {
+      groups.push({
+        label: "🌍 Mediterranean & Apostolic Cities",
+        items: apostolicCities.map(city => ({
+          value: `city:${city.id}`,
+          label: city.id === "patmos"
+            ? `📜 Patmos (Isle of Patmos • John's Exile & Revelation)`
+            : `${city.name} (${city.region})`,
+          searchText: `${city.name} ${city.region} ${city.modernName || ""}`
+        }))
+      });
+    }
+
+    if (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions && REGIONS_DATA.regions.length > 0) {
+      groups.push({
+        label: "🗺️ Roman Provinces & Regions",
+        items: REGIONS_DATA.regions.map(region => ({
+          value: `region:${region.id}`,
+          label: `🏛️ ${region.name} (${region.capital ? "Cap: " + region.capital : "Province"})`,
+          searchText: `${region.name} ${region.capital || ""} ${region.ancientName || ""}`
+        }))
+      });
+    }
+
+    return groups;
+  }
+
+  jumpToQuickJumpValue(val) {
+    if (!val) return false;
+    const [type, id] = val.split(":");
+
+    if (type === "jerusalemSite") {
+      const site = typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.find(s => s.id === id);
+      if (site) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(site.lat, site.lng, 16);
+        this.showJerusalemSiteDetail(site);
+        return true;
+      }
+    } else if (type === "jerusalemQuarter") {
+      const quarter = typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters && JERUSALEM_GEOGRAPHY.quarters.find(q => q.id === id);
+      if (quarter) {
+        const center = this.polygonCenter ? this.polygonCenter(quarter.coordinates) : quarter.coordinates[0];
+        if (center && window.app && window.app.map) window.app.map.flyToLocation(center[0], center[1], 15);
+        this.showJerusalemQuarterDetail(quarter);
+        return true;
+      }
+    } else if (type === "geo") {
+      const geo = this.findGeoFeature(id);
+      if (geo) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(geo.lat, geo.lng, geo.zoom || 11);
+        this.showGeoFeatureDetail(geo);
+        return true;
+      }
+    } else if (type === "city") {
+      const city = this.citiesList().find(c => c.id === id);
+      if (city) {
+        if (window.app && window.app.map) window.app.map.flyToLocation(city.lat, city.lng, 12);
+        this.showCityDetail(city);
+        return true;
+      }
+    } else if (type === "region") {
+      const region = typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions && REGIONS_DATA.regions.find(r => r.id === id);
+      if (region) {
+        if (window.app && window.app.map) {
+          if (REGIONS_DATA.cameraPresets && REGIONS_DATA.cameraPresets[region.id]) {
+            window.app.map.focusRegion(region.id);
+          } else if (region.bounds) {
+            const b = region.bounds;
+            window.app.map.flyToLocation((b[0][0] + b[1][0]) / 2, (b[0][1] + b[1][1]) / 2, 8);
+          }
+        }
+        this.showRegionDetail(region);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Quick Jump Dropdown for All Biblical Locations & Holy Sites
   initQuickJumpDropdown() {
     const select = document.getElementById("quickJumpSelect");
@@ -305,144 +440,22 @@ class UIController {
 
     select.innerHTML = `<option value="" disabled selected>Jump to Any Biblical Location...</option>`;
 
-    // 1. Jerusalem Sacred Sites & Landmarks
-    if (typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.length > 0) {
-      const jerGroup = document.createElement("optgroup");
-      jerGroup.label = "🏛️ Jerusalem Sacred Landmarks";
-      JERUSALEM_SITES.forEach(site => {
+    this.getQuickJumpCatalog().forEach(group => {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = group.label;
+      group.items.forEach(item => {
         const opt = document.createElement("option");
-        opt.value = `jerusalemSite:${site.id}`;
-        opt.textContent = `${site.icon || "🏛️"} ${site.name} (${site.area})`;
-        jerGroup.appendChild(opt);
+        opt.value = item.value;
+        opt.textContent = item.label;
+        optgroup.appendChild(opt);
       });
-      select.appendChild(jerGroup);
-    }
+      select.appendChild(optgroup);
+    });
 
-    // 2. Jerusalem Quarters & Historic Topography
-    if (typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters && JERUSALEM_GEOGRAPHY.quarters.length > 0) {
-      const qGroup = document.createElement("optgroup");
-      qGroup.label = "🏔️ Jerusalem Quarters & Topography";
-      JERUSALEM_GEOGRAPHY.quarters.forEach(quarter => {
-        const opt = document.createElement("option");
-        opt.value = `jerusalemQuarter:${quarter.id}`;
-        opt.textContent = `🏔️ ${quarter.name} (${quarter.elevation || "Jerusalem"})`;
-        qGroup.appendChild(opt);
-      });
-      select.appendChild(qGroup);
-    }
-
-    // 3. Holy Land Waters, Mountains & Biblical Landscapes
-    const geoList = (typeof GEO_FEATURES !== "undefined" && GEO_FEATURES) || (typeof window !== "undefined" && window.GEO_FEATURES) || [];
-    if (geoList.length > 0) {
-      const waterGroup = document.createElement("optgroup");
-      waterGroup.label = "🌊 Holy Land Waters & Landscapes";
-      geoList.forEach(geo => {
-        const opt = document.createElement("option");
-        opt.value = `geo:${geo.id}`;
-        opt.textContent = `🌊 ${geo.name} (${geo.region || geo.category || "Holy Land"})`;
-        waterGroup.appendChild(opt);
-      });
-      select.appendChild(waterGroup);
-    }
-
-    // 4. Holy Land Biblical Cities (Galilee, Judea, Samaria, Decapolis, Perea)
-    const holyLandCities = this.citiesList()
-      .filter(c => ["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    if (holyLandCities.length > 0) {
-      const hlGroup = document.createElement("optgroup");
-      hlGroup.label = "📍 Holy Land Cities (Galilee, Judea, Samaria)";
-      holyLandCities.forEach(city => {
-        const opt = document.createElement("option");
-        opt.value = `city:${city.id}`;
-        opt.textContent = `${city.name} (${city.region})`;
-        hlGroup.appendChild(opt);
-      });
-      select.appendChild(hlGroup);
-    }
-
-    // 5. Mediterranean & Apostolic Cities (Paul's Journeys, Epistles, Rome, Asia Minor, Greece)
-    const apostolicCities = this.citiesList()
-      .filter(c => !["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    if (apostolicCities.length > 0) {
-      const apGroup = document.createElement("optgroup");
-      apGroup.label = "🌍 Mediterranean & Apostolic Cities";
-      apostolicCities.forEach(city => {
-        const opt = document.createElement("option");
-        opt.value = `city:${city.id}`;
-        if (city.id === "patmos") {
-          opt.textContent = `📜 Patmos (Isle of Patmos • John's Exile & Revelation)`;
-        } else {
-          opt.textContent = `${city.name} (${city.region})`;
-        }
-        apGroup.appendChild(opt);
-      });
-      select.appendChild(apGroup);
-    }
-
-    // 6. Roman Provinces & Biblical Regions
-    if (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions && REGIONS_DATA.regions.length > 0) {
-      const regGroup = document.createElement("optgroup");
-      regGroup.label = "🗺️ Roman Provinces & Regions";
-      REGIONS_DATA.regions.forEach(region => {
-        const opt = document.createElement("option");
-        opt.value = `region:${region.id}`;
-        opt.textContent = `🏛️ ${region.name} (${region.capital ? "Cap: " + region.capital : "Province"})`;
-        regGroup.appendChild(opt);
-      });
-      select.appendChild(regGroup);
-    }
-
-    // Event listener on location selection
     select.addEventListener("change", (e) => {
       const val = e.target.value;
       if (!val) return;
-      const [type, id] = val.split(":");
-
-      if (type === "jerusalemSite") {
-        const site = typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.find(s => s.id === id);
-        if (site) {
-          if (window.app && window.app.map) window.app.map.flyToLocation(site.lat, site.lng, 16);
-          this.showJerusalemSiteDetail(site);
-        }
-      } else if (type === "jerusalemQuarter") {
-        const quarter = typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters && JERUSALEM_GEOGRAPHY.quarters.find(q => q.id === id);
-        if (quarter) {
-          const center = this.polygonCenter ? this.polygonCenter(quarter.coordinates) : quarter.coordinates[0];
-          if (center && window.app && window.app.map) window.app.map.flyToLocation(center[0], center[1], 15);
-          this.showJerusalemQuarterDetail(quarter);
-        }
-      } else if (type === "geo") {
-        const geo = this.findGeoFeature(id);
-        if (geo) {
-          if (window.app && window.app.map) window.app.map.flyToLocation(geo.lat, geo.lng, geo.zoom || 11);
-          this.showGeoFeatureDetail(geo);
-        }
-      } else if (type === "city") {
-        const city = this.citiesList().find(c => c.id === id);
-        if (city) {
-          if (window.app && window.app.map) window.app.map.flyToLocation(city.lat, city.lng, 12);
-          this.showCityDetail(city);
-        }
-      } else if (type === "region") {
-        const region = typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions && REGIONS_DATA.regions.find(r => r.id === id);
-        if (region) {
-          if (window.app && window.app.map) {
-            if (REGIONS_DATA.cameraPresets && REGIONS_DATA.cameraPresets[region.id]) {
-              window.app.map.focusRegion(region.id);
-            } else if (region.bounds) {
-              const b = region.bounds;
-              window.app.map.flyToLocation((b[0][0] + b[1][0]) / 2, (b[0][1] + b[1][1]) / 2, 8);
-            }
-          }
-          this.showRegionDetail(region);
-        }
-      }
-
-      // Reset selection placeholder after brief delay so user can select the same or another location
+      this.jumpToQuickJumpValue(val);
       setTimeout(() => {
         select.value = "";
       }, 400);
@@ -454,17 +467,25 @@ class UIController {
     if (this.sidebar) {
       this.sidebar.classList.remove("closed");
     }
+    if (window.app && window.app.mobile) {
+      window.app.mobile.onSidebarOpened();
+    }
   }
 
   closeSidebar() {
     if (this.sidebar) {
       this.sidebar.classList.add("closed");
     }
+    if (window.app && window.app.mobile) {
+      window.app.mobile.onSidebarClosed();
+    }
   }
 
   toggleSidebar() {
-    if (this.sidebar) {
-      this.sidebar.classList.toggle("closed");
+    if (this.sidebar && this.sidebar.classList.contains("closed")) {
+      this.openSidebar();
+    } else {
+      this.closeSidebar();
     }
   }
 

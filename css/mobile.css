@@ -1,0 +1,747 @@
+/* ==========================================================================
+   MOBILE SHELL — ADDITIVE ONLY
+   All visual remapping is behind max-width: 768px (and html.layout-mobile).
+   At desktop widths the rules in main.css / sidebar.css / timeline.css /
+   components.css from main apply unchanged.
+   ========================================================================== */
+
+.mobile-header-actions,
+.mobile-city-bar,
+.mobile-backdrop,
+.mobile-picker-sheet,
+.mobile-action-sheet {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Phone + small-tablet shell (below 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+
+  /* Hide the desktop drawer on first paint, before JS adds layout-mobile */
+  .detail-sidebar:not(.sheet-half):not(.sheet-full):not(.sheet-peek) {
+    transform: translateY(110%);
+  }
+
+  html.layout-mobile {
+    --header-height: 52px;
+    --filterbar-height: 96px;
+    --citybar-height: 52px;
+    --footer-height: 132px;
+    --tap: 44px;
+  }
+
+  html.layout-mobile .app-header {
+    height: var(--header-height);
+    padding: 0 0.55rem 0 0.7rem;
+    padding-top: env(safe-area-inset-top);
+    height: calc(var(--header-height) + env(safe-area-inset-top));
+    gap: 0.4rem;
+  }
+
+  html.layout-mobile .brand-title {
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+  }
+
+  html.layout-mobile .brand-subtitle,
+  html.layout-mobile .header-right > .dropdown-container,
+  html.layout-mobile .header-right > #storyToursBtn,
+  html.layout-mobile .header-right > .header-quick-jump-container,
+  html.layout-mobile .header-right > .sidebar-toggle-btn,
+  html.layout-mobile .header-center {
+    display: none;
+  }
+
+  html.layout-mobile.search-open .header-center {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(var(--header-height) + env(safe-area-inset-top));
+    max-width: none;
+    margin: 0;
+    padding: 8px 8px 10px;
+    background: #1B130E;
+    border-bottom: 1px solid var(--color-gold);
+    z-index: 1800;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  html.layout-mobile.search-open .search-box-wrapper {
+    background: #FFFDF8;
+    border-color: var(--color-gold);
+    min-height: var(--tap);
+  }
+
+  html.layout-mobile.search-open .search-results-dropdown {
+    background: #FFFDF8;
+  }
+
+  html.layout-mobile.search-open #globalSearchInput {
+    color: var(--text-primary);
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  html.layout-mobile.search-open #globalSearchInput::placeholder {
+    color: var(--text-muted);
+  }
+
+  html.layout-mobile.search-open .search-icon {
+    color: var(--text-secondary);
+  }
+
+  html.layout-mobile.search-open .search-results-dropdown {
+    max-height: min(50vh, 360px);
+  }
+
+  html.layout-mobile.search-open .search-result-item {
+    min-height: var(--tap);
+    padding: 0.7rem 1rem;
+  }
+
+  html.layout-mobile .brand-symbol {
+    width: 30px;
+    height: 30px;
+  }
+
+  html.layout-mobile .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  html.layout-mobile .mobile-header-actions .btn-icon {
+    width: var(--tap);
+    height: var(--tap);
+    min-width: var(--tap);
+  }
+
+  /* Layer chips: two thumb-scrollable rows */
+  html.layout-mobile .layer-filter-bar {
+    height: var(--filterbar-height);
+    padding: 6px 8px 8px;
+    align-items: stretch;
+  }
+
+  html.layout-mobile .filter-scroll-track {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  html.layout-mobile .filter-group-layers {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html.layout-mobile .filter-label,
+  html.layout-mobile .filter-group-right {
+    display: none;
+  }
+
+  html.layout-mobile .filter-chip-rows {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 6px;
+  }
+
+  html.layout-mobile .filter-chip-row {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 1px;
+  }
+
+  html.layout-mobile .filter-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  html.layout-mobile .filter-chip {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  /* City / region picker bar */
+  html.layout-mobile .mobile-city-bar {
+    display: flex;
+    align-items: center;
+    height: var(--citybar-height);
+    padding: 0 8px;
+    background: #F4EBDA;
+    border-bottom: 1px solid var(--border-parchment-dark);
+    z-index: 940;
+    position: relative;
+  }
+
+  html.layout-mobile .mobile-city-picker-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1.5px solid #D97706;
+    border-radius: 10px;
+    background: #FFFDF8;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  html.layout-mobile .mobile-city-picker-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  html.layout-mobile .mobile-city-picker-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  html.layout-mobile .mobile-city-picker-label {
+    font-family: var(--font-serif-title);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #451A03;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile .mobile-city-picker-current {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.layout-mobile .mobile-city-picker-caret {
+    color: #B45309;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  /* Full-bleed map between chrome */
+  html.layout-mobile .app-main-container {
+    height: calc(100dvh - var(--header-height) - var(--filterbar-height) - var(--citybar-height) - var(--footer-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  html.layout-mobile .map-viewport {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html.layout-mobile .floating-era-badge {
+    top: 10px;
+    left: 10px;
+    max-width: min(72vw, 280px);
+    padding: 0.5rem 0.75rem;
+  }
+
+  html.layout-mobile .era-title {
+    font-size: 0.88rem;
+  }
+
+  html.layout-mobile .era-desc {
+    display: none;
+  }
+
+  html.layout-mobile .map-floating-actions {
+    top: 10px;
+    right: 10px;
+  }
+
+  html.layout-mobile .floating-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  html.layout-mobile .map-legend-box {
+    bottom: 12px;
+    left: 10px;
+    max-width: min(200px, 62vw);
+    max-height: 36%;
+    overflow: hidden;
+  }
+
+  html.layout-mobile .legend-body {
+    max-height: 28vh;
+    overflow-y: auto;
+  }
+
+  html.layout-mobile .leaflet-control-zoom {
+    margin-bottom: 12px !important;
+  }
+
+  html.layout-mobile .leaflet-bottom.leaflet-right {
+    bottom: 4px;
+    right: 4px;
+  }
+
+  html.layout-mobile .leaflet-control-attribution {
+    font-size: 9px;
+    max-width: 46vw;
+  }
+
+  /* Bottom sheet place panel */
+  html.layout-mobile .detail-sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 48%;
+    max-height: calc(100% - 8px);
+    border-left: none;
+    border-top: 2px solid var(--color-gold);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(110%);
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1200;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  html.layout-mobile .detail-sidebar.closed {
+    transform: translateY(110%);
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-half,
+  html.layout-mobile .detail-sidebar.sheet-full,
+  html.layout-mobile .detail-sidebar.sheet-peek {
+    transform: translateY(0);
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-peek {
+    height: 88px;
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-half {
+    height: 50%;
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-full {
+    height: 88%;
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-dragging {
+    transition: none;
+  }
+
+  html.layout-mobile .sheet-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    cursor: grab;
+    flex-shrink: 0;
+    touch-action: none;
+  }
+
+  html.layout-mobile .sheet-handle-bar {
+    width: 48px;
+    height: 5px;
+    border-radius: 99px;
+    background: #A08968;
+  }
+
+  html.layout-mobile .sidebar-header {
+    padding: 0.45rem 1rem 0.7rem;
+  }
+
+  html.layout-mobile .sidebar-title {
+    font-size: 1.05rem;
+  }
+
+  html.layout-mobile .close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.8rem;
+  }
+
+  html.layout-mobile .sidebar-tabs {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  html.layout-mobile .sidebar-tab-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+    gap: 6px;
+  }
+
+  html.layout-mobile .sidebar-tab-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  html.layout-mobile .sidebar-tab-row .tab-btn,
+  html.layout-mobile .tab-btn {
+    flex: 0 0 auto;
+    min-height: 44px;
+    min-width: max-content;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.82rem;
+    border-radius: 999px;
+  }
+
+  html.layout-mobile .sidebar-content {
+    padding: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Timeline: keep era chips, enlarge controls */
+  html.layout-mobile .app-timeline-footer {
+    height: calc(var(--footer-height) + env(safe-area-inset-bottom));
+    padding: 0.45rem 0.7rem calc(0.4rem + env(safe-area-inset-bottom));
+  }
+
+  html.layout-mobile .timeline-control-bar {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "playback date"
+      "eras eras";
+    gap: 0.35rem 0.6rem;
+    align-items: center;
+  }
+
+  html.layout-mobile .playback-controls {
+    grid-area: playback;
+  }
+
+  html.layout-mobile .current-date-badge {
+    grid-area: date;
+    min-width: 0;
+    width: 100%;
+    padding: 0.2rem 0.55rem;
+  }
+
+  html.layout-mobile .badge-year {
+    font-size: 1.05rem;
+  }
+
+  html.layout-mobile .badge-season {
+    font-size: 0.64rem;
+    max-width: none;
+  }
+
+  html.layout-mobile .era-selector-tabs {
+    grid-area: eras;
+    display: flex;
+    width: 100%;
+  }
+
+  html.layout-mobile .btn-ctrl {
+    width: 44px;
+    height: 44px;
+  }
+
+  html.layout-mobile .btn-play {
+    width: 48px;
+    height: 48px;
+  }
+
+  html.layout-mobile .speed-btn {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  html.layout-mobile .era-tab {
+    min-height: 36px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.72rem;
+    border-radius: 999px;
+  }
+
+  html.layout-mobile .timeline-slider {
+    height: 12px;
+  }
+
+  html.layout-mobile .timeline-slider::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+  }
+
+  html.layout-mobile .timeline-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+  }
+
+  html.layout-mobile .timeline-labels .t-label:not(.start):not(.end):not(.highlight-gold):not(.highlight-crimson) {
+    display: none;
+  }
+
+  /* Tour stepper sits above the timeline */
+  html.layout-mobile .tour-stepper-bar {
+    top: auto;
+    bottom: calc(var(--footer-height) + env(safe-area-inset-bottom) + 8px);
+    left: 8px;
+    right: 8px;
+    transform: none;
+    width: auto;
+    border-radius: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  html.layout-mobile .stepper-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+
+  html.layout-mobile .stepper-controls .btn {
+    min-height: 44px;
+  }
+
+  html.layout-mobile #tourExitBtn {
+    grid-column: 1 / -1;
+  }
+
+  /* Modals & satellite explorer */
+  html.layout-mobile .modal-backdrop {
+    padding: 0.6rem 0 0;
+    align-items: flex-end;
+    background: rgba(20, 14, 8, 0.72);
+  }
+
+  html.layout-mobile .modal-card {
+    max-height: 86dvh;
+    border-radius: 16px 16px 0 0;
+    background: #FBF6EA;
+  }
+
+  html.layout-mobile .tour-select-card {
+    min-height: 72px;
+    align-items: flex-start;
+    background: #FFFDF9;
+    position: relative;
+    z-index: 1;
+  }
+
+  html.layout-mobile .tour-card-title,
+  html.layout-mobile .tour-card-desc {
+    display: block;
+  }
+
+  html.layout-mobile .tour-card-body {
+    min-width: 0;
+  }
+
+  html.layout-mobile .satellite-modal-window {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  html.layout-mobile .satellite-modal-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  html.layout-mobile .satellite-modal-title {
+    font-size: 1.05rem;
+  }
+
+  html.layout-mobile .satellite-info-card {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: 12px;
+  }
+
+  html.layout-mobile .satellite-view-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  html.layout-mobile .sat-tab {
+    min-height: 40px;
+    white-space: nowrap;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Overlays (only when the mobile shell class is on)
+   -------------------------------------------------------------------------- */
+html.layout-mobile .mobile-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 20, 12, 0.45);
+  z-index: 1600;
+}
+
+html.layout-mobile .mobile-backdrop.visible {
+  display: block;
+}
+
+html.layout-mobile .mobile-picker-sheet,
+html.layout-mobile .mobile-action-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1700;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  pointer-events: none;
+}
+
+html.layout-mobile .mobile-picker-sheet.open,
+html.layout-mobile .mobile-action-sheet.open {
+  display: flex;
+}
+
+html.layout-mobile .mobile-picker-card {
+  pointer-events: auto;
+  width: 100%;
+  max-height: min(88dvh, 720px);
+  background: var(--bg-card);
+  border-radius: 18px 18px 0 0;
+  border-top: 3px solid var(--color-gold);
+  box-shadow: 0 -10px 32px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+html.layout-mobile .mobile-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.55rem;
+  background: #EBE0CC;
+  border-bottom: 1px solid var(--border-parchment-dark);
+}
+
+html.layout-mobile .mobile-picker-header h3 {
+  font-family: var(--font-serif-title);
+  font-size: 1.02rem;
+  color: var(--text-primary);
+}
+
+html.layout-mobile .mobile-picker-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0.85rem 0.35rem;
+  padding: 0 0.85rem;
+  min-height: 48px;
+  border: 1.5px solid var(--border-parchment-dark);
+  border-radius: 12px;
+  background: #FFFDF8;
+}
+
+html.layout-mobile #mobileCitySearch {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  outline: none;
+}
+
+html.layout-mobile .mobile-picker-list,
+html.layout-mobile .mobile-more-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.4rem 0 1.25rem;
+}
+
+html.layout-mobile .mobile-picker-group-label,
+html.layout-mobile .mobile-more-label {
+  font-family: var(--font-serif-title);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-crimson);
+  padding: 0.7rem 1rem 0.25rem;
+}
+
+html.layout-mobile .mobile-picker-item,
+html.layout-mobile .mobile-more-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-bottom: 1px solid rgba(217, 200, 172, 0.45);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+html.layout-mobile .mobile-picker-item:active,
+html.layout-mobile .mobile-more-item:active {
+  background: var(--bg-parchment-deep);
+}
+
+html.layout-mobile .mobile-picker-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   Landscape phones: reclaim vertical map space
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) and (max-height: 500px) {
+  html.layout-mobile {
+    --filterbar-height: 48px;
+    --citybar-height: 44px;
+    --footer-height: 96px;
+  }
+
+  html.layout-mobile .filter-chip-rows {
+    flex-direction: row;
+  }
+
+  html.layout-mobile .filter-chip-row {
+    flex: 1;
+  }
+
+  html.layout-mobile .era-selector-tabs {
+    display: none;
+  }
+
+  html.layout-mobile .detail-sidebar.sheet-half {
+    height: 62%;
+  }
+}

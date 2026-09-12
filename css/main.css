@@ -339,6 +339,12 @@ html, body {
   gap: 0.45rem;
 }
 
+/* Wrappers are display:contents on desktop so chip flow matches main exactly. */
+.filter-chip-rows,
+.filter-chip-row {
+  display: contents;
+}
+
 .filter-label {
   font-family: var(--font-serif-title);
   font-size: 0.76rem;
@@ -441,7 +447,7 @@ html, body {
   z-index: 10;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments — identical to main. Mobile shell is max-width: 768px in mobile.css. */
 @media (max-width: 900px) {
   :root {
     --sidebar-width: 100%;
@@ -459,4 +465,13 @@ html, body {
   .stat-pill {
     display: none;
   }
+}
+
+/* New mobile-only nodes stay hidden at every desktop width */
+.mobile-header-actions,
+.mobile-city-bar,
+.mobile-backdrop,
+.mobile-picker-sheet,
+.mobile-action-sheet {
+  display: none;
 }

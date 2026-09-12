@@ -4,7 +4,7 @@
  */
 class TimelineController {
   constructor() {
-    this.currentYear = -6;
+    this.currentYear = 100;
     this.isPlaying = false;
     this.playbackSpeed = 1; // 1x, 2x, 5x
     this.timer = null;
@@ -105,7 +105,7 @@ class TimelineController {
     this.eraTabs = document.querySelectorAll(".era-tab");
 
     this.bindEvents();
-    this.setYear(-6);
+    this.setYear(100);
   }
 
   bindEvents() {

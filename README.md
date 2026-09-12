@@ -6,6 +6,16 @@ Live Demo: [https://jviola60.github.io/new-testament-geography/](https://jviola6
 
 ---
 
+## Default start state
+
+Every **fresh load** uses the same desktop and mobile defaults. The app does **not** persist layer filters or the timeline year in `localStorage` or the URL hash, so a reload always returns to this start state. Chip and scrubber toggles after load still work as before.
+
+- **Timeline year:** `100 AD` (Apostolic Age). The scrubber range is still 6 BC–100 AD.
+- **Layers ON:** `all` (All Visible), `savior` (Savior's Ministry), `diaspora` (Jewish Diaspora), `churches` (Christian Churches), `journeys` (Paul's Journeys), `provinces` (Roman Provinces), `jerusalemSites` (Jerusalem Landmarks), `jerusalemGeography` (Quarters & Walls).
+- **Layer OFF:** `heatmaps` (Growth Heatmap). All Visible masters the core place/route overlays only; Growth stays independent.
+
+---
+
 ## 🌟 Key Features
 
 - **Dual-Mode Geospatial Engine**: Switch between an **Ancient Biblical Parchment** map and high-definition **Physical Satellite / Topographic Terrain**.

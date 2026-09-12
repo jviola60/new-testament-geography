@@ -8,18 +8,35 @@ const assert = require('assert');
 // 1. Verify index.html markup
 const htmlContent = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
-// Ensure no filter-chip has active class by default
-const filterChipsMatch = htmlContent.match(/<button class="filter-chip[^"]*"[^>]*data-filter="([^"]+)"/g) || [];
-console.log(`Found ${filterChipsMatch.length} filter chips in index.html`);
-assert(filterChipsMatch.length >= 8, 'Expected at least 8 filter chips');
-filterChipsMatch.forEach(chipHtml => {
-  assert(!chipHtml.includes(' active'), `Found unexpected 'active' class in: ${chipHtml}`);
+// Fresh-load chips: every core overlay ON except Growth Heatmap
+const filterChipRe = /<button class="filter-chip([^"]*)"[^>]*data-filter="([^"]+)"/g;
+const filterChips = [];
+let chipMatch;
+while ((chipMatch = filterChipRe.exec(htmlContent)) !== null) {
+  filterChips.push({ classAttr: chipMatch[1], key: chipMatch[2], html: chipMatch[0] });
+}
+console.log(`Found ${filterChips.length} filter chips in index.html`);
+assert(filterChips.length >= 8, 'Expected at least 8 filter chips');
+const expectedOn = ["all", "savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+filterChips.forEach(chip => {
+  const isActive = chip.classAttr.includes("active");
+  if (chip.key === "heatmaps") {
+    assert(!isActive, `Growth Heatmap must start OFF: ${chip.html}`);
+  } else if (expectedOn.includes(chip.key)) {
+    assert(isActive, `Expected ${chip.key} chip to start ON: ${chip.html}`);
+  }
 });
-console.log('✓ All filter chips have no active class by default.');
+console.log('✓ Core overlay chips start active; Growth Heatmap starts inactive.');
 
-// Ensure #mapLegend is display: none by default
+assert(htmlContent.includes('id="displayYear">100 AD<'), 'Expected first-paint year badge 100 AD');
+assert(/id="timelineSlider"[^>]*value="100"/.test(htmlContent), 'Expected timeline slider to start at 100');
+assert(/class="era-tab active"[^>]*data-start-year="70"/.test(htmlContent), 'Expected Apostolic Age era tab active at 100 AD');
+assert(!/class="era-tab active"[^>]*data-start-year="-6"/.test(htmlContent), 'Nativity must not be the default era tab');
+console.log('✓ HTML first paint starts at 100 AD / Apostolic Age.');
+
+// Legend markup stays hidden until JS mounts default-on overlays
 assert(htmlContent.includes('id="mapLegend" style="display: none;"'), 'Expected #mapLegend to have style="display: none;"');
-console.log('✓ #mapLegend is style="display: none;" by default.');
+console.log('✓ #mapLegend is style="display: none;" before JS init.');
 
 // Ensure quick-jump-container and quickJumpSelect are present in index.html
 assert(htmlContent.includes('id="quickJumpContainer"'), 'Expected #quickJumpContainer to exist');
@@ -143,46 +160,55 @@ const mapControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'mapC
 vm.runInThisContext(mapControllerCode);
 
 const mapCtrl = new MapController();
-assert.strictEqual(mapCtrl.filterState.all, false, 'Default all should be false');
-assert.strictEqual(mapCtrl.filterState.savior, false, 'Default savior should be false');
-assert.strictEqual(mapCtrl.filterState.diaspora, false, 'Default diaspora should be false');
-assert.strictEqual(mapCtrl.filterState.churches, false, 'Default churches should be false');
-assert.strictEqual(mapCtrl.filterState.journeys, false, 'Default journeys should be false');
-assert.strictEqual(mapCtrl.filterState.provinces, false, 'Default provinces should be false');
-console.log('✓ MapController constructor sets all filterState flags to false.');
+assert.strictEqual(mapCtrl.currentYear, 100, 'Default timeline year should be 100 AD');
+assert.strictEqual(mapCtrl.filterState.all, true, 'Default all should be true');
+assert.strictEqual(mapCtrl.filterState.savior, true, 'Default savior should be true');
+assert.strictEqual(mapCtrl.filterState.diaspora, true, 'Default diaspora should be true');
+assert.strictEqual(mapCtrl.filterState.churches, true, 'Default churches should be true');
+assert.strictEqual(mapCtrl.filterState.journeys, true, 'Default journeys should be true');
+assert.strictEqual(mapCtrl.filterState.provinces, true, 'Default provinces should be true');
+assert.strictEqual(mapCtrl.filterState.jerusalemSites, true, 'Default jerusalemSites should be true');
+assert.strictEqual(mapCtrl.filterState.jerusalemGeography, true, 'Default jerusalemGeography should be true');
+assert.strictEqual(mapCtrl.filterState.heatmaps, false, 'Default Growth Heatmap should be false');
+console.log('✓ MapController constructor enables core overlays and starts at 100 AD with Growth off.');
 
 // Init map
 mapCtrl.init("map");
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.hydrography), 'Hydrography must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.cities), 'Cities must be on map by default');
-assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.provinces), 'Provinces must NOT be on map by default');
-assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorRoute), 'Savior route must NOT be on map by default');
-assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.missionaryJourneys), 'Missionary journeys must NOT be on map by default');
-assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.diaspora), 'Diaspora must NOT be on map by default');
-assert.strictEqual(domElements.mapLegend.style.display, 'none', '#mapLegend must remain hidden on init');
-console.log('✓ Initial map state has only hydrography and cities; all overlays and legend are hidden.');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.provinces), 'Provinces must be on map by default');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorRoute), 'Savior route must be on map by default');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorMarkers), 'Savior markers must be on map by default');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.missionaryJourneys), 'Missionary journeys must be on map by default');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.diaspora), 'Diaspora must be on map by default');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.churches), 'Churches must be on map by default');
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'Growth Heatmap must NOT be on map by default');
+assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend must appear when default overlays are on');
+console.log('✓ Initial map mounts core overlays, hides Growth, and shows the Atlas Legend.');
 
-// Enable one layer: savior
-mapCtrl.setLayerFilter("savior", true);
-assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorMarkers), 'saviorMarkers should now be on map');
-assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorRoute), 'saviorRoute should now be on map');
-assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend should appear when savior is active');
-console.log('✓ Clicking layer chip mounts overlay and displays Atlas Legend.');
+// User toggle after load: turning Savior off must not reset other defaults
+mapCtrl.setLayerFilter("savior", false);
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorMarkers), 'saviorMarkers should unmount when toggled off');
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.saviorRoute), 'saviorRoute should unmount when toggled off');
+assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.missionaryJourneys), 'Other overlays stay mounted after a single toggle');
+assert.strictEqual(mapCtrl.filterState.churches, true, 'Churches stay on after Savior is toggled off');
+assert.strictEqual(mapCtrl.filterState.heatmaps, false, 'Growth stays off unless the user enables it');
+assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend stays visible while other overlays remain on');
+console.log('✓ Toggling one chip after load does not reset the rest of the start state.');
 
-// Test Growth Heatmap independently of churches filter at year 95
+// Growth Heatmap independently of churches filter at year 95
 mapCtrl.updateTimelineYear(95);
 mapCtrl.setLayerFilter("heatmaps", true);
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'heatmaps should be mounted on map');
-assert.strictEqual(mapCtrl.filterState.churches, false, 'Churches filter is false');
-assert(mapCtrl.layers.heatmaps._layers.size > 0, 'Heatmap circles must be generated even when churches filter is off');
-assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend should appear for heatmaps');
-console.log('✓ Growth Heatmap renders independently of Christian Churches filter.');
+assert.strictEqual(mapCtrl.filterState.churches, true, 'Churches filter remains independently on');
+assert(mapCtrl.layers.heatmaps._layers.size > 0, 'Heatmap circles must be generated even when independently toggled');
+assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend should remain for heatmaps');
+console.log('✓ Growth Heatmap can still be toggled on after load without disturbing other filters.');
 
-// Turn off heatmaps and savior
+// Turn off heatmaps; remaining overlays keep the legend open
 mapCtrl.setLayerFilter("heatmaps", false);
-mapCtrl.setLayerFilter("savior", false);
 assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'heatmaps removed from map');
-assert.strictEqual(domElements.mapLegend.style.display, 'none', '#mapLegend hidden again when all layers off');
+assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend stays visible while core overlays remain on');
 
 // 3. Verify UIController Quick Jump Dropdown population and interaction
 const uiControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'uiController.js'), 'utf8');
@@ -219,5 +245,12 @@ assert.strictEqual(flownLocation.lat, 37.93);
 assert.strictEqual(flownLocation.zoom, 12);
 assert.strictEqual(shownCity.id, "corinth");
 console.log('✓ Selecting city from quick jump dropdown correctly flies map and opens city dossier.');
+
+// 4. TimelineController fresh-load year
+const timelineControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'timelineController.js'), 'utf8');
+vm.runInThisContext(timelineControllerCode);
+const timelineCtrl = new TimelineController();
+assert.strictEqual(timelineCtrl.currentYear, 100, 'TimelineController should start at 100 AD');
+console.log('✓ TimelineController constructor starts at 100 AD.');
 
 console.log('\nALL VERIFICATION TESTS PASSED SUCCESSFULLY!');

@@ -126,10 +126,17 @@ assert(/badge-season[\s\S]{0,220}clip:\s*rect\(0,\s*0,\s*0,\s*0\)/.test(mobileCs
 assert(mobileJs.includes('aria-hidden'), "Sheet-open should aria-hide the command row");
 assert(mobileJs.includes("syncYearBadgeAria"), "Year badge should keep season in aria-label");
 
-const chips = html.match(/<button class="filter-chip[^"]*"/g) || [];
-assert(chips.length >= 8, `Expected at least 8 filter chips, found ${chips.length}`);
-chips.forEach(chip => {
-  assert(!chip.includes(" active"), `Filter chips must stay inactive by default: ${chip}`);
+const chipTags = html.match(/<button class="filter-chip[^"]*"[^>]*data-filter="[^"]+"/g) || [];
+assert(chipTags.length >= 8, `Expected at least 8 filter chips, found ${chipTags.length}`);
+chipTags.forEach(chip => {
+  const isGrowth = chip.includes('data-filter="heatmaps"');
+  if (isGrowth) {
+    assert(!chip.includes(" active"), `Growth Heatmap must start inactive: ${chip}`);
+  } else {
+    assert(chip.includes(" active"), `Core overlay chip must start active: ${chip}`);
+  }
 });
+assert(html.includes('id="displayYear">100 AD<'), "Mobile first paint should show 100 AD");
+assert(html.includes("Period · Apostolic Age"), "Mobile period trigger should start on Apostolic Age");
 
 console.log("✓ Mobile shell markup, CSS, and JS hooks look complete.");

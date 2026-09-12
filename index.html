@@ -160,19 +160,19 @@
         <span class="filter-label">Layers:</span>
         <div class="filter-chip-rows" id="mobileFilterMenu">
           <div class="filter-chip-row" id="filterRowPrimary">
-            <button class="filter-chip" data-filter="all">
+            <button class="filter-chip active" data-filter="all">
               <span class="chip-dot dot-all"></span>All Visible
             </button>
-            <button class="filter-chip" data-filter="savior">
+            <button class="filter-chip active" data-filter="savior">
               <span class="chip-dot dot-savior"></span>Savior's Ministry
             </button>
-            <button class="filter-chip" data-filter="diaspora">
+            <button class="filter-chip active" data-filter="diaspora">
               <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
             </button>
-            <button class="filter-chip" data-filter="churches">
+            <button class="filter-chip active" data-filter="churches">
               <span class="chip-dot dot-church"></span>Christian Churches
             </button>
-            <button class="filter-chip" data-filter="journeys">
+            <button class="filter-chip active" data-filter="journeys">
               <span class="chip-dot dot-journey"></span>Paul's Journeys
             </button>
           </div>
@@ -180,13 +180,13 @@
             <button class="filter-chip" data-filter="heatmaps">
               <span class="chip-dot dot-heatmap"></span>Growth Heatmap
             </button>
-            <button class="filter-chip" data-filter="provinces">
+            <button class="filter-chip active" data-filter="provinces">
               <span class="chip-dot dot-provinces"></span>Roman Provinces
             </button>
-            <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
+            <button class="filter-chip active" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
               <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
             </button>
-            <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
+            <button class="filter-chip active" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
               <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
             </button>
           </div>
@@ -215,11 +215,11 @@
   <div class="mobile-city-bar" id="mobileCityBar">
     <button type="button" id="mobileFilterBtn" class="mobile-filter-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="mobileFilterMenu">
       <span class="mobile-filter-dot" id="mobileFilterDot" aria-hidden="true"></span>
-      <span class="mobile-filter-label" id="mobileFilterLabel">Layers</span>
+      <span class="mobile-filter-label" id="mobileFilterLabel">All Visible</span>
       <span class="mobile-filter-caret" aria-hidden="true">▾</span>
     </button>
     <button type="button" id="mobilePeriodBtn" class="mobile-period-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="eraTabs">
-      <span class="mobile-period-label" id="mobilePeriodLabel">Period · Nativity</span>
+      <span class="mobile-period-label" id="mobilePeriodLabel">Period · Apostolic Age</span>
       <span class="mobile-period-caret" aria-hidden="true">▾</span>
     </button>
     <button type="button" id="mobileCityPickerBtn" class="mobile-city-picker-btn" aria-haspopup="dialog" aria-expanded="false">
@@ -239,9 +239,9 @@
 
     <!-- Active Era Banner / Watermark (Floating on Map) -->
     <div class="floating-era-badge" id="floatingEraBadge">
-      <div class="era-tag" id="eraTag">ERA</div>
-      <div class="era-title" id="eraTitle">The Roman Republic to Augustus</div>
-      <div class="era-desc" id="eraDesc">Herod the Great rules Judea under Roman suzerainty.</div>
+      <div class="era-tag" id="eraTag">ERA VIII • 70 AD – 100 AD</div>
+      <div class="era-title" id="eraTitle">Close of the Apostolic Era</div>
+      <div class="era-desc" id="eraDesc">Spread of the Four Gospels, John's apocalyptic exile on the Isle of Patmos, and letters to the Seven Churches.</div>
     </div>
 
     <!-- Map Quick Navigation Floating Controls -->
@@ -455,20 +455,20 @@
 
       <!-- Current Year Display with BC / AD clarity -->
       <div class="current-date-badge" id="currentDateBadge">
-        <div class="badge-year" id="displayYear">6 BC</div>
-        <div class="badge-season" id="displaySeason">Roman Census • Annunciation</div>
+        <div class="badge-year" id="displayYear">100 AD</div>
+        <div class="badge-season" id="displaySeason">Gospel Writings • Patmos • Revelation</div>
       </div>
 
       <!-- Timeline Era Filter Tabs -->
       <div class="era-selector-tabs" id="eraTabs">
-        <button class="era-tab active" data-start-year="-6" data-end-year="-4" title="Nativity & Infancy">Nativity (-6 to -4)</button>
+        <button class="era-tab" data-start-year="-6" data-end-year="-4" title="Nativity & Infancy">Nativity (-6 to -4)</button>
         <button class="era-tab" data-start-year="-4" data-end-year="26" title="Childhood & Silent Years">Nazareth (-4 to 26)</button>
         <button class="era-tab" data-start-year="26" data-end-year="29" title="Early Ministry">Baptism & Judea (26–29)</button>
         <button class="era-tab" data-start-year="29" data-end-year="30" title="Galilean Ministry & Passion">Galilee & Passion (29–30)</button>
         <button class="era-tab" data-start-year="30" data-end-year="47" title="Pentecost & Church Birth">Pentecost (30–47)</button>
         <button class="era-tab" data-start-year="47" data-end-year="57" title="Paul's Journeys">Missionary (47–57)</button>
         <button class="era-tab" data-start-year="58" data-end-year="70" title="Rome & Fall of Jerusalem">Rome & 70 AD (58–70)</button>
-        <button class="era-tab" data-start-year="70" data-end-year="100" title="Post-70 AD & Revelation">Apostolic Age (70–100)</button>
+        <button class="era-tab active" data-start-year="70" data-end-year="100" title="Post-70 AD & Revelation">Apostolic Age (70–100)</button>
       </div>
     </div>
 
@@ -477,7 +477,7 @@
       <div class="slider-ticks" id="sliderTicks">
         <!-- Generated by JS -->
       </div>
-      <input type="range" id="timelineSlider" class="timeline-slider" min="-6" max="100" value="-6" step="0.25" aria-label="Timeline year slider">
+      <input type="range" id="timelineSlider" class="timeline-slider" min="-6" max="100" value="100" step="0.25" aria-label="Timeline year slider">
       <div class="timeline-labels">
         <span class="t-label start">6 BC</span>
         <span class="t-label">1 AD</span>
@@ -571,11 +571,11 @@
   <script src="js/data/tours.js?v=3.5"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.2"></script>
-  <script src="js/timelineController.js?v=3.5"></script>
+  <script src="js/mapController.js?v=4.3"></script>
+  <script src="js/timelineController.js?v=3.6"></script>
   <script src="js/uiController.js?v=4.5"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
   <script src="js/mobileShell.js?v=7.2"></script>
-  <script src="js/app.js?v=4.2"></script>
+  <script src="js/app.js?v=4.3"></script>
 </body>
 </html>

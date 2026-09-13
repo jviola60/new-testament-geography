@@ -13,6 +13,8 @@ Every **fresh load** uses the same desktop and mobile defaults. The app does **n
 - **Timeline year:** `100 AD` (Apostolic Age). The scrubber range is still 6 BC–100 AD.
 - **Layers ON:** `all` (All Visible), `savior` (Savior's Ministry), `diaspora` (Jewish Diaspora), `churches` (Christian Churches), `journeys` (Paul's Journeys), `provinces` (Roman Provinces), `jerusalemSites` (Jerusalem Landmarks), `jerusalemGeography` (Quarters & Walls).
 - **Layer OFF:** `heatmaps` (Growth Heatmap). All Visible masters the core place/route overlays only; Growth stays independent.
+- **Map start extent (phone, max-width 768px):** Eastern Mediterranean overview — Greece–Levant / Black Sea–Egypt. Leaflet `setView` at **36.0°N, 28.6°E**, zoom **5**. Measured visible box on a 390×844 phone (678px-tall map pane): **SW 23.1°N, 20.0°E → NE 47.1°N, 37.2°E**. Reset view uses the same center/zoom. Sparse overview labels: Jerusalem, Antioch, Ephesus, Corinth, Alexandria, Damascus, plus ASIA and GALATIA.
+- **Map start extent (desktop ≥1280):** Unchanged historic frame — center **34.5°N, 31.0°E**, zoom **6**. A phone-style zoom-5 box on a wide monitor would read as an empire-scale map, so the tighter start is phone-only.
 
 ---
 

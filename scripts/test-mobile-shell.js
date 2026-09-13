@@ -28,7 +28,10 @@ assert(/id="mobilePeriodLabel">Period</.test(html), "Period trigger must start w
 assert(/class="mobile-city-picker-label">Jump</.test(html), "Jump idle label should be the short Jump copy");
 assert(/id="mobileNavJump"[\s\S]*?Jump to place/.test(html), "Hamburger should list Jump to place");
 assert(!/Jump to any city or region/i.test(html), "Jump idle label must not keep the long city/region sentence");
-assert(html.includes('legend.style.display = "block"'), "Phone first paint should reveal the collapsed Atlas Legend chip");
+assert(html.includes('legend.style.display = "none"'), "Phone first paint should hide the Atlas Legend chip — Legend lives in the hamburger");
+assert(html.includes('id="mobileNavBasemapPanel"'), "Map / Satellite hamburger item must expand into a submenu");
+assert(html.includes('id="mobileNavRecenter"') && html.includes('id="mobileNavJerusalem"'), "Hamburger Map / Satellite section must host the on-map atlas tools");
+assert(html.includes('id="mobileNavHolyLand"'), "Hamburger Map / Satellite section should include Holy Land");
 assert(html.includes('id="mobileFilterSubtitle"'), "Layers menu should expose a subtitle for the current selection");
 assert(html.includes('id="mobilePeriodSubtitle"'), "Period menu should expose a subtitle for the current era");
 assert(html.includes('id="mobileCityPickerSheet"'), "Expected searchable city picker sheet");
@@ -51,7 +54,7 @@ assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mo
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
 assert(mobileCss.includes("--tap: 44px"), "Expected --tap token at 44px");
-["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "mobile-period-trigger", "mobile-menu-btn", "mobile-nav-item", "speed-btn", "sheet-handle"].forEach(sel => {
+["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "mobile-period-trigger", "mobile-menu-btn", "mobile-nav-item", "mobile-nav-tool", "speed-btn", "sheet-handle"].forEach(sel => {
   const re = new RegExp(`html\\.layout-mobile \\.${sel}(?:[\\s,:][^{]*)?\\{([\\s\\S]{0,240})`);
   const match = mobileCss.match(re);
   assert(match, `Expected mobile rule for .${sel}`);
@@ -71,10 +74,12 @@ assert(mobileJs.includes("invalidateSize"), "Expected Leaflet invalidateSize on 
 assert(mobileJs.includes("getQuickJumpCatalog"), "City picker should reuse the desktop catalog");
 assert(mobileJs.includes("mobile-zoomed"), "Mobile shell should gate map labels by zoom");
 assert(mobileJs.includes("sheet-open"), "Mobile shell should flag an open details sheet");
-assert(mobileJs.includes("topright"), "Zoom control should sit top-right, away from left FABs");
-assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the visible basemap toggle");
-assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell should stack left FABs below the period title");
-assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the period-title height");
+assert(mobileJs.includes('el.style.display = "none"'), "Phone zoom +/- must be hidden so users pinch instead");
+assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the Map / Satellite control inside the hamburger");
+assert(mobileJs.includes("toggleBasemapSubmenu"), "Map / Satellite hamburger item should expand a nested submenu");
+assert(mobileJs.includes("mobileNavRecenter"), "Hamburger should proxy the Reset view atlas tool");
+assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell may still measure the period title");
+assert(!mobileJs.includes("topright"), "Phone zoom control must not be repositioned onto the map");
 assert(mobileJs.includes("bindHamburgerMenu"), "Mobile shell should wire the phone hamburger bottom sheet");
 assert(mobileJs.includes("openNavSheet"), "Hamburger should open a bottom sheet, not a left drawer");
 assert(mobileJs.includes("nav-menu-open"), "Hamburger open state should use a nav-menu-open class");
@@ -123,7 +128,9 @@ assert(
   assert(burger.includes("openFilterMenu"), "Hamburger Layers must open the existing layer UI");
   assert(burger.includes("openPeriodMenu"), "Hamburger Period must open the existing period UI");
   assert(burger.includes("openCityPicker"), "Hamburger Jump must open the existing place picker");
-  assert(burger.includes("closeNavSheet"), "Selecting a submenu must close the hamburger sheet");
+  assert(burger.includes("closeNavSheet"), "Selecting Layers/Period/Jump/Legend must close the hamburger sheet");
+  assert(burger.includes("toggleBasemapSubmenu"), "Map / Satellite must expand in-place instead of leaving the hamburger");
+  assert(!/toggleBasemapFromMenu/.test(burger), "Map / Satellite must not immediately toggle and dismiss");
   assert(!/left drawer|side-drawer|offcanvas/i.test(burger), "Hamburger must not open a left drawer");
 }
 assert(mobileJs.includes('textContent = "Period"'), "Period trigger copy should stay the short Period label");
@@ -164,9 +171,11 @@ assert(mobileJs.includes("--app-vh"), "Mobile shell must write --app-vh");
 assert(mobileJs.includes("visualViewport"), "Viewport height must track visualViewport, not only innerHeight");
 assert(html.includes("--app-vh"), "First paint on phones should set --app-vh before CSS");
 assert(mobileCss.includes("safe-area-inset-bottom"), "Timeline footer must pad for Android safe-area");
-assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should show the basemap toggle");
-assert(mobileCss.includes("calc(8px + var(--tap) + 10px)"), "Zoom stack should clear the Map|Satellite chip");
-assert(mobileCss.includes("--left-fab-top"), "Mobile CSS should place FABs under the period title");
+assert(mobileCss.includes("mobile-basemap-toggle"), "Mobile CSS should style the basemap toggle in the hamburger");
+assert(mobileCss.includes("mobile-nav-submenu"), "Mobile CSS should nest atlas tools under Map / Satellite");
+assert(/leaflet-control-zoom[\s\S]{0,80}display:\s*none/.test(mobileCss), "Phone CSS must hide Leaflet +/- zoom");
+assert(/map-floating-actions[\s\S]{0,80}display:\s*none/.test(mobileCss), "Phone CSS must hide on-map atlas FABs");
+assert(/map-legend-box:not\(\.legend-open\)[\s\S]{0,80}display:\s*none/.test(mobileCss), "Phone CSS must hide the ATLAS LEGEND+ chip");
 assert(/crimson left edge/.test(mobileCss), "Period-title crimson accent should stay documented as decorative");
 
 assert(uiJs.includes("getQuickJumpCatalog"), "uiController should expose the shared place catalog");
@@ -219,7 +228,6 @@ chipTags.forEach(chip => {
 assert(html.includes('id="displayYear">100 AD<'), "Mobile first paint should show 100 AD");
 assert(/id="mobilePeriodSubtitle">Apostolic Age</.test(html), "Mobile period menu subtitle should start on Apostolic Age");
 assert(mobileCss.includes("legend-open"), "Phone legend should expand with a .legend-open sheet");
-assert(mobileCss.includes("ATLAS LEGEND") || mobileCss.includes('content: "+"'), "Collapsed phone legend should read as an ATLAS LEGEND+ chip");
 assert(mobileCss.includes("#3B2D20"), "Period list items need dark readable text on phone");
 assert(mobileCss.includes(".era-tab.active"), "Period list must restyle the selected era on phone");
 

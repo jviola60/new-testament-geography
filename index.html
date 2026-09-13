@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=7.6">
+  <link rel="stylesheet" href="css/mobile.css?v=7.7">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -49,7 +49,7 @@
           var legendBody = document.getElementById("legendBody");
           var legendBtn = document.getElementById("legendCollapseBtn");
           if (legend) {
-            legend.style.display = "block";
+            legend.style.display = "none";
             legend.setAttribute("aria-expanded", "false");
           }
           if (legendBody) legendBody.style.display = "none";
@@ -284,13 +284,7 @@
       </button>
     </div>
 
-    <div class="mobile-basemap-toggle" id="mobileBasemapToggle" role="group" aria-label="Choose map or satellite basemap">
-      <button type="button" class="mobile-basemap-btn active" data-style="parchment" aria-pressed="true">Map</button>
-      <button type="button" class="mobile-basemap-btn" data-style="satellite" aria-pressed="false">Satellite</button>
-      <button type="button" class="mobile-basemap-btn mobile-basemap-more" id="mobileBasemapMoreBtn" aria-label="More map styles" title="More map styles">···</button>
-    </div>
-
-    <!-- Floating Map Legend (Hidden by default; appears when any overlay layer is active) -->
+    <!-- Floating Map Legend (phone: hamburger only; desktop: on-map card) -->
     <div class="map-legend-box" id="mapLegend" style="display: none;">
       <div class="legend-header" id="legendToggleHeader">
         <span class="legend-title">Atlas Legend</span>
@@ -566,12 +560,27 @@
             <span class="mobile-nav-item-label">Atlas Legend</span>
           </span>
         </button>
-        <button type="button" class="mobile-nav-item" id="mobileNavBasemap" data-nav="basemap">
-          <span class="mobile-nav-item-text">
-            <span class="mobile-nav-item-label">Map / Satellite</span>
-            <span class="mobile-nav-item-detail" id="mobileNavBasemapDetail">Ancient relief</span>
-          </span>
-        </button>
+        <div class="mobile-nav-group" id="mobileNavBasemapGroup">
+          <button type="button" class="mobile-nav-item" id="mobileNavBasemap" data-nav="basemap" aria-expanded="false" aria-controls="mobileNavBasemapPanel">
+            <span class="mobile-nav-item-text">
+              <span class="mobile-nav-item-label">Map / Satellite</span>
+              <span class="mobile-nav-item-detail" id="mobileNavBasemapDetail">Ancient relief</span>
+            </span>
+            <span class="mobile-nav-chevron" aria-hidden="true">▾</span>
+          </button>
+          <div class="mobile-nav-submenu" id="mobileNavBasemapPanel" hidden>
+            <p class="mobile-nav-submenu-label">Basemap</p>
+            <div class="mobile-basemap-toggle" id="mobileBasemapToggle" role="group" aria-label="Choose map or satellite basemap">
+              <button type="button" class="mobile-basemap-btn active" data-style="parchment" aria-pressed="true">Map</button>
+              <button type="button" class="mobile-basemap-btn" data-style="satellite" aria-pressed="false">Satellite</button>
+              <button type="button" class="mobile-basemap-btn mobile-basemap-more" id="mobileBasemapMoreBtn" aria-label="More map styles" title="More map styles">···</button>
+            </div>
+            <p class="mobile-nav-submenu-label">Atlas tools</p>
+            <button type="button" class="mobile-nav-tool" id="mobileNavRecenter">Reset view</button>
+            <button type="button" class="mobile-nav-tool" id="mobileNavHolyLand">Holy Land</button>
+            <button type="button" class="mobile-nav-tool" id="mobileNavJerusalem">Jerusalem</button>
+          </div>
+        </div>
         <button type="button" class="mobile-nav-item" id="mobileNavAbout" data-nav="about">
           <span class="mobile-nav-item-text">
             <span class="mobile-nav-item-label">About</span>
@@ -681,7 +690,7 @@
   <script src="js/timelineController.js?v=3.6"></script>
   <script src="js/uiController.js?v=4.6"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=7.6"></script>
+  <script src="js/mobileShell.js?v=7.7"></script>
   <script src="js/app.js?v=4.3"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 class MapController {
   constructor() {
     this.map = null;
-    this.currentTheme = "parchment"; // 'parchment' or 'satellite'
+    this.currentTheme = "dare"; // 'dare' | 'parchment' | 'satellite' | 'modern'
     
     // Layer Groups
     this.layers = {
@@ -27,6 +27,7 @@ class MapController {
 
     // Tile layers
     this.tileLayers = {
+      dare: null,
       parchment: null,
       satellite: null,
       modern: null,
@@ -56,13 +57,61 @@ class MapController {
 
     this.currentYear = 100;
     this.activeHighlightMarker = null;
+    this._startExtentPending = true;
+  }
+
+  getStartView() {
+    if (this.isPhoneViewport()) {
+      const extent = this.getStartExtent();
+      return { center: extent.center, zoom: extent.zoom };
+    }
+    // Desktop ≥1280: historic Rome-to-Jerusalem frame. Do not use the phone
+    // zoom-5 overview here — a wide monitor at zoom 5 reads as empire-scale.
+    return { center: [34.5, 31.0], zoom: 6 };
+  }
+
+  getStartExtent() {
+    const fallback = {
+      bounds: [[23.1, 20.0], [47.1, 37.2]],
+      center: [36.0, 28.6],
+      zoom: 5,
+      maxZoom: 5.5
+    };
+    const fromData = (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.startExtent) || {};
+    return {
+      bounds: fromData.bounds || fallback.bounds,
+      center: fromData.center || fallback.center,
+      zoom: fromData.zoom != null ? fromData.zoom : fallback.zoom,
+      maxZoom: fromData.maxZoom != null ? fromData.maxZoom : fallback.maxZoom
+    };
+  }
+
+  applyStartExtent({ animate = false, force = false } = {}) {
+    if (!this.map || !this.isPhoneViewport()) return false;
+    if (!force && !this._startExtentPending) return false;
+    const extent = this.getStartExtent();
+    // setView (not fitBounds): the documented box is ~17.2° wide, which is the
+    // full 390px pane at zoom 5. fitBounds + padding drops to zoom 4 and shows Italy.
+    if (animate && typeof this.map.flyTo === "function") {
+      this.map.flyTo(extent.center, extent.zoom, { duration: 1.2 });
+    } else if (typeof this.map.setView === "function") {
+      this.map.setView(extent.center, extent.zoom, { animate: false });
+    }
+    this._startExtentPending = false;
+    return true;
+  }
+
+  applyStartExtentIfNeeded() {
+    return this.applyStartExtent({ animate: false, force: false });
   }
 
   init(containerId = "map") {
-    // Center initially on the Eastern Mediterranean encompassing Rome to Jerusalem
+    const start = this.getStartView();
+    // Phone: Eastern Mediterranean overview (Greece–Levant / Black Sea–Egypt).
+    // Desktop: historic center [34.5, 31.0] zoom 6.
     this.map = L.map(containerId, {
-      center: [34.5, 31.0],
-      zoom: 6,
+      center: start.center,
+      zoom: start.zoom,
       minZoom: 4,
       maxZoom: 18,
       zoomControl: true,
@@ -71,7 +120,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri Shaded, Imagery & OSM')
+      .addAttribution("New Testament Atlas")
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -86,6 +135,7 @@ class MapController {
     this.drawHydrography();
     this.drawProvinces();
     this.drawCities();
+    this.drawOverviewRegionLabels();
     this.drawFirstCenturySatelliteOverlays();
     this.drawJerusalemGeography();
     this.drawJerusalemSites();
@@ -154,6 +204,7 @@ class MapController {
     // never flashes the fuller desktop defaults.
     this.applyViewportDefaultFilters();
     this.applyLayerVisibility();
+    this.applyStartExtentIfNeeded();
   }
 
   isPhoneViewport() {
@@ -187,7 +238,21 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Clean Ancient Shaded Relief (Default: pure historical terrain without modern street names or city labels)
+    // 1. Digital Atlas of the Roman Empire (default). Period-accurate place
+    // names for −6 BC–100 AD. Native tiles are z=5–11; Leaflet scales outside that.
+    this.tileLayers.dare = L.tileLayer(
+      "https://dh.gu.se/tiles/imperium/{z}/{x}/{y}.png",
+      {
+        minNativeZoom: 5,
+        maxNativeZoom: 11,
+        minZoom: 4,
+        maxZoom: 18,
+        opacity: 1.0,
+        attribution: 'Digital Atlas of the Roman Empire / Johan Åhlfeldt, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>'
+      }
+    );
+
+    // 2. Esri World Shaded Relief (selectable; no modern country/street labels)
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
@@ -198,27 +263,26 @@ class MapController {
       }
     );
 
-    // 2. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
+    // 3. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
     );
 
-    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    // 4. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    // 5. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to clean ancient shaded relief
-    this.tileLayers.parchment.addTo(this.map);
-    document.body.classList.add("parchment-theme");
+    this.tileLayers.dare.addTo(this.map);
+    document.body.classList.add("dare-theme");
   }
 
   setMapStyle(theme) {
@@ -226,12 +290,14 @@ class MapController {
     const body = document.body;
 
     // Remove all basemap tiles first
-    this.map.removeLayer(this.tileLayers.parchment);
-    this.map.removeLayer(this.tileLayers.satellite);
-    this.map.removeLayer(this.tileLayers.modern);
+    if (this.tileLayers.dare) this.map.removeLayer(this.tileLayers.dare);
+    if (this.tileLayers.parchment) this.map.removeLayer(this.tileLayers.parchment);
+    if (this.tileLayers.satellite) this.map.removeLayer(this.tileLayers.satellite);
+    if (this.tileLayers.modern) this.map.removeLayer(this.tileLayers.modern);
 
-    // Remove theme classes
-    body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
+    // Remove theme classes. DARE is unfiltered so Johan Åhlfeldt's period
+    // coloring stays intact; Esri relief still uses the parchment wash.
+    body.classList.remove("dare-theme", "parchment-theme", "satellite-theme", "modern-theme");
 
     if (theme === "satellite" || theme === "modern-satellite") {
       this.tileLayers.satellite.addTo(this.map);
@@ -239,9 +305,13 @@ class MapController {
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
-    } else {
+    } else if (theme === "parchment") {
       this.tileLayers.parchment.addTo(this.map);
       body.classList.add("parchment-theme");
+    } else {
+      this.currentTheme = "dare";
+      this.tileLayers.dare.addTo(this.map);
+      body.classList.add("dare-theme");
     }
   }
 
@@ -485,14 +555,22 @@ class MapController {
 
       // Create custom HTML label
       const isMajor = city.isMajor;
-      const labelHtml = `<div class="city-label-text ${isMajor ? 'city-label-major' : ''}">${city.name}</div>`;
+      const isOverview = Boolean(city.overviewLabel);
+      const labelName = (isOverview && city.overviewName && this.isPhoneViewport())
+        ? city.overviewName
+        : city.name;
+      const labelClasses = ["city-label-text"];
+      if (isMajor) labelClasses.push("city-label-major");
+      if (isOverview) labelClasses.push("city-label-overview");
+      const labelHtml = `<div class="${labelClasses.join(" ")}">${labelName}</div>`;
 
+      const phoneOverview = isOverview && this.isPhoneViewport();
       const textMarker = L.marker([city.lat, city.lng], {
         icon: L.divIcon({
-          className: "custom-city-label",
+          className: phoneOverview ? "custom-city-label overview-label-icon" : "custom-city-label",
           html: labelHtml,
-          iconSize: [80, 20],
-          iconAnchor: [40, 10]
+          iconSize: phoneOverview ? [160, 28] : [80, 20],
+          iconAnchor: phoneOverview ? (city.overviewAnchor || [80, -8]) : [40, 10]
         }),
         zIndexOffset: isMajor ? 300 : 100
       });
@@ -507,6 +585,29 @@ class MapController {
       }
 
       this.layers.cities.addLayer(textMarker);
+    });
+  }
+
+  // Sparse region captions for the phone overview zoom (provinces stay OFF
+  // on phone cold-start, so these are not the full province layer).
+  drawOverviewRegionLabels() {
+    if (!this.isPhoneViewport()) return;
+    const labels = [
+      { name: "ASIA", lat: 38.55, lng: 28.55 },
+      { name: "GALATIA", lat: 39.35, lng: 33.15 }
+    ];
+    labels.forEach((label) => {
+      const marker = L.marker([label.lat, label.lng], {
+        icon: L.divIcon({
+          className: "custom-region-label overview-label-icon",
+          html: `<div class="region-label-text region-label-overview">${label.name}</div>`,
+          iconSize: [140, 28],
+          iconAnchor: [70, 14]
+        }),
+        zIndexOffset: 90,
+        interactive: false
+      });
+      this.layers.cities.addLayer(marker);
     });
   }
 
@@ -1190,6 +1291,11 @@ class MapController {
   }
 
   recenter() {
+    if (this.isPhoneViewport()) {
+      this._startExtentPending = true;
+      this.applyStartExtent({ animate: true, force: true });
+      return;
+    }
     this.focusRegion("mediterranean");
   }
 }

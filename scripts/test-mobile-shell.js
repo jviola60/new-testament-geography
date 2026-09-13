@@ -11,6 +11,9 @@ const mobileCss = fs.readFileSync(path.join(root, "css/mobile.css"), "utf8");
 const mobileJs = fs.readFileSync(path.join(root, "js/mobileShell.js"), "utf8");
 const uiJs = fs.readFileSync(path.join(root, "js/uiController.js"), "utf8");
 const mainCss = fs.readFileSync(path.join(root, "css/main.css"), "utf8");
+const mapJs = fs.readFileSync(path.join(root, "js/mapController.js"), "utf8");
+const citiesJs = fs.readFileSync(path.join(root, "js/data/cities.js"), "utf8");
+const regionsJs = fs.readFileSync(path.join(root, "js/data/regions.js"), "utf8");
 
 assert(html.includes('css/mobile.css'), "index.html should load mobile.css");
 assert(html.includes("js/mobileShell.js"), "index.html should load mobileShell.js");
@@ -47,7 +50,11 @@ assert((html.match(/class="tab-btn/g) || []).length >= 7, "Expected all seven pl
 assert(html.includes('id="sheetHandle"'), "Expected bottom-sheet handle");
 assert(html.includes('id="mobileMoreSheet"'), "Expected more-tools sheet");
 assert(html.includes('id="mobileBasemapToggle"'), "Expected visible mobile Map/Satellite control");
-assert(html.includes('data-style="parchment"') && html.includes('data-style="satellite"'), "Basemap toggle must expose parchment and satellite");
+assert(/id="mapStyleText">DARE Atlas</.test(html), "Desktop header should default to DARE Atlas");
+assert(html.includes('data-style="dare"') && html.includes("Esri World Shaded Relief"), "Desktop dropdown must list DARE and Esri relief");
+assert(html.includes('data-style="dare"') && html.includes('data-style="parchment"') && html.includes('data-style="satellite"'), "Basemap toggle must expose DARE, Esri relief, and satellite");
+assert(/data-style="dare"[^>]*>DARE</.test(html), "Phone hamburger should label the default basemap DARE");
+assert(/data-style="parchment"[^>]*>Esri</.test(html), "Phone hamburger should keep Esri World Shaded Relief selectable");
 assert(html.includes("viewport-fit=cover"), "Expected notch-safe viewport");
 
 assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mobile");
@@ -73,6 +80,18 @@ assert(mobileJs.includes("class MobileShell"), "Expected MobileShell class");
 assert(mobileJs.includes("invalidateSize"), "Expected Leaflet invalidateSize on layout changes");
 assert(mobileJs.includes("getQuickJumpCatalog"), "City picker should reuse the desktop catalog");
 assert(mobileJs.includes("mobile-zoomed"), "Mobile shell should gate map labels by zoom");
+assert(mobileJs.includes("applyStartExtentIfNeeded"), "Phone invalidateSize should finish the Eastern Mediterranean start extent");
+assert(mobileCss.includes("city-label-overview"), "Phone CSS should reveal curated overview city labels at cold-start zoom");
+assert(mobileCss.includes("region-label-overview"), "Phone CSS should reveal ASIA / GALATIA at cold-start zoom");
+assert(mapJs.includes("getStartExtent") && mapJs.includes("drawOverviewRegionLabels"), "MapController should own phone start extent and overview region labels");
+assert(mapJs.includes("dh.gu.se/tiles/imperium") && mapJs.includes('currentTheme = "dare"'), "Default basemap must be DARE Imperium tiles");
+assert(!/tile\.opentopomap\.org/.test(mapJs), "OpenTopoMap must not be a production basemap");
+assert(mapJs.includes("tileLayers.dare.addTo") || mapJs.includes("this.tileLayers.dare.addTo"), "DARE tiles must be the layer added on setup");
+assert(regionsJs.includes("startExtent") && regionsJs.includes("23.1") && regionsJs.includes("37.2"), "regions.js should document the Eastern Mediterranean start box");
+["jerusalem", "damascus", "antioch-syria", "ephesus", "corinth", "alexandria"].forEach((id) => {
+  const block = citiesJs.split("{").find((chunk) => chunk.includes(`id: "${id}"`));
+  assert(block && block.includes("overviewLabel: true"), `${id} should be flagged as an overview label`);
+});
 assert(mobileJs.includes("sheet-open"), "Mobile shell should flag an open details sheet");
 assert(mobileJs.includes('el.style.display = "none"'), "Phone zoom +/- must be hidden so users pinch instead");
 assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the Map / Satellite control inside the hamburger");
@@ -231,7 +250,6 @@ assert(mobileCss.includes("legend-open"), "Phone legend should expand with a .le
 assert(mobileCss.includes("#3B2D20"), "Period list items need dark readable text on phone");
 assert(mobileCss.includes(".era-tab.active"), "Period list must restyle the selected era on phone");
 
-const mapJs = fs.readFileSync(path.join(root, "js/mapController.js"), "utf8");
 assert(mapJs.includes("applyViewportDefaultFilters"), "MapController should apply calmer phone cold-start layers");
 assert(mapJs.includes('phoneOn') || mapJs.includes('"churches"'), "Phone defaults should keep Christian Churches on");
 assert(mapJs.includes("isPhoneViewport"), "Phone overlay defaults must be viewport-gated so desktop stays unchanged");

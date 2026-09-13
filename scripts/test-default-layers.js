@@ -66,23 +66,36 @@ global.L = {
       _layers: layers
     };
   },
-  map: () => {
+  map: (_id, opts) => {
     const mapLayers = new Set();
+    const state = {
+      center: (opts && opts.center) || [34.5, 31.0],
+      zoom: (opts && opts.zoom) || 6,
+      fit: null
+    };
     return {
-      center: [34.5, 31.0],
-      zoom: 6,
-      getZoom: () => 6,
-      getCenter: () => ({ lat: 34.5, lng: 31.0 }),
+      center: state.center,
+      zoom: state.zoom,
+      getZoom: () => state.zoom,
+      getCenter: () => ({ lat: state.center[0], lng: state.center[1] }),
+      getSize: () => ({ x: 1280, y: 800 }),
       addLayer: (l) => mapLayers.add(l),
       removeLayer: (l) => mapLayers.delete(l),
       hasLayer: (l) => mapLayers.has(l),
       on: () => {},
-      flyTo: () => {},
+      flyTo: (center, zoom) => { state.center = center; state.zoom = zoom; state.fly = { center, zoom }; },
+      setView: (center, zoom) => { state.center = center; state.zoom = zoom; state.setView = { center, zoom }; },
+      fitBounds: (bounds, options) => { state.fit = { bounds, options }; },
+      _state: state,
       _mapLayers: mapLayers
     };
   },
+  latLngBounds: (a, b) => [a, b],
   control: { attribution: () => ({ addAttribution: () => ({ addTo: () => {} }) }) },
-  tileLayer: () => ({ addTo: () => {} }),
+  tileLayer: (url, opts) => {
+    const layer = { url, opts, _added: false, addTo() { layer._added = true; return layer; } };
+    return layer;
+  },
   marker: () => ({ bindTooltip: () => {}, on: () => {} }),
   divIcon: () => ({}),
   polygon: () => ({ bindTooltip: () => {}, on: () => {} }),
@@ -96,10 +109,14 @@ global.L = {
 
 // Global mocks
 global.HYDROGRAPHY_DATA = { jordanRiver: [[32, 35]], seaOfGalilee: [[32, 35]], deadSea: [[31, 35]], roads: [] };
-global.REGIONS_DATA = { regions: [{ id: "judea", name: "Judea", capital: "Caesarea", bounds: [[31, 34], [32, 36]] }], cameraPresets: { mediterranean: { center: [34.5, 31.0], zoom: 6 } } };
+global.REGIONS_DATA = {
+  regions: [{ id: "judea", name: "Judea", capital: "Caesarea", bounds: [[31, 34], [32, 36]] }],
+  cameraPresets: { mediterranean: { center: [34.5, 31.0], zoom: 6 } },
+  startExtent: { bounds: [[23.1, 20.0], [47.1, 37.2]], center: [36.0, 28.6], zoom: 5, maxZoom: 5.5 }
+};
 global.CITIES_DATA = [
-  { id: "jerusalem", name: "Jerusalem", region: "Judea", lat: 31.77, lng: 35.23, isMajor: true },
-  { id: "corinth", name: "Corinth", region: "Achaia", lat: 37.93, lng: 22.93, isMajor: true }
+  { id: "jerusalem", name: "Jerusalem", region: "Judea", lat: 31.77, lng: 35.23, isMajor: true, overviewLabel: true },
+  { id: "corinth", name: "Corinth", region: "Achaia", lat: 37.93, lng: 22.93, isMajor: true, overviewLabel: true }
 ];
 global.JERUSALEM_SITES = [
   { id: "jer-temple", name: "Second Temple", area: "Temple Mount", icon: "🏛️", lat: 31.778, lng: 35.235, scriptures: [] }
@@ -165,6 +182,7 @@ const mapControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'mapC
 vm.runInThisContext(mapControllerCode);
 
 const mapCtrl = new MapController();
+assert.strictEqual(mapCtrl.currentTheme, "dare", "Default basemap theme should be DARE");
 assert.strictEqual(mapCtrl.currentYear, 100, 'Default timeline year should be 100 AD');
 assert.strictEqual(mapCtrl.filterState.all, true, 'Default all should be true');
 assert.strictEqual(mapCtrl.filterState.savior, true, 'Default savior should be true');
@@ -215,8 +233,26 @@ global.document.documentElement = savedDocumentElement;
 global.document.querySelectorAll = () => [];
 global.window = undefined;
 
+const phoneStart = new MapController();
+global.document.documentElement = phoneDocEl;
+global.window = { matchMedia: (q) => ({ matches: String(q).includes("max-width: 768px") }) };
+phoneStart.init("map");
+assert.deepStrictEqual(phoneStart.map._state.center, [36.0, 28.6], "Phone Leaflet start center is Eastern Mediterranean");
+assert.strictEqual(phoneStart.map._state.zoom, 5, "Phone Leaflet start zoom is 5");
+assert(phoneStart.map._state.setView, "Phone init should setView the overview center/zoom");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[0], [23.1, 20.0], "Documented phone start SW bound");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[1], [47.1, 37.2], "Documented phone start NE bound");
+console.log("✓ Phone cold-start uses Eastern Mediterranean center 36.0N, 28.6E zoom 5.");
+global.document.documentElement = savedDocumentElement;
+global.window = undefined;
+
 // Init map
 mapCtrl.init("map");
+assert.deepStrictEqual(mapCtrl.map._state.center, [34.5, 31.0], "Desktop start center stays 34.5, 31.0");
+assert.strictEqual(mapCtrl.map._state.zoom, 6, "Desktop start zoom stays 6");
+assert.strictEqual(mapCtrl.map._state.fit, null, "Desktop must not fitBounds the phone overview");
+assert.strictEqual(mapCtrl.map._state.setView, undefined, "Desktop must not re-setView the phone overview");
+console.log("✓ Desktop cold-start stays center 34.5°N, 31.0°E zoom 6.");
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.hydrography), 'Hydrography must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.cities), 'Cities must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.provinces), 'Provinces must be on map by default');
@@ -227,7 +263,23 @@ assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.diaspora), 'Diaspora must be on
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.churches), 'Churches must be on map by default');
 assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'Growth Heatmap must NOT be on map by default');
 assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend must appear when default overlays are on');
+assert.strictEqual(mapCtrl.currentTheme, "dare", "Init should leave DARE as the active basemap");
+assert(mapCtrl.tileLayers.dare && /dh\.gu\.se\/tiles\/imperium/.test(mapCtrl.tileLayers.dare.url), "DARE Imperium tiles must be configured");
+assert.strictEqual(mapCtrl.tileLayers.dare.opts.maxNativeZoom, 11, "DARE native tiles end at z=11");
+assert(mapCtrl.tileLayers.dare._added, "DARE tiles must be added on init");
+assert(!mapCtrl.tileLayers.parchment._added, "Esri relief must not be the default layer");
+assert(!mapCtrl.tileLayers.satellite._added, "Satellite must not be the default layer");
+assert(/Johan Åhlfeldt/.test(mapCtrl.tileLayers.dare.opts.attribution), "DARE attribution must credit Johan Åhlfeldt");
+assert(/CC BY 4.0/.test(mapCtrl.tileLayers.dare.opts.attribution), "DARE attribution must include CC BY 4.0");
 console.log('✓ Initial map mounts core overlays, hides Growth, and shows the Atlas Legend.');
+console.log('✓ Default basemap is DARE; Esri relief and Satellite stay selectable.');
+mapCtrl.setMapStyle("parchment");
+assert.strictEqual(mapCtrl.currentTheme, "parchment", "setMapStyle('parchment') should select Esri relief");
+assert(mapCtrl.tileLayers.parchment._added, "Esri relief tiles should mount when selected");
+mapCtrl.setMapStyle("satellite");
+assert.strictEqual(mapCtrl.currentTheme, "satellite", "setMapStyle('satellite') should select Esri imagery");
+mapCtrl.setMapStyle("dare");
+assert.strictEqual(mapCtrl.currentTheme, "dare", "setMapStyle('dare') should restore DARE");
 
 // User toggle after load: turning Savior off must not reset other defaults
 mapCtrl.setLayerFilter("savior", false);

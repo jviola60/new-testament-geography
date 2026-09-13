@@ -151,6 +151,9 @@ class MobileShell {
       if (map && typeof map.invalidateSize === "function") {
         map.invalidateSize({ animate: false, pan: false });
       }
+      if (window.app && window.app.map && typeof window.app.map.applyStartExtentIfNeeded === "function") {
+        window.app.map.applyStartExtentIfNeeded();
+      }
       this.syncLeftMapStack();
     }, delay);
   }
@@ -490,10 +493,7 @@ class MobileShell {
       this.navJumpDetail.textContent = hasPlace ? current : "Search cities & sites";
     }
     if (this.navBasemapDetail) {
-      const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
-      this.navBasemapDetail.textContent = theme === "satellite" || theme === "modern-satellite"
-        ? "Satellite terrain"
-        : "Ancient relief";
+      this.navBasemapDetail.textContent = this.basemapDetailLabel();
     }
   }
 
@@ -1029,6 +1029,14 @@ class MobileShell {
     }
   }
 
+  basemapDetailLabel(theme) {
+    const current = theme || (window.app && window.app.map && window.app.map.currentTheme) || "dare";
+    if (current === "satellite" || current === "modern-satellite") return "Satellite terrain";
+    if (current === "parchment") return "Esri shaded relief";
+    if (current === "modern") return "Modern streets";
+    return "DARE Roman atlas";
+  }
+
   bindBasemapToggle() {
     const root = document.getElementById("mobileBasemapToggle");
     if (!root) return;
@@ -1054,7 +1062,7 @@ class MobileShell {
   }
 
   syncBasemapToggle() {
-    const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
+    const theme = (window.app && window.app.map && window.app.map.currentTheme) || "dare";
     document.querySelectorAll("#mobileBasemapToggle [data-style]").forEach((btn) => {
       const style = btn.dataset.style;
       const on = style === theme || (style === "satellite" && theme === "modern-satellite");
@@ -1062,9 +1070,7 @@ class MobileShell {
       btn.setAttribute("aria-pressed", on ? "true" : "false");
     });
     if (this.navBasemapDetail) {
-      this.navBasemapDetail.textContent = (theme === "satellite" || theme === "modern-satellite")
-        ? "Satellite terrain"
-        : "Ancient relief";
+      this.navBasemapDetail.textContent = this.basemapDetailLabel(theme);
     }
   }
 

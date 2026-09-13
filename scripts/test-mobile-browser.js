@@ -192,6 +192,76 @@ function assertViewportFill(label, fill) {
   if (coldStart.legendBodyDisplay !== "none") fail("Atlas Legend body must start hidden on phone");
   if (!/atlas legend/i.test(coldStart.legendTitle)) fail("Hamburger Legend item should still be the Atlas Legend");
 
+  const startExtent = await page.evaluate(() => {
+    const map = window.app.map.map;
+    const bounds = map.getBounds();
+    const center = map.getCenter();
+    const visible = [...document.querySelectorAll(".city-label-text, .region-label-text")].filter((el) => {
+      const s = getComputedStyle(el);
+      return s.display !== "none" && s.visibility !== "hidden" && el.getClientRects().length > 0;
+    }).map((el) => {
+      const r = el.getBoundingClientRect();
+      return { name: el.textContent.trim(), w: r.width, h: r.height, left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+    });
+    return {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+      lat: center.lat,
+      lng: center.lng,
+      zoom: map.getZoom(),
+      labels: visible.map((item) => item.name),
+      labelBoxes: visible,
+      theme: window.app.map.currentTheme,
+      dareUrl: window.app.map.tileLayers.dare && window.app.map.tileLayers.dare._url,
+      dareOn: window.app.map.map.hasLayer(window.app.map.tileLayers.dare),
+      bodyTheme: document.body.className
+    };
+  });
+  console.log("Phone start extent:", startExtent);
+  if (startExtent.west > 21.5 || startExtent.east < 35.0) {
+    fail(`Phone start longitude should cover Greece–Levant, west=${startExtent.west} east=${startExtent.east}`);
+  }
+  if (startExtent.south > 31.4 || startExtent.north < 41.0) {
+    fail(`Phone start latitude should cover Egypt–Black Sea, south=${startExtent.south} north=${startExtent.north}`);
+  }
+  if (startExtent.zoom < 4.8 || startExtent.zoom > 5.2) {
+    fail(`Phone start zoom should stay an overview (~5), got ${startExtent.zoom}`);
+  }
+  if (startExtent.theme !== "dare") fail(`Phone cold-start basemap must be DARE, got ${startExtent.theme}`);
+  if (!startExtent.dareOn) fail("DARE tile layer must be on the map at cold start");
+  if (!/dh\.gu\.se\/tiles\/imperium/.test(startExtent.dareUrl || "")) {
+    fail(`Expected DARE Imperium tile URL, got ${startExtent.dareUrl}`);
+  }
+  if (!/\bdare-theme\b/.test(startExtent.bodyTheme)) fail(`Expected dare-theme on body, got ${startExtent.bodyTheme}`);
+  if (/\bparchment-theme\b/.test(startExtent.bodyTheme)) fail("Esri parchment theme must not be the cold-start default");
+  ["Jerusalem", "Antioch", "Ephesus", "Corinth", "Alexandria", "Damascus", "ASIA", "GALATIA"].forEach((name) => {
+    if (!startExtent.labels.some((label) => label === name || label.startsWith(name))) {
+      fail(`Cold-start overview should show "${name}", got ${startExtent.labels.join(", ")}`);
+    }
+  });
+  if (startExtent.labels.some((label) => /smyrna|bethlehem|nazareth|capernaum/i.test(label))) {
+    fail(`Overview labels are cluttered: ${startExtent.labels.join(", ")}`);
+  }
+  startExtent.labelBoxes.forEach((box) => {
+    if (box.w + 0.5 < box.h * 1.6) {
+      fail(`Overview label "${box.name}" looks stacked (${box.w}x${box.h}); should read horizontally`);
+    }
+  });
+  const corinthBox = startExtent.labelBoxes.find((box) => box.name === "Corinth");
+  if (corinthBox && corinthBox.left < 2) {
+    fail(`Corinth label is clipped on the left edge (left=${corinthBox.left})`);
+  }
+  for (let i = 0; i < startExtent.labelBoxes.length; i++) {
+    for (let j = i + 1; j < startExtent.labelBoxes.length; j++) {
+      const a = startExtent.labelBoxes[i];
+      const b = startExtent.labelBoxes[j];
+      const hits = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+      if (hits) fail(`Overview labels overlap: ${a.name} vs ${b.name}`);
+    }
+  }
+
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");
@@ -271,15 +341,16 @@ function assertViewportFill(label, fill) {
       toggleVisible: tr.width > 0 && tr.height > 0,
       tools,
       navOpen,
-      mapLabel: ((document.querySelector('#mobileBasemapToggle [data-style="parchment"]') || {}).textContent || "").trim(),
+      dareLabel: ((document.querySelector('#mobileBasemapToggle [data-style="dare"]') || {}).textContent || "").trim(),
+      esriLabel: ((document.querySelector('#mobileBasemapToggle [data-style="parchment"]') || {}).textContent || "").trim(),
       satLabel: ((document.querySelector('#mobileBasemapToggle [data-style="satellite"]') || {}).textContent || "").trim()
     };
   });
   console.log("Map/Satellite section:", mapSection);
   if (!mapSection.navOpen) fail("Expanding Map / Satellite must keep the hamburger open");
-  if (!mapSection.toggleVisible) fail("Map / Satellite submenu must show the Map|Satellite control");
-  if (mapSection.mapLabel !== "Map" || mapSection.satLabel !== "Satellite") {
-    fail(`Expected Map and Satellite buttons, got "${mapSection.mapLabel}" / "${mapSection.satLabel}"`);
+  if (!mapSection.toggleVisible) fail("Map / Satellite submenu must show the DARE|Esri|Satellite control");
+  if (mapSection.dareLabel !== "DARE" || mapSection.esriLabel !== "Esri" || mapSection.satLabel !== "Satellite") {
+    fail(`Expected DARE, Esri, and Satellite buttons, got "${mapSection.dareLabel}" / "${mapSection.esriLabel}" / "${mapSection.satLabel}"`);
   }
   ["Reset view", "Holy Land", "Jerusalem"].forEach((label) => {
     if (!mapSection.tools.includes(label)) fail(`Map / Satellite submenu missing atlas tool: ${label}`);
@@ -454,11 +525,24 @@ function assertViewportFill(label, fill) {
   if (!satOn.navOpen) fail("Choosing Satellite must keep the hamburger Map / Satellite section open");
   await page.locator('#mobileBasemapToggle [data-style="parchment"]').click();
   await sleep(300);
+  const esriOn = await page.evaluate(() => ({
+    theme: window.app.map.currentTheme,
+    pressed: document.querySelector('#mobileBasemapToggle [data-style="parchment"]').getAttribute("aria-pressed"),
+    esriOn: window.app.map.map.hasLayer(window.app.map.tileLayers.parchment)
+  }));
+  if (esriOn.theme !== "parchment") fail(`Esri toggle did not switch basemap, theme=${esriOn.theme}`);
+  if (esriOn.pressed !== "true") fail("Esri toggle did not show pressed state");
+  if (!esriOn.esriOn) fail("Esri World Shaded Relief tiles must mount when Esri is selected");
+  await page.locator('#mobileBasemapToggle [data-style="dare"]').click();
+  await sleep(300);
+  const dareBack = await page.evaluate(() => window.app.map.currentTheme);
+  if (dareBack !== "dare") fail(`DARE toggle did not restore the default basemap, theme=${dareBack}`);
   await page.locator("#mobileBasemapMoreBtn").click();
   await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
   const styleItems = await page.locator("#mobileMapStyleList .mobile-more-item").allTextContents();
   if (!styleItems.some(t => /satellite/i.test(t))) fail("More styles sheet missing satellite");
-  if (!styleItems.some(t => /parchment|relief|ancient/i.test(t))) fail("More styles sheet missing parchment/relief");
+  if (!styleItems.some(t => /esri|relief|parchment/i.test(t))) fail("More styles sheet missing Esri relief");
+  if (!styleItems.some(t => /dare/i.test(t))) fail("More styles sheet missing DARE");
   if (styleItems.length < 3) fail(`Expected desktop basemap list in More, found ${styleItems.length}`);
   await page.locator("#mobileMoreClose").click();
   await page.screenshot({ path: path.join(OUT, "phone_basemap.png"), fullPage: false });
@@ -1136,10 +1220,16 @@ function assertViewportFill(label, fill) {
       heatmaps: window.app.map.filterState.heatmaps
     },
     year: window.app.map.currentYear,
+    theme: window.app.map.currentTheme,
+    mapStyleText: ((document.getElementById("mapStyleText") || {}).textContent || "").trim(),
+    dareOn: window.app.map.map.hasLayer(window.app.map.tileLayers.dare),
     legendBody: document.getElementById("legendBody") ? getComputedStyle(document.getElementById("legendBody")).display : ""
   }));
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
+  if (deskState.theme !== "dare") fail(`Desktop cold-start basemap must be DARE, got ${deskState.theme}`);
+  if (!deskState.dareOn) fail("Desktop must mount DARE tiles at cold start");
+  if (!/DARE/i.test(deskState.mapStyleText)) fail(`Desktop header should read DARE Atlas, got "${deskState.mapStyleText}"`);
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
   if (deskState.hamburger !== "none") fail("Phone hamburger must stay hidden on desktop");
   if (deskState.navSheet !== "none") fail("Hamburger sheet must stay hidden on desktop");

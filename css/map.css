@@ -3,7 +3,12 @@
    Parchment Texture, Custom Markers, Glowing Halos, Animated Paths
    ========================================================================== */
 
-/* Parchment Basemap Filter */
+/* DARE (Digital Atlas of the Roman Empire) — keep Johan Åhlfeldt's period coloring */
+.dare-theme .leaflet-tile-pane {
+  filter: none;
+}
+
+/* Parchment Basemap Filter (Esri World Shaded Relief) */
 .parchment-theme .leaflet-tile-pane {
   filter: sepia(45%) saturate(120%) brightness(95%) contrast(105%) hue-rotate(-10deg);
 }

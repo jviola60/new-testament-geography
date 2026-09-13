@@ -199,7 +199,10 @@ function assertViewportFill(label, fill) {
     const visible = [...document.querySelectorAll(".city-label-text, .region-label-text")].filter((el) => {
       const s = getComputedStyle(el);
       return s.display !== "none" && s.visibility !== "hidden" && el.getClientRects().length > 0;
-    }).map((el) => el.textContent.trim());
+    }).map((el) => {
+      const r = el.getBoundingClientRect();
+      return { name: el.textContent.trim(), w: r.width, h: r.height };
+    });
     return {
       south: bounds.getSouth(),
       west: bounds.getWest(),
@@ -208,7 +211,8 @@ function assertViewportFill(label, fill) {
       lat: center.lat,
       lng: center.lng,
       zoom: map.getZoom(),
-      labels: visible
+      labels: visible.map((item) => item.name),
+      labelBoxes: visible
     };
   });
   console.log("Phone start extent:", startExtent);
@@ -229,6 +233,11 @@ function assertViewportFill(label, fill) {
   if (startExtent.labels.some((label) => /smyrna|bethlehem|nazareth|capernaum/i.test(label))) {
     fail(`Overview labels are cluttered: ${startExtent.labels.join(", ")}`);
   }
+  startExtent.labelBoxes.forEach((box) => {
+    if (box.w + 0.5 < box.h * 1.6) {
+      fail(`Overview label "${box.name}" looks stacked (${box.w}x${box.h}); should read horizontally`);
+    }
+  });
 
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);

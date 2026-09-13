@@ -71,7 +71,7 @@ class MapController {
 
   getStartExtent() {
     const fallback = {
-      bounds: [[29.2, 20.0], [42.8, 37.2]],
+      bounds: [[23.1, 20.0], [47.1, 37.2]],
       center: [36.0, 28.6],
       zoom: 5,
       maxZoom: 5.5
@@ -544,12 +544,13 @@ class MapController {
       if (isOverview) labelClasses.push("city-label-overview");
       const labelHtml = `<div class="${labelClasses.join(" ")}">${labelName}</div>`;
 
+      const phoneOverview = isOverview && this.isPhoneViewport();
       const textMarker = L.marker([city.lat, city.lng], {
         icon: L.divIcon({
-          className: "custom-city-label",
+          className: phoneOverview ? "custom-city-label overview-label-icon" : "custom-city-label",
           html: labelHtml,
-          iconSize: [80, 20],
-          iconAnchor: [40, (isOverview && this.isPhoneViewport()) ? -4 : 10]
+          iconSize: phoneOverview ? [160, 28] : [80, 20],
+          iconAnchor: phoneOverview ? [80, -8] : [40, 10]
         }),
         zIndexOffset: isMajor ? 300 : 100
       });
@@ -572,16 +573,16 @@ class MapController {
   drawOverviewRegionLabels() {
     if (!this.isPhoneViewport()) return;
     const labels = [
-      { name: "ASIA", lat: 38.95, lng: 29.35 },
-      { name: "GALATIA", lat: 39.15, lng: 32.65 }
+      { name: "ASIA", lat: 38.55, lng: 28.55 },
+      { name: "GALATIA", lat: 39.35, lng: 33.15 }
     ];
     labels.forEach((label) => {
       const marker = L.marker([label.lat, label.lng], {
         icon: L.divIcon({
-          className: "custom-region-label",
+          className: "custom-region-label overview-label-icon",
           html: `<div class="region-label-text region-label-overview">${label.name}</div>`,
-          iconSize: [120, 20],
-          iconAnchor: [60, 10]
+          iconSize: [140, 28],
+          iconAnchor: [70, 14]
         }),
         zIndexOffset: 90,
         interactive: false

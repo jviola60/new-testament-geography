@@ -546,20 +546,39 @@ html:not(.layout-mobile) .mobile-menu-heading {
     display: none !important;
   }
 
+  html.layout-mobile .overview-label-icon {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border: none !important;
+  }
+
   html.layout-mobile:not(.mobile-zoomed) .city-label-text.city-label-overview {
-    display: block !important;
+    display: inline-block !important;
     font-size: 11px;
     letter-spacing: 0.03em;
-    max-width: none;
-    overflow: visible;
+    line-height: 1.15;
+    max-width: none !important;
+    overflow: visible !important;
     text-overflow: clip;
+    white-space: nowrap !important;
+    writing-mode: horizontal-tb;
+    width: max-content;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(253, 248, 237, 0.72);
   }
 
   html.layout-mobile:not(.mobile-zoomed) .region-label-text.region-label-overview {
-    display: block !important;
+    display: inline-block !important;
     font-size: 10px;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.18em;
+    line-height: 1.15;
     color: rgba(92, 58, 26, 0.78);
+    white-space: nowrap !important;
+    writing-mode: horizontal-tb;
+    width: max-content;
+    padding: 1px 6px;
   }
 
   html.layout-mobile.mobile-zoomed:not(.mobile-zoomed-deep) .city-label-text:not(.city-label-primary) {

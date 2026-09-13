@@ -109,7 +109,7 @@ global.HYDROGRAPHY_DATA = { jordanRiver: [[32, 35]], seaOfGalilee: [[32, 35]], d
 global.REGIONS_DATA = {
   regions: [{ id: "judea", name: "Judea", capital: "Caesarea", bounds: [[31, 34], [32, 36]] }],
   cameraPresets: { mediterranean: { center: [34.5, 31.0], zoom: 6 } },
-  startExtent: { bounds: [[29.2, 20.0], [42.8, 37.2]], center: [36.0, 28.6], zoom: 5, maxZoom: 5.5 }
+  startExtent: { bounds: [[23.1, 20.0], [47.1, 37.2]], center: [36.0, 28.6], zoom: 5, maxZoom: 5.5 }
 };
 global.CITIES_DATA = [
   { id: "jerusalem", name: "Jerusalem", region: "Judea", lat: 31.77, lng: 35.23, isMajor: true, overviewLabel: true },
@@ -236,8 +236,8 @@ phoneStart.init("map");
 assert.deepStrictEqual(phoneStart.map._state.center, [36.0, 28.6], "Phone Leaflet start center is Eastern Mediterranean");
 assert.strictEqual(phoneStart.map._state.zoom, 5, "Phone Leaflet start zoom is 5");
 assert(phoneStart.map._state.setView, "Phone init should setView the overview center/zoom");
-assert.deepStrictEqual(phoneStart.getStartExtent().bounds[0], [29.2, 20.0], "Documented phone start SW bound");
-assert.deepStrictEqual(phoneStart.getStartExtent().bounds[1], [42.8, 37.2], "Documented phone start NE bound");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[0], [23.1, 20.0], "Documented phone start SW bound");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[1], [47.1, 37.2], "Documented phone start NE bound");
 console.log("✓ Phone cold-start uses Eastern Mediterranean center 36.0N, 28.6E zoom 5.");
 global.document.documentElement = savedDocumentElement;
 global.window = undefined;

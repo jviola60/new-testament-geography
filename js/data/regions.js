@@ -383,7 +383,7 @@ const REGIONS_DATA = {
   // target (fitBounds + padding drops to zoom 4). Desktop ≥1280 keeps the historic
   // Leaflet start of center [34.5, 31.0] zoom 6.
   startExtent: {
-    bounds: [[29.2, 20.0], [42.8, 37.2]], // SW, NE (lat, lng) at 390×844 / zoom 5
+    bounds: [[23.1, 20.0], [47.1, 37.2]], // SW, NE (lat, lng) measured at 390×844 / zoom 5
     center: [36.0, 28.6],
     zoom: 5,
     maxZoom: 5.5

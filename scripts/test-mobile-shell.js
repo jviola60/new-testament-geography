@@ -199,3 +199,85 @@ assert(mapJs.includes('phoneOn') || mapJs.includes('"churches"'), "Phone default
 assert(mapJs.includes("isPhoneViewport"), "Phone overlay defaults must be viewport-gated so desktop stays unchanged");
 
 console.log("✓ Mobile shell markup, CSS, and JS hooks look complete.");
+
+function makeClassList(initial) {
+  const set = new Set(initial || []);
+  return {
+    add(...cls) { cls.forEach((c) => set.add(c)); },
+    remove(...cls) { cls.forEach((c) => set.delete(c)); },
+    contains(cls) { return set.has(cls); },
+    toggle(cls, on) {
+      if (on === undefined) {
+        if (set.has(cls)) set.delete(cls);
+        else set.add(cls);
+      } else if (on) set.add(cls);
+      else set.delete(cls);
+      return set.has(cls);
+    }
+  };
+}
+
+const legendBody = { style: { display: "none" } };
+const legendCollapseBtn = { textContent: "+" };
+const legendEl = {
+  classList: makeClassList(),
+  style: { display: "block" },
+  setAttribute() {},
+  removeAttribute() {}
+};
+const headerListeners = [];
+const header = {
+  addEventListener(evt, fn) { if (evt === "click") headerListeners.push(fn); }
+};
+const htmlEl = { classList: makeClassList(["layout-mobile"]), style: { setProperty() {} } };
+const bodyEl = { classList: makeClassList(["layout-mobile"]) };
+const backdrop = { hidden: true, classList: makeClassList() };
+const els = {
+  legendToggleHeader: header,
+  legendBody,
+  legendCollapseBtn,
+  mapLegend: legendEl,
+  mobileBackdrop: backdrop
+};
+
+const prevWindow = global.window;
+const prevDocument = global.document;
+global.window = {
+  matchMedia: () => ({ matches: true, addEventListener() {}, addListener() {} })
+};
+global.document = {
+  documentElement: htmlEl,
+  body: bodyEl,
+  getElementById: (id) => els[id] || null,
+  querySelector: () => null,
+  querySelectorAll: () => []
+};
+
+const vm = require("vm");
+vm.runInThisContext(mobileJs);
+const shell = new MobileShell();
+shell.legendEl = legendEl;
+shell.legendBody = legendBody;
+shell.legendCollapseBtn = legendCollapseBtn;
+shell.backdrop = backdrop;
+shell.bindLegendSheet();
+
+assert.strictEqual(headerListeners.length, 1, "Legend header should bind one phone click handler");
+assert.strictEqual(shell.isLegendOpen(), false, "Legend starts closed");
+assert.strictEqual(legendBody.style.display, "none", "Collapsed first paint hides the legend body");
+
+headerListeners[0]();
+assert.strictEqual(shell.isLegendOpen(), true, "First tap on a collapsed chip must open the legend sheet");
+assert.strictEqual(legendBody.style.display, "flex", "Open sheet shows the legend body");
+assert(legendEl.classList.contains("legend-open"), "Open sheet adds .legend-open");
+assert(backdrop.classList.contains("visible"), "Open sheet shows the dimmed backdrop");
+
+headerListeners[0]();
+assert.strictEqual(shell.isLegendOpen(), false, "Second tap must collapse the open legend sheet");
+assert.strictEqual(legendBody.style.display, "none", "Collapsed sheet hides the legend body");
+assert(!legendEl.classList.contains("legend-open"), "Collapsed sheet removes .legend-open");
+assert(!backdrop.classList.contains("visible"), "Collapsed sheet dismisses the backdrop");
+
+global.window = prevWindow;
+global.document = prevDocument;
+console.log("✓ Legend chip toggle opens when closed and collapses when open.");

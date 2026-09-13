@@ -17,12 +17,16 @@ assert(html.includes("js/mobileShell.js"), "index.html should load mobileShell.j
 assert(html.includes('id="mobileCityPickerBtn"'), "Expected mobile city picker button");
 assert(html.includes('id="mobileFilterBtn"'), "Expected mobile filter dropdown trigger");
 assert(html.includes('id="mobilePeriodBtn"'), "Expected mobile period dropdown trigger");
+assert(html.includes('id="mobileMenuBtn"'), "Expected phone hamburger button");
+assert(html.includes('id="mobileNavSheet"'), "Expected hamburger bottom-sheet menu");
+assert(html.includes('id="mobileAboutSheet"'), "Expected About sheet from the hamburger");
+assert(html.includes('id="mobileNavLayers"') && html.includes('id="mobileNavPeriod"') && html.includes('id="mobileNavJump"'), "Hamburger sheet must list Layers, Period, and Jump");
 assert(html.includes('id="mobileFilterMenu"'), "Expected existing filter chips to back the dropdown");
 assert(html.includes('id="eraTabs"'), "Expected existing era tabs to back the period dropdown");
 assert(/id="mobileFilterLabel">Layers</.test(html), "Layers trigger must start with the fixed Layers label");
 assert(/id="mobilePeriodLabel">Period</.test(html), "Period trigger must start with the fixed Period label");
 assert(/class="mobile-city-picker-label">Jump</.test(html), "Jump idle label should be the short Jump copy");
-assert(!/Jump to place/.test(html), "Jump idle label must not use 'Jump to place'");
+assert(/id="mobileNavJump"[\s\S]*?Jump to place/.test(html), "Hamburger should list Jump to place");
 assert(!/Jump to any city or region/i.test(html), "Jump idle label must not keep the long city/region sentence");
 assert(html.includes('legend.style.display = "block"'), "Phone first paint should reveal the collapsed Atlas Legend chip");
 assert(html.includes('id="mobileFilterSubtitle"'), "Layers menu should expose a subtitle for the current selection");
@@ -47,7 +51,7 @@ assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mo
 assert(mobileCss.includes("sheet-half"), "mobile.css should define sheet snap heights");
 assert(mobileCss.includes("min-height: 44px") || mobileCss.includes("min-height: var(--tap)"), "Expected 44px tap targets");
 assert(mobileCss.includes("--tap: 44px"), "Expected --tap token at 44px");
-["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "mobile-period-trigger", "speed-btn", "sheet-handle"].forEach(sel => {
+["filter-chip", "tab-btn", "era-tab", "floating-btn", "mobile-city-picker-btn", "mobile-filter-trigger", "mobile-period-trigger", "mobile-menu-btn", "mobile-nav-item", "speed-btn", "sheet-handle"].forEach(sel => {
   const re = new RegExp(`html\\.layout-mobile \\.${sel}(?:[\\s,:][^{]*)?\\{([\\s\\S]{0,240})`);
   const match = mobileCss.match(re);
   assert(match, `Expected mobile rule for .${sel}`);
@@ -71,6 +75,9 @@ assert(mobileJs.includes("topright"), "Zoom control should sit top-right, away f
 assert(mobileJs.includes("bindBasemapToggle"), "Mobile shell should wire the visible basemap toggle");
 assert(mobileJs.includes("syncLeftMapStack"), "Mobile shell should stack left FABs below the period title");
 assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the period-title height");
+assert(mobileJs.includes("bindHamburgerMenu"), "Mobile shell should wire the phone hamburger bottom sheet");
+assert(mobileJs.includes("openNavSheet"), "Hamburger should open a bottom sheet, not a left drawer");
+assert(mobileJs.includes("nav-menu-open"), "Hamburger open state should use a nav-menu-open class");
 assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the compact filter dropdown");
 assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
 assert(mobileJs.includes("bindPeriodDropdown"), "Mobile shell should wire the compact period dropdown");
@@ -105,11 +112,19 @@ assert(
   assert(firstPaint.includes('"churches"') && firstPaint.includes('"journeys"'), "Phone first-paint chip sync should keep Churches + Journeys only");
 }
 {
-  const header = mobileJs.slice(mobileJs.indexOf("bindHeader() {"), mobileJs.indexOf("collapseLegend() {"));
+  const header = mobileJs.slice(mobileJs.indexOf("bindHeader() {"), mobileJs.indexOf("bindHamburgerMenu() {"));
   assert(header.includes("closeChromeMenus"), "Header Search/Tours/More must close the period menu");
   assert(/if \(open\)[\s\S]{0,80}closeChromeMenus/.test(header), "Opening Search must close the period menu");
   assert(/toursBtn[\s\S]{0,200}closeChromeMenus/.test(header), "Opening Tours must close the period menu");
   assert(/closeChromeMenus[\s\S]{0,80}openMoreSheet/.test(header), "Opening More must close the period menu");
+}
+{
+  const burger = mobileJs.slice(mobileJs.indexOf("bindHamburgerMenu() {"), mobileJs.indexOf("closeChromeMenus() {"));
+  assert(burger.includes("openFilterMenu"), "Hamburger Layers must open the existing layer UI");
+  assert(burger.includes("openPeriodMenu"), "Hamburger Period must open the existing period UI");
+  assert(burger.includes("openCityPicker"), "Hamburger Jump must open the existing place picker");
+  assert(burger.includes("closeNavSheet"), "Selecting a submenu must close the hamburger sheet");
+  assert(!/left drawer|side-drawer|offcanvas/i.test(burger), "Hamburger must not open a left drawer");
 }
 assert(mobileJs.includes('textContent = "Period"'), "Period trigger copy should stay the short Period label");
 assert(mobileJs.includes('textContent = "Layers"'), "Layers trigger copy should stay the short Layers label");
@@ -161,8 +176,8 @@ assert(uiJs.includes("onSidebarOpened"), "Sidebar open should notify the mobile 
 assert(mainCss.includes("@media (max-width: 900px)"), "Desktop CSS must keep main's 900px rules");
 assert(mobileCss.includes("era-selector-tabs"), "Mobile CSS should reuse era tabs as the period menu");
 assert(mobileJs.includes("max-width: 768px"), "Mobile shell JS must use the 768px breakpoint");
-assert(/--footer-height:\s*124px/.test(mobileCss), "Mobile footer should drop the period-chip row");
-assert(/--citybar-height:\s*52px/.test(mobileCss), "Layers + Period + Jump should share one 52px command row");
+assert(/--footer-height:\s*118px/.test(mobileCss), "Mobile footer should stay compact after the hamburger change");
+assert(/--citybar-height:\s*0px/.test(mobileCss), "Phone hamburger must hide the Layers|Period|Jump command row");
 assert(/--filterbar-height:\s*0px/.test(mobileCss), "Stacked desktop chip bar must not consume a second mobile row");
 assert(mobileCss.includes("filter-menu-open"), "Filter chips should open from the compact dropdown");
 assert(mobileCss.includes("period-menu-open"), "Era tabs should open from the compact period dropdown");
@@ -173,9 +188,16 @@ assert(
   "Footer must restore PR #4 safe-area padding-bottom"
 );
 assert(
-  /padding:\s*10px 2px 18px/.test(mobileCss),
-  "Slider track wrap must keep PR #4 thumb room"
+  /padding:\s*10px 2px 10px/.test(mobileCss),
+  "Slider track wrap may tighten empty pad under the scrubber only"
 );
+assert(
+  /timeline-slider::-webkit-slider-thumb[\s\S]{0,80}width:\s*28px/.test(mobileCss),
+  "Scrubber thumb must stay 28px (PR #4)"
+);
+assert(mobileCss.includes("NT Geography"), "Slim header may shorten the title on phone");
+assert(/html\.layout-mobile \.mobile-city-bar[\s\S]{0,220}display:\s*none/.test(mobileCss), "Command row must not consume map space on phone");
+assert(/html\.layout-mobile \.mobile-menu-btn[\s\S]{0,160}display:\s*inline-flex/.test(mobileCss), "Hamburger must show in the slim phone header");
 assert(
   /sheet-open \.mobile-city-bar[\s\S]{0,120}display:\s*none/.test(mobileCss),
   "Command row must be display:none while the place sheet is open"

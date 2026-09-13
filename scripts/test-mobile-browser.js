@@ -40,6 +40,7 @@ async function measureViewportFill(page) {
   return page.evaluate(() => {
     const header = document.querySelector(".app-header").getBoundingClientRect();
     const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    const burger = document.getElementById("mobileMenuBtn").getBoundingClientRect();
     const main = document.querySelector(".app-main-container").getBoundingClientRect();
     const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
     const slider = document.getElementById("timelineSlider").getBoundingClientRect();
@@ -49,6 +50,9 @@ async function measureViewportFill(page) {
       headerBottom: header.bottom,
       barTop: bar.top,
       barBottom: bar.bottom,
+      barH: bar.height,
+      burgerH: burger.height,
+      burgerW: burger.width,
       mapTop: main.top,
       mapBottom: main.bottom,
       mapH: main.height,
@@ -63,13 +67,24 @@ async function measureViewportFill(page) {
   });
 }
 
+async function openFromHamburger(page, navId) {
+  if (!(await page.locator("#mobileNavSheet.open").count())) {
+    await page.locator("#mobileMenuBtn").click();
+    await page.waitForSelector("#mobileNavSheet.open", { timeout: 3000 });
+  }
+  await page.locator(navId).click();
+}
+
 function assertViewportFill(label, fill) {
   if (fill.headerTop > 1) fail(`${label}: unused band above header (top=${fill.headerTop})`);
-  if (Math.abs(fill.barTop - fill.headerBottom) > 2) {
-    fail(`${label}: gap between header and command row (${fill.headerBottom} → ${fill.barTop})`);
+  if (fill.barH > 2) {
+    fail(`${label}: command row must stay hidden so the map is first (barH=${fill.barH})`);
   }
-  if (Math.abs(fill.mapTop - fill.barBottom) > 2) {
-    fail(`${label}: gap between command row and map (${fill.barBottom} → ${fill.mapTop})`);
+  if (fill.burgerH + 0.5 < 44 || fill.burgerW + 0.5 < 44) {
+    fail(`${label}: hamburger tap ${fill.burgerW}x${fill.burgerH} < 44`);
+  }
+  if (Math.abs(fill.mapTop - fill.headerBottom) > 2) {
+    fail(`${label}: gap between header and map (${fill.headerBottom} → ${fill.mapTop})`);
   }
   if (Math.abs(fill.footerTop - fill.mapBottom) > 2) {
     fail(`${label}: gap between map and footer (${fill.mapBottom} → ${fill.footerTop})`);
@@ -181,7 +196,65 @@ function assertViewportFill(label, fill) {
   console.log("Phone layout:", phoneOverflow);
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");
   if (phoneOverflow.overflowX > 2) fail(`Horizontal overflow on phone: ${phoneOverflow.overflowX}px`);
+  await page.screenshot({ path: path.join(OUT, "phone_hamburger_closed.png"), fullPage: false });
   await page.screenshot({ path: path.join(OUT, "phone_cold_start.png"), fullPage: false });
+
+  const burgerClosed = await page.evaluate(() => {
+    const burger = document.getElementById("mobileMenuBtn");
+    const bar = document.getElementById("mobileCityBar");
+    const nav = document.getElementById("mobileNavSheet");
+    const br = burger.getBoundingClientRect();
+    const title = getComputedStyle(document.querySelector(".brand-title"), "::before").content;
+    return {
+      burgerVisible: br.width > 0 && br.height > 0,
+      burgerH: br.height,
+      burgerW: br.width,
+      burgerLeft: br.left,
+      barDisplay: getComputedStyle(bar).display,
+      navOpen: nav.classList.contains("open"),
+      titleBefore: title
+    };
+  });
+  console.log("Hamburger closed:", burgerClosed);
+  if (!burgerClosed.burgerVisible) fail("Hamburger must be visible in the slim header");
+  if (burgerClosed.burgerH + 0.5 < 44 || burgerClosed.burgerW + 0.5 < 44) {
+    fail(`Hamburger tap ${burgerClosed.burgerW}x${burgerClosed.burgerH} < 44`);
+  }
+  if (burgerClosed.burgerLeft > 20) fail(`Hamburger should sit top-left, left=${burgerClosed.burgerLeft}`);
+  if (burgerClosed.barDisplay !== "none") fail(`Command row must be hidden on phone, display=${burgerClosed.barDisplay}`);
+  if (burgerClosed.navOpen) fail("Hamburger sheet must start closed");
+  if (!/NT Geography/i.test(burgerClosed.titleBefore || "")) {
+    fail(`Slim header title should shorten to NT Geography, got ${burgerClosed.titleBefore}`);
+  }
+
+  await page.locator("#mobileMenuBtn").click();
+  await page.waitForSelector("#mobileNavSheet.open", { timeout: 3000 });
+  const menuOpen = await page.evaluate(() => {
+    const sheet = document.getElementById("mobileNavSheet");
+    const card = sheet.querySelector(".mobile-picker-card");
+    const r = card.getBoundingClientRect();
+    const items = [...document.querySelectorAll(".mobile-nav-item")].map((el) => (el.textContent || "").replace(/\s+/g, " ").trim());
+    return {
+      top: r.top,
+      width: r.width,
+      viewW: window.innerWidth,
+      viewH: window.innerHeight,
+      backdrop: document.getElementById("mobileBackdrop").classList.contains("visible"),
+      items,
+      navClass: document.documentElement.classList.contains("nav-menu-open")
+    };
+  });
+  console.log("Hamburger open:", menuOpen);
+  if (!menuOpen.navClass) fail("Opening ☰ must add nav-menu-open");
+  if (!menuOpen.backdrop) fail("Hamburger sheet must dim the map");
+  if (menuOpen.top < menuOpen.viewH * 0.25) fail("Hamburger must be a bottom sheet, not a left drawer");
+  if (Math.abs(menuOpen.width - menuOpen.viewW) > 8) fail("Hamburger sheet should be full width");
+  ["Layers", "Period", "Jump to place"].forEach((label) => {
+    if (!menuOpen.items.some((t) => t.includes(label))) fail(`Hamburger sheet missing ${label}`);
+  });
+  await page.screenshot({ path: path.join(OUT, "phone_hamburger_open.png"), fullPage: false });
+  await page.locator("#mobileNavClose").click();
+  await sleep(150);
 
   const legendChip = await page.evaluate(() => {
     const box = document.getElementById("mapLegend");
@@ -221,24 +294,27 @@ function assertViewportFill(label, fill) {
   if (!legendSheet.backdrop) fail("Expanded legend should use a dimmed backdrop");
   if (legendSheet.top < legendSheet.viewH * 0.25) fail("Expanded legend should be a sheet, not a persistent map card");
 
-  await page.locator("#mobileFilterBtn").click();
+  await openFromHamburger(page, "#mobileNavLayers");
   await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
   const afterLayers = await page.evaluate(() => ({
     legend: document.documentElement.classList.contains("legend-sheet-open"),
     period: document.documentElement.classList.contains("period-menu-open"),
     jump: document.getElementById("mobileCityPickerSheet").classList.contains("open"),
     layers: document.documentElement.classList.contains("filter-menu-open"),
+    nav: document.documentElement.classList.contains("nav-menu-open"),
     backdrop: document.getElementById("mobileBackdrop").classList.contains("visible"),
     subtitle: ((document.getElementById("mobileFilterSubtitle") || {}).textContent || "").trim()
   }));
   if (!afterLayers.layers) fail("Layers menu did not open");
+  if (afterLayers.nav) fail("Opening Layers from the hamburger must close the hamburger sheet");
   if (afterLayers.legend) fail("Opening Layers must auto-collapse the legend");
   if (afterLayers.period) fail("Opening Layers must close Period");
   if (afterLayers.jump) fail("Opening Layers must close Jump");
   if (!afterLayers.backdrop) fail("Layers menu should sit over a dimmed backdrop");
+  await page.screenshot({ path: path.join(OUT, "phone_layers_from_menu.png"), fullPage: false });
   await page.screenshot({ path: path.join(OUT, "phone_layers_open.png"), fullPage: false });
 
-  await page.locator("#mobilePeriodBtn").click();
+  await openFromHamburger(page, "#mobileNavPeriod");
   await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
   const afterPeriodOpen = await page.evaluate(() => ({
     layers: document.documentElement.classList.contains("filter-menu-open"),
@@ -251,7 +327,7 @@ function assertViewportFill(label, fill) {
   if (afterPeriodOpen.legend) fail("Opening Period must close the legend");
   if (afterPeriodOpen.jump) fail("Opening Period must close Jump");
 
-  await page.locator("#mobileCityPickerBtn").click();
+  await openFromHamburger(page, "#mobileNavJump");
   await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
   const afterJump = await page.evaluate(() => ({
     layers: document.documentElement.classList.contains("filter-menu-open"),
@@ -332,7 +408,7 @@ function assertViewportFill(label, fill) {
     interactiveUnder: stack.interactiveUnder,
     topleftControls: stack.topleftControls
   }, null, 2));
-  if (!/nativity/i.test(stack.title)) fail(`Expected Nativity period title, got "${stack.title}"`);
+  if (!/apostolic/i.test(stack.title)) fail(`Expected Apostolic period title at 100 AD, got "${stack.title}"`);
   if (stack.overlapBadgeFabs) fail("Period title overlaps the left FAB stack");
   if (stack.overlapBadgeZoom) fail("Period title overlaps the zoom control");
   if (stack.overlapBadgeToggle) fail("Period title overlaps the Map|Satellite chip");
@@ -401,74 +477,40 @@ function assertViewportFill(label, fill) {
   await sleep(150);
 
   const cityBar = page.locator("#mobileCityPickerBtn");
-  const filterBtn = page.locator("#mobileFilterBtn");
-  const periodBtn = page.locator("#mobilePeriodBtn");
-  if (!(await cityBar.isVisible())) fail("City picker bar not visible on phone");
-  if (!(await filterBtn.isVisible())) fail("Filter dropdown trigger not visible on phone");
-  if (!(await periodBtn.isVisible())) fail("Period dropdown trigger not visible on phone");
+  const burgerBtn = page.locator("#mobileMenuBtn");
+  if (!(await burgerBtn.isVisible())) fail("Hamburger is not visible on phone");
+  if (await cityBar.isVisible()) fail("City picker command button must stay hidden on phone");
 
   const commandRow = await page.evaluate(() => {
-    const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
-    const period = document.getElementById("mobilePeriodBtn").getBoundingClientRect();
-    const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
-    const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
+    const bar = document.getElementById("mobileCityBar");
+    const burger = document.getElementById("mobileMenuBtn").getBoundingClientRect();
     const chipRows = document.querySelector(".filter-chip-rows");
     const eras = document.querySelector(".era-selector-tabs");
     const jumpLabel = (document.querySelector(".mobile-city-picker-label") || {}).textContent || "";
     const periodLabel = (document.getElementById("mobilePeriodLabel") || {}).textContent || "";
-    const chipOpen = getComputedStyle(chipRows).display !== "none";
-    const eraOpen = getComputedStyle(eras).display !== "none";
     return {
-      filter: { top: filter.top, bottom: filter.bottom, left: filter.left, right: filter.right, height: filter.height, width: filter.width },
-      period: { top: period.top, bottom: period.bottom, left: period.left, right: period.right, height: period.height, width: period.width },
-      city: { top: city.top, bottom: city.bottom, left: city.left, right: city.right, height: city.height, width: city.width },
-      barHeight: bar.height,
-      sameRow: Math.abs(filter.top - period.top) < 8 && Math.abs(period.top - city.top) < 8,
-      sideBySide: filter.right <= period.left + 1 && period.right <= city.left + 1,
-      chipMenuOpen: chipOpen,
-      periodMenuOpen: eraOpen,
+      burger: { height: burger.height, width: burger.width },
+      barHeight: bar.getBoundingClientRect().height,
+      barDisplay: getComputedStyle(bar).display,
+      chipMenuOpen: getComputedStyle(chipRows).display !== "none",
+      periodMenuOpen: getComputedStyle(eras).display !== "none",
       jumpLabel: jumpLabel.trim(),
       periodLabel: periodLabel.trim()
     };
   });
-  console.log("Command row:", commandRow);
-  if (!commandRow.sameRow) fail("Layers, Period, and Jump must share one row");
-  if (!commandRow.sideBySide) fail("Period must sit between Layers and Jump, not underneath");
-  if (commandRow.barHeight > 56) fail(`Command row should be one compact strip, height=${commandRow.barHeight}`);
-  if (commandRow.chipMenuOpen) fail("Filter list should stay closed until the dropdown is opened");
-  if (commandRow.periodMenuOpen) fail("Period list should stay closed until the dropdown is opened");
+  console.log("Command row hidden:", commandRow);
+  if (commandRow.barDisplay !== "none" || commandRow.barHeight > 2) {
+    fail(`Command row must stay hidden, display=${commandRow.barDisplay} height=${commandRow.barHeight}`);
+  }
+  if (commandRow.chipMenuOpen) fail("Filter list should stay closed until opened from the hamburger");
+  if (commandRow.periodMenuOpen) fail("Period list should stay closed until opened from the hamburger");
   if (!/^Jump$/i.test(commandRow.jumpLabel)) {
     fail(`Jump idle label should be "Jump", got "${commandRow.jumpLabel}"`);
   }
-  if (/JUMP TO ANY CITY OR REGION|Jump to place/i.test(commandRow.jumpLabel)) {
-    fail("Jump idle label must stay the short Jump word");
-  }
-  await page.evaluate(() => (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve());
-  const commandFits = await page.evaluate(() => {
-    const labels = [
-      ["Layers", document.getElementById("mobileFilterLabel")],
-      ["Period", document.getElementById("mobilePeriodLabel")],
-      ["Jump", document.querySelector(".mobile-city-picker-label")]
-    ];
-    return labels.map(([name, el]) => ({
-      name,
-      text: (el && el.textContent || "").trim(),
-      ok: !!el && el.scrollWidth <= el.clientWidth + 2,
-      scroll: el ? el.scrollWidth : 0,
-      client: el ? el.clientWidth : 0
-    }));
-  });
-  console.log("Command label fit:", commandFits);
-  commandFits.forEach((row) => {
-    if (row.text !== row.name) fail(`Command label ${row.name} should stay "${row.name}", got "${row.text}"`);
-    if (!row.ok) fail(`${row.name} command label is ellipsized (${row.scroll} > ${row.client})`);
-  });
   if (!/^Period$/i.test(commandRow.periodLabel)) {
     fail(`Period trigger should read Period at 6 BC, got "${commandRow.periodLabel}"`);
   }
-  assertTap("mobile-filter-trigger", commandRow.filter);
-  assertTap("mobile-period-trigger", commandRow.period);
-  assertTap("mobile-city-picker-btn", commandRow.city);
+  assertTap("mobile-menu-btn", commandRow.burger);
   await page.screenshot({ path: path.join(OUT, "phone_home_compact.png"), fullPage: false });
 
   const mapChrome = await page.evaluate(() => {
@@ -505,7 +547,7 @@ function assertViewportFill(label, fill) {
   const padPx = parseFloat(footerPad);
   if (!(padPx >= 27.5)) fail(`Footer padding-bottom ${footerPad} must restore PR #4's 28px clearance`);
 
-  await page.locator("#mobileFilterBtn").click();
+  await openFromHamburger(page, "#mobileNavLayers");
   await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
   const rows = await page.locator(".filter-chip-row").count();
   if (rows !== 2) fail(`Expected 2 chip rows, found ${rows}`);
@@ -529,7 +571,7 @@ function assertViewportFill(label, fill) {
     fail(`Filter menu subtitle should show current selection, got "${filterSubtitle}"`);
   }
   await page.screenshot({ path: path.join(OUT, "phone_filter_dropdown.png"), fullPage: false });
-  await page.locator("#mobileFilterBtn").click();
+  await page.locator("#mobileFilterClose").click();
   await sleep(150);
 
   const yearBadge = await page.evaluate(() => {
@@ -573,7 +615,7 @@ function assertViewportFill(label, fill) {
     fail("Play, skip, speed, and scrubber must stay visible after the period dropdown change");
   }
 
-  await page.locator("#mobilePeriodBtn").click();
+  await openFromHamburger(page, "#mobileNavPeriod");
   await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
   const eraCount = await page.locator(".era-tab").count();
   if (eraCount < 8) fail(`Expected 8 era tabs in the period menu, found ${eraCount}`);
@@ -647,7 +689,7 @@ function assertViewportFill(label, fill) {
   if (!/4 BC/.test(afterPeriod.year)) fail(`Choosing Nazareth should jump the timeline to 4 BC, year=${afterPeriod.year}`);
 
   const assertPeriodClosedBy = async (label, openAction) => {
-    await page.locator("#mobilePeriodBtn").click();
+    await openFromHamburger(page, "#mobileNavPeriod");
     await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
     await openAction();
     const state = await page.evaluate(() => ({
@@ -667,11 +709,11 @@ function assertViewportFill(label, fill) {
   await page.locator("#mobileSearchBtn").click();
   await sleep(150);
 
-  await assertPeriodClosedBy("More", async () => {
-    await page.locator("#mobileMoreBtn").click();
-    await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
+  await assertPeriodClosedBy("Hamburger", async () => {
+    await page.locator("#mobileMenuBtn").click();
+    await page.waitForSelector("#mobileNavSheet.open", { timeout: 5000 });
   });
-  await page.locator("#mobileMoreClose").click();
+  await page.locator("#mobileNavClose").click();
   await sleep(150);
 
   await assertPeriodClosedBy("Tours", async () => {
@@ -762,10 +804,10 @@ function assertViewportFill(label, fill) {
   await page.screenshot({ path: path.join(OUT, "phone_welcome_sheet.png"), fullPage: false });
   await page.locator("#closeSidebarBtn").click();
   await sleep(250);
-  const cityTap = await page.locator("#mobileCityPickerBtn").boundingBox();
-  assertTap("mobile-city-picker-btn", cityTap);
+  const burgerTap = await page.locator("#mobileMenuBtn").boundingBox();
+  assertTap("mobile-menu-btn", burgerTap);
 
-  await cityBar.click();
+  await openFromHamburger(page, "#mobileNavJump");
   await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
   await page.fill("#mobileCitySearch", "Corinth");
   await sleep(200);
@@ -841,10 +883,10 @@ function assertViewportFill(label, fill) {
   const searchOpen = await page.evaluate(() => document.body.classList.contains("search-open"));
   if (!searchOpen) fail("Search overlay did not open");
   await page.screenshot({ path: path.join(OUT, "phone_search.png"), fullPage: false });
-  await page.locator("#mobileMoreBtn").click();
-  await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
+  await openFromHamburger(page, "#mobileNavAbout");
+  await page.waitForSelector("#mobileAboutSheet.open", { timeout: 5000 });
   await page.screenshot({ path: path.join(OUT, "phone_more_tools.png"), fullPage: false });
-  await page.locator("#mobileMoreClose").click();
+  await page.locator("#mobileAboutClose").click();
 
   const chrome = await page.evaluate(() => {
     const bar = document.getElementById("mobileCityBar");
@@ -867,7 +909,7 @@ function assertViewportFill(label, fill) {
       labelsHiddenAtDefault: !document.documentElement.classList.contains("mobile-zoomed")
     };
   });
-  if (chrome.commandHeight > 56) fail(`Command row should be a single strip, height=${chrome.commandHeight}`);
+  if (chrome.commandHeight > 2) fail(`Command row must stay hidden, height=${chrome.commandHeight}`);
   if (chrome.tabHeight > 68) fail(`Place tabs should be a single row, height=${chrome.tabHeight}`);
   if (!chrome.playVisible || !chrome.yearVisible || !chrome.scrubberVisible) {
     fail("Play, year, and scrubber must remain visible");
@@ -980,9 +1022,7 @@ function assertViewportFill(label, fill) {
   await npage.addStyleTag({ content: "html { font-size: 20px; }" });
   await sleep(400);
   const narrowState = await npage.evaluate(() => {
-    const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
-    const period = document.getElementById("mobilePeriodBtn").getBoundingClientRect();
-    const city = document.getElementById("mobileCityPickerBtn").getBoundingClientRect();
+    const burger = document.getElementById("mobileMenuBtn").getBoundingClientRect();
     const bar = document.getElementById("mobileCityBar").getBoundingClientRect();
     const footer = document.querySelector(".app-timeline-footer").getBoundingClientRect();
     const slider = document.getElementById("timelineSlider").getBoundingClientRect();
@@ -992,12 +1032,9 @@ function assertViewportFill(label, fill) {
     const main = document.querySelector(".app-main-container").getBoundingClientRect();
     return {
       overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      sameRow: Math.abs(filter.top - period.top) < 10 && Math.abs(period.top - city.top) < 10,
-      sideBySide: filter.right <= period.left + 2 && period.right <= city.left + 2,
       barHeight: bar.height,
-      filterH: filter.height,
-      periodH: period.height,
-      cityH: city.height,
+      burgerH: burger.height,
+      burgerW: burger.width,
       playH: play.height,
       yearVisible: year.height > 4,
       seasonVisible: season.height > 4,
@@ -1010,18 +1047,16 @@ function assertViewportFill(label, fill) {
   });
   console.log("360 large-text chrome:", narrowState);
   if (narrowState.overflowX > 2) fail(`Horizontal overflow at 360px large text: ${narrowState.overflowX}px`);
-  if (!narrowState.sameRow || !narrowState.sideBySide) fail("360px large text must keep Layers + Period + Jump on one row");
-  if (narrowState.filterH + 0.5 < 44) fail(`360 filter tap ${narrowState.filterH}px < 44`);
-  if (narrowState.periodH + 0.5 < 44) fail(`360 period tap ${narrowState.periodH}px < 44`);
-  if (narrowState.cityH + 0.5 < 44) fail(`360 city tap ${narrowState.cityH}px < 44`);
+  if (narrowState.barHeight > 2) fail(`360px command row must stay hidden, height=${narrowState.barHeight}`);
+  if (narrowState.burgerH + 0.5 < 44) fail(`360 hamburger tap ${narrowState.burgerH}px < 44`);
   if (narrowState.playH + 0.5 < 44) fail(`360 play tap ${narrowState.playH}px < 44`);
   if (!narrowState.yearVisible) fail("360px year badge must stay visible");
   if (narrowState.seasonVisible) fail("360px season subtitle must stay visually hidden");
-  await npage.locator("#mobilePeriodBtn").click();
+  await openFromHamburger(npage, "#mobileNavPeriod");
   await npage.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
   const narrowEra = await npage.locator(".era-tab").first().boundingBox();
   assertTap("era-tab", narrowEra);
-  await npage.locator("#mobilePeriodBtn").click();
+  await npage.locator("#mobilePeriodClose").click();
   if (narrowState.sliderBottom > narrowState.viewH - 12) {
     fail(`360px scrubber clipped: bottom=${narrowState.sliderBottom} view=${narrowState.viewH}`);
   }
@@ -1058,6 +1093,8 @@ function assertViewportFill(label, fill) {
   const deskState = await dpage.evaluate(() => ({
     layout: document.body.className,
     cityBar: getComputedStyle(document.getElementById("mobileCityBar")).display,
+    hamburger: getComputedStyle(document.getElementById("mobileMenuBtn")).display,
+    navSheet: getComputedStyle(document.getElementById("mobileNavSheet")).display,
     filterBtn: getComputedStyle(document.getElementById("mobileFilterBtn")).display,
     periodBtn: getComputedStyle(document.getElementById("mobilePeriodBtn")).display,
     basemap: getComputedStyle(document.getElementById("mobileBasemapToggle")).display,
@@ -1081,6 +1118,8 @@ function assertViewportFill(label, fill) {
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
   if (deskState.cityBar !== "none") fail("Mobile city bar should be hidden on desktop");
+  if (deskState.hamburger !== "none") fail("Phone hamburger must stay hidden on desktop");
+  if (deskState.navSheet !== "none") fail("Hamburger sheet must stay hidden on desktop");
   if (deskState.filterBtn !== "none") fail("Mobile filter dropdown should be hidden on desktop");
   if (deskState.periodBtn !== "none") fail("Mobile period dropdown should be hidden on desktop");
   if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
@@ -1093,6 +1132,22 @@ function assertViewportFill(label, fill) {
   if (deskState.legendBody === "none") fail("Desktop Atlas Legend must stay expanded/open by default");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();
+
+  const desk1280 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const d1280 = await desk1280.newPage();
+  await d1280.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
+  await d1280.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
+  await sleep(800);
+  const wide = await d1280.evaluate(() => ({
+    layout: document.body.className,
+    hamburger: getComputedStyle(document.getElementById("mobileMenuBtn")).display,
+    title: (document.querySelector(".brand-title") || {}).textContent || ""
+  }));
+  if (wide.layout.includes("layout-mobile")) fail("1280 desktop should not use layout-mobile");
+  if (wide.hamburger !== "none") fail("Hamburger must stay hidden at 1280");
+  if (!/New Testament Geography/.test(wide.title)) fail(`1280 title must stay full, got "${wide.title}"`);
+  await d1280.screenshot({ path: path.join(OUT, "desktop_1280.png"), fullPage: false });
+  await desk1280.close();
 
   await browser.close();
   console.log("✓ Browser verification passed. Shots in", OUT);

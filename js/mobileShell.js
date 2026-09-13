@@ -20,10 +20,18 @@ class MobileShell {
     this.citySearch = document.getElementById("mobileCitySearch");
     this.cityCurrent = document.getElementById("mobileCityPickerCurrent");
     this.moreSheet = document.getElementById("mobileMoreSheet");
+    this.navSheet = document.getElementById("mobileNavSheet");
+    this.aboutSheet = document.getElementById("mobileAboutSheet");
+    this.menuBtn = document.getElementById("mobileMenuBtn");
     this.backdrop = document.getElementById("mobileBackdrop");
     this.searchBtn = document.getElementById("mobileSearchBtn");
     this.toursBtn = document.getElementById("mobileToursBtn");
     this.moreBtn = document.getElementById("mobileMoreBtn");
+    this.navLayersDetail = document.getElementById("mobileNavLayersDetail");
+    this.navLayersDot = document.getElementById("mobileNavLayersDot");
+    this.navPeriodDetail = document.getElementById("mobileNavPeriodDetail");
+    this.navJumpDetail = document.getElementById("mobileNavJumpDetail");
+    this.navBasemapDetail = document.getElementById("mobileNavBasemapDetail");
     this.filterBtn = document.getElementById("mobileFilterBtn");
     this.filterLabel = document.getElementById("mobileFilterLabel");
     this.filterDot = document.getElementById("mobileFilterDot");
@@ -44,6 +52,7 @@ class MobileShell {
     this.applyLayout();
     this.bindViewport();
     this.bindHeader();
+    this.bindHamburgerMenu();
     this.bindSheet();
     this.bindFilterDropdown();
     this.bindPeriodDropdown();
@@ -76,8 +85,8 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open");
-      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open");
+      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open");
       if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
       this.restoreDesktopLegend();
@@ -250,6 +259,7 @@ class MobileShell {
         this.searchBtn.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
           this.closeChromeMenus();
+          this.closeNavSheet();
           this.collapseLegend();
           this.syncBackdrop();
           const input = document.getElementById("globalSearchInput");
@@ -262,6 +272,7 @@ class MobileShell {
       this.toursBtn.addEventListener("click", () => {
         this.closeSearch();
         this.closeChromeMenus();
+        this.closeNavSheet();
         this.collapseLegend();
         this.closeOverlays();
         const desktopTours = document.getElementById("storyToursBtn");
@@ -290,6 +301,150 @@ class MobileShell {
     document.documentElement.classList.remove("search-open");
     document.body.classList.remove("search-open");
     if (this.searchBtn) this.searchBtn.setAttribute("aria-expanded", "false");
+  }
+
+  bindHamburgerMenu() {
+    if (this.menuBtn) {
+      this.menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (this.isNavMenuOpen()) {
+          this.closeNavSheet();
+          this.syncBackdrop();
+        } else {
+          this.openNavSheet();
+        }
+      });
+    }
+
+    const navClose = document.getElementById("mobileNavClose");
+    if (navClose) navClose.addEventListener("click", () => this.closeOverlays());
+
+    const aboutClose = document.getElementById("mobileAboutClose");
+    if (aboutClose) aboutClose.addEventListener("click", () => this.closeOverlays());
+
+    const bindNav = (id, handler) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        handler();
+      });
+    };
+
+    bindNav("mobileNavLayers", () => {
+      this.closeNavSheet();
+      this.openFilterMenu();
+    });
+    bindNav("mobileNavPeriod", () => {
+      this.closeNavSheet();
+      this.openPeriodMenu();
+    });
+    bindNav("mobileNavJump", () => {
+      this.closeNavSheet();
+      this.openCityPicker();
+    });
+    bindNav("mobileNavLegend", () => {
+      this.closeNavSheet();
+      this.openLegendSheet();
+    });
+    bindNav("mobileNavBasemap", () => {
+      this.toggleBasemapFromMenu();
+    });
+    bindNav("mobileNavAbout", () => {
+      this.closeNavSheet();
+      this.openAboutSheet();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (this.isNavMenuOpen() || this.isAboutOpen()) {
+        this.closeOverlays();
+      }
+    });
+  }
+
+  isNavMenuOpen() {
+    return document.documentElement.classList.contains("nav-menu-open");
+  }
+
+  isAboutOpen() {
+    return !!(this.aboutSheet && this.aboutSheet.classList.contains("open"));
+  }
+
+  openNavSheet() {
+    if (!this.isPhone() || !this.navSheet) return;
+    this.closeSearch();
+    this.closeChromeMenus();
+    this.closeJumpAndMore();
+    this.collapseLegend();
+    this.syncNavDetails();
+    this.navSheet.hidden = false;
+    this.navSheet.classList.add("open");
+    document.documentElement.classList.add("nav-menu-open");
+    document.body.classList.add("nav-menu-open");
+    if (this.menuBtn) this.menuBtn.setAttribute("aria-expanded", "true");
+    this.showBackdrop();
+  }
+
+  closeNavSheet() {
+    if (this.navSheet) {
+      this.navSheet.classList.remove("open");
+      this.navSheet.hidden = true;
+    }
+    document.documentElement.classList.remove("nav-menu-open");
+    document.body.classList.remove("nav-menu-open");
+    if (this.menuBtn) this.menuBtn.setAttribute("aria-expanded", "false");
+  }
+
+  openAboutSheet() {
+    if (!this.aboutSheet) return;
+    this.closeChromeMenus();
+    this.closeJumpAndMore();
+    this.collapseLegend();
+    this.aboutSheet.hidden = false;
+    this.aboutSheet.classList.add("open");
+    this.showBackdrop();
+  }
+
+  closeAboutSheet() {
+    if (this.aboutSheet) {
+      this.aboutSheet.classList.remove("open");
+      this.aboutSheet.hidden = true;
+    }
+  }
+
+  toggleBasemapFromMenu() {
+    const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
+    const next = (theme === "parchment") ? "satellite" : "parchment";
+    const src = document.querySelector(`#mapStyleDropdown [data-style="${next}"]`);
+    if (src) src.click();
+    this.syncBasemapToggle();
+    this.closeOverlays();
+  }
+
+  syncNavDetails() {
+    if (this.navLayersDetail && this.filterSubtitle) {
+      this.navLayersDetail.textContent = this.filterSubtitle.textContent || "Map overlays";
+    }
+    if (this.navLayersDot && this.filterDot) {
+      const extra = [...this.filterDot.classList].filter((c) => c !== "mobile-filter-dot").join(" ");
+      this.navLayersDot.className = `mobile-nav-dot ${extra}`.trim();
+    }
+    if (this.navPeriodDetail && this.periodSubtitle) {
+      this.navPeriodDetail.textContent = this.periodSubtitle.textContent || "Period";
+    }
+    if (this.navJumpDetail) {
+      const current = ((this.cityCurrent && this.cityCurrent.textContent) || "").trim();
+      const hasPlace = this.cityBar && this.cityBar.classList.contains("has-place") && current &&
+        !/searchable list/i.test(current);
+      this.navJumpDetail.textContent = hasPlace ? current : "Search cities & sites";
+    }
+    if (this.navBasemapDetail) {
+      const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
+      this.navBasemapDetail.textContent = theme === "satellite" || theme === "modern-satellite"
+        ? "Satellite terrain"
+        : "Ancient relief";
+    }
   }
 
   closeChromeMenus() {
@@ -335,6 +490,8 @@ class MobileShell {
     if (!this.isPhone()) return;
     this.closeSearch();
     this.closeChromeMenus();
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closeJumpAndMore();
     const legendBody = this.legendBody || document.getElementById("legendBody");
     const legendCollapseBtn = this.legendCollapseBtn || document.getElementById("legendCollapseBtn");
@@ -444,6 +601,8 @@ class MobileShell {
     document.body.classList.toggle("sheet-open", sheetOpen);
     if (this.cityBar) this.cityBar.setAttribute("aria-hidden", sheetOpen ? "true" : "false");
     if (sheetOpen) {
+      this.closeNavSheet();
+      this.closeAboutSheet();
       this.closeChromeMenus();
       this.collapseLegend();
       this.syncBackdrop();
@@ -513,6 +672,15 @@ class MobileShell {
 
     this.syncFilterLabel();
     if (this.jumpLabel) this.jumpLabel.textContent = "Jump";
+
+    const filterClose = document.getElementById("mobileFilterClose");
+    if (filterClose) {
+      filterClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closeFilterMenu();
+        this.syncBackdrop();
+      });
+    }
   }
 
   isFilterMenuOpen() {
@@ -520,6 +688,8 @@ class MobileShell {
   }
 
   openFilterMenu() {
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closePeriodMenu();
     this.closeJumpAndMore();
     this.collapseLegend();
@@ -579,6 +749,10 @@ class MobileShell {
     }
     if (this.filterBtn) {
       this.filterBtn.setAttribute("aria-label", `Map layers, ${detail}`);
+    }
+    if (this.navLayersDetail) this.navLayersDetail.textContent = detail;
+    if (this.navLayersDot) {
+      this.navLayersDot.className = `mobile-nav-dot ${dotClass}`.trim();
     }
   }
 
@@ -642,6 +816,15 @@ class MobileShell {
 
     this.syncPeriodLabel();
     this.syncYearBadgeAria();
+
+    const periodClose = document.getElementById("mobilePeriodClose");
+    if (periodClose) {
+      periodClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closePeriodMenu();
+        this.syncBackdrop();
+      });
+    }
   }
 
   isPeriodMenuOpen() {
@@ -649,6 +832,8 @@ class MobileShell {
   }
 
   openPeriodMenu() {
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closeFilterMenu();
     this.closeJumpAndMore();
     this.collapseLegend();
@@ -684,6 +869,9 @@ class MobileShell {
     }
     if (this.periodBtn) {
       this.periodBtn.setAttribute("aria-label", `Timeline period, ${name}`);
+    }
+    if (this.navPeriodDetail && this.navPeriodDetail.textContent !== name) {
+      this.navPeriodDetail.textContent = name;
     }
   }
 
@@ -726,6 +914,8 @@ class MobileShell {
   }
 
   openCityPicker() {
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closeChromeMenus();
     this.collapseLegend();
     this.refreshCatalog();
@@ -816,6 +1006,11 @@ class MobileShell {
       btn.classList.toggle("active", on);
       btn.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    if (this.navBasemapDetail) {
+      this.navBasemapDetail.textContent = (theme === "satellite" || theme === "modern-satellite")
+        ? "Satellite terrain"
+        : "Ancient relief";
+    }
   }
 
   bindMoreSheet() {
@@ -836,6 +1031,8 @@ class MobileShell {
   }
 
   openMoreSheet() {
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closeChromeMenus();
     this.collapseLegend();
     this.populateMoreLists();
@@ -892,7 +1089,8 @@ class MobileShell {
   }
 
   syncBackdrop() {
-    const need = this.isFilterMenuOpen() || this.isPeriodMenuOpen() || this.isLegendOpen() ||
+    const need = this.isNavMenuOpen() || this.isAboutOpen() ||
+      this.isFilterMenuOpen() || this.isPeriodMenuOpen() || this.isLegendOpen() ||
       (this.citySheet && this.citySheet.classList.contains("open")) ||
       (this.moreSheet && this.moreSheet.classList.contains("open"));
     if (need) this.showBackdrop();
@@ -900,12 +1098,16 @@ class MobileShell {
   }
 
   syncJumpSubtitle() {
-    if (!this.jumpSubtitle) return;
     const current = ((this.cityCurrent && this.cityCurrent.textContent) || "").trim();
     const hasPlace = this.cityBar && this.cityBar.classList.contains("has-place") && current &&
       !/searchable list/i.test(current);
-    this.jumpSubtitle.textContent = hasPlace ? current : "";
-    this.jumpSubtitle.hidden = !hasPlace;
+    if (this.jumpSubtitle) {
+      this.jumpSubtitle.textContent = hasPlace ? current : "";
+      this.jumpSubtitle.hidden = !hasPlace;
+    }
+    if (this.navJumpDetail) {
+      this.navJumpDetail.textContent = hasPlace ? current : "Search cities & sites";
+    }
   }
 
   closeJumpAndMore() {
@@ -922,6 +1124,8 @@ class MobileShell {
   }
 
   closeOverlays() {
+    this.closeNavSheet();
+    this.closeAboutSheet();
     this.closeJumpAndMore();
     this.closeChromeMenus();
     if (this.isPhone()) this.collapseLegend();

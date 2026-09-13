@@ -6,12 +6,15 @@
    ========================================================================== */
 
 .mobile-header-actions,
+.mobile-menu-btn,
 .mobile-filter-trigger,
 .mobile-period-trigger,
 .mobile-city-bar,
 .mobile-backdrop,
 .mobile-picker-sheet,
 .mobile-action-sheet,
+.mobile-nav-sheet,
+.mobile-about-sheet,
 .mobile-basemap-toggle,
 .mobile-menu-heading {
   display: none;
@@ -70,8 +73,8 @@ html:not(.layout-mobile) .mobile-menu-heading {
   html.layout-mobile {
     --header-height: 48px;
     --filterbar-height: 0px;
-    --citybar-height: 52px;
-    --footer-height: 124px;
+    --citybar-height: 0px;
+    --footer-height: 118px;
     --tap: 44px;
   }
 
@@ -81,11 +84,49 @@ html:not(.layout-mobile) .mobile-menu-heading {
     padding-top: env(safe-area-inset-top);
     height: calc(var(--header-height) + env(safe-area-inset-top));
     gap: 0.4rem;
+    z-index: 1800;
   }
 
+  html.layout-mobile .header-left {
+    gap: 0.35rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  html.layout-mobile .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap);
+    height: var(--tap);
+    min-width: var(--tap);
+    flex: 0 0 auto;
+    color: #FFF8EB;
+  }
+
+  html.layout-mobile .brand-symbol {
+    display: none;
+  }
+
+  html.layout-mobile .brand-titles {
+    min-width: 0;
+  }
+
+  /* Keep the accessible h1; visually shorten on the slim phone header. */
   html.layout-mobile .brand-title {
+    font-size: 0;
+    letter-spacing: 0;
+    text-shadow: none;
+  }
+
+  html.layout-mobile .brand-title::before {
+    content: "NT Geography";
     font-size: 0.92rem;
-    letter-spacing: 0.02em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #FFF8EB;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
   }
 
   html.layout-mobile .brand-subtitle,
@@ -144,11 +185,6 @@ html:not(.layout-mobile) .mobile-menu-heading {
     padding: 0.7rem 1rem;
   }
 
-  html.layout-mobile .brand-symbol {
-    width: 30px;
-    height: 30px;
-  }
-
   html.layout-mobile .mobile-header-actions {
     display: flex;
     align-items: center;
@@ -160,6 +196,10 @@ html:not(.layout-mobile) .mobile-menu-heading {
     width: var(--tap);
     height: var(--tap);
     min-width: var(--tap);
+  }
+
+  html.layout-mobile .mobile-more-header-btn {
+    display: none;
   }
 
   /* Desktop chip bar collapses; chips reappear in the filter dropdown */
@@ -271,7 +311,7 @@ html:not(.layout-mobile) .mobile-menu-heading {
     left: 0;
     right: 0;
     top: auto;
-    bottom: 0;
+    bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
     z-index: 1650;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -293,11 +333,20 @@ html:not(.layout-mobile) .mobile-menu-heading {
 
   html.layout-mobile .mobile-menu-heading {
     display: none;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
     padding: 4px 8px 10px;
     border-bottom: 1px solid rgba(180, 155, 110, 0.35);
     margin-bottom: 4px;
+  }
+
+  html.layout-mobile .mobile-menu-heading-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
 
   html.layout-mobile.filter-menu-open #mobileFilterHeading,
@@ -326,6 +375,16 @@ html:not(.layout-mobile) .mobile-menu-heading {
   html.layout-mobile.period-menu-open .era-selector-tabs {
     display: flex;
     pointer-events: auto;
+    z-index: 1750;
+  }
+
+  html.layout-mobile.filter-menu-open .layer-filter-bar {
+    pointer-events: auto;
+    z-index: 1750;
+  }
+
+  html.layout-mobile.period-menu-open .app-timeline-footer {
+    z-index: 1750;
   }
 
   html.layout-mobile .filter-chip-row {
@@ -343,17 +402,16 @@ html:not(.layout-mobile) .mobile-menu-heading {
     border-radius: 8px;
   }
 
-  /* One compact command row: filter dropdown + city/region jump */
+  /* Command row stays in the DOM for exclusive Layers/Period/Jump
+     handlers, but is hidden so the map claims that vertical space. */
   html.layout-mobile .mobile-city-bar {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 6px;
-    height: var(--citybar-height);
-    padding: 0 8px;
-    background: #F4EBDA;
-    border-bottom: 1px solid var(--border-parchment-dark);
-    z-index: 940;
-    position: relative;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
 
   html.layout-mobile .mobile-city-picker-btn {
@@ -899,7 +957,7 @@ html:not(.layout-mobile) .mobile-menu-heading {
   html.layout-mobile .timeline-slider-track-wrap {
     margin-top: 2px;
     margin-bottom: 0;
-    padding: 10px 2px 18px;
+    padding: 10px 2px 10px;
     box-sizing: border-box;
   }
 
@@ -1085,7 +1143,9 @@ html.layout-mobile .mobile-backdrop.visible {
 }
 
 html.layout-mobile .mobile-picker-sheet,
-html.layout-mobile .mobile-action-sheet {
+html.layout-mobile .mobile-action-sheet,
+html.layout-mobile .mobile-nav-sheet,
+html.layout-mobile .mobile-about-sheet {
   display: none;
   position: fixed;
   inset: 0;
@@ -1097,8 +1157,15 @@ html.layout-mobile .mobile-action-sheet {
 }
 
 html.layout-mobile .mobile-picker-sheet.open,
-html.layout-mobile .mobile-action-sheet.open {
+html.layout-mobile .mobile-action-sheet.open,
+html.layout-mobile .mobile-nav-sheet.open,
+html.layout-mobile .mobile-about-sheet.open {
   display: flex;
+}
+
+html.layout-mobile .mobile-nav-sheet,
+html.layout-mobile .mobile-about-sheet {
+  padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
 }
 
 html.layout-mobile .mobile-picker-card {
@@ -1215,14 +1282,118 @@ html.layout-mobile .mobile-picker-empty {
   font-size: 0.9rem;
 }
 
+html.layout-mobile .mobile-nav-handle {
+  flex-shrink: 0;
+  width: 48px;
+  height: 5px;
+  border-radius: 99px;
+  background: #A08968;
+  margin: 10px auto 0;
+}
+
+html.layout-mobile .mobile-nav-hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #7C5A2A;
+}
+
+html.layout-mobile .mobile-nav-list,
+html.layout-mobile .mobile-about-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.35rem 0.75rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
+}
+
+html.layout-mobile .mobile-about-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+html.layout-mobile .mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  margin: 6px 0;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #E8D9BE;
+  border-radius: 14px;
+  background: #FFFDF8;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+html.layout-mobile .mobile-nav-item:active {
+  background: #FFF8EB;
+  border-color: #D97706;
+}
+
+html.layout-mobile .mobile-nav-dot {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #A3937C;
+}
+
+html.layout-mobile .mobile-nav-dot.dot-all { background: #A3937C; }
+html.layout-mobile .mobile-nav-dot.dot-savior { background: #EAB308; }
+html.layout-mobile .mobile-nav-dot.dot-diaspora { background: #3B82F6; }
+html.layout-mobile .mobile-nav-dot.dot-church { background: #DC2626; }
+html.layout-mobile .mobile-nav-dot.dot-journey { background: #16A34A; }
+html.layout-mobile .mobile-nav-dot.dot-heatmap { background: #F97316; }
+html.layout-mobile .mobile-nav-dot.dot-provinces { background: #854D0E; }
+html.layout-mobile .mobile-nav-dot.dot-jerusalem,
+html.layout-mobile .mobile-nav-dot.dot-jerusalem-geo { background: #B45309; }
+html.layout-mobile .mobile-nav-dot-period { background: #3B82F6; }
+html.layout-mobile .mobile-nav-dot-jump { background: #DC2626; }
+
+html.layout-mobile .mobile-nav-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+html.layout-mobile .mobile-nav-item-label {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #3B2D20;
+}
+
+html.layout-mobile .mobile-nav-item-detail {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #7C5A2A;
+}
+
+html.layout-mobile .mobile-nav-chevron {
+  flex: 0 0 auto;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #A08968;
+}
+
 /* --------------------------------------------------------------------------
    Landscape phones: reclaim vertical map space
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) and (max-height: 500px) {
   html.layout-mobile {
     --filterbar-height: 0px;
-    --citybar-height: 52px;
-    --footer-height: 120px;
+    --citybar-height: 0px;
+    --footer-height: 114px;
   }
 
   html.layout-mobile.filter-menu-open .filter-chip-rows,

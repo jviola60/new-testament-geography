@@ -583,6 +583,7 @@ const CITIES_DATA = [
     lng: 22.8797,
     isMajor: true,
     overviewLabel: true,
+    overviewAnchor: [12, -8],
     hasSynagogue: true,
     hasChurch: true,
     population: "~200,000 (Hub of two seas via the Isthmian canal transit)",

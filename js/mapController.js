@@ -550,7 +550,7 @@ class MapController {
           className: phoneOverview ? "custom-city-label overview-label-icon" : "custom-city-label",
           html: labelHtml,
           iconSize: phoneOverview ? [160, 28] : [80, 20],
-          iconAnchor: phoneOverview ? [80, -8] : [40, 10]
+          iconAnchor: phoneOverview ? (city.overviewAnchor || [80, -8]) : [40, 10]
         }),
         zIndexOffset: isMajor ? 300 : 100
       });

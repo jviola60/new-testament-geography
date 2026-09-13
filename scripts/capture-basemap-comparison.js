@@ -116,18 +116,31 @@ function serve(dir, port) {
   server.kill();
 
   const composite = path.join(OUT, "basemap_esri_vs_opentopomap.png");
-  const convert = spawn("convert", [
-    esriClip,
-    otmClip,
-    "+append",
-    "-background", "white",
-    "-splice", "8x0+0+0",
-    composite
-  ], { stdio: "inherit" });
-  const code = await new Promise((resolve) => convert.on("close", resolve));
+  const stitch = spawn("python3", ["-c", `
+from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
+left = Image.open(${JSON.stringify(esriClip)}).convert("RGB")
+right = Image.open(${JSON.stringify(otmClip)}).convert("RGB")
+gap = 10
+bar = 36
+w = left.width + gap + right.width
+h = bar + max(left.height, right.height)
+out = Image.new("RGB", (w, h), (28, 22, 16))
+draw = ImageDraw.Draw(out)
+try:
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
+except Exception:
+    font = ImageFont.load_default()
+draw.text((12, 10), "Esri World Shaded Relief (current)", fill=(253, 248, 237), font=font)
+draw.text((left.width + gap + 12, 10), "OpenTopoMap (free, CC-BY-SA)", fill=(253, 248, 237), font=font)
+out.paste(left, (0, bar))
+out.paste(right, (left.width + gap, bar))
+out.save(${JSON.stringify(composite)})
+print("wrote", ${JSON.stringify(composite)})
+`], { stdio: "inherit" });
+  const code = await new Promise((resolve) => stitch.on("close", resolve));
   if (code !== 0) {
-    // Fallback: keep the two frames; caller can still attach them.
-    console.warn("ImageMagick convert failed; individual frames are in", OUT);
+    console.warn("Pillow stitch failed; individual frames are in", OUT);
   }
   console.log("Wrote comparison frames to", OUT);
 })().catch((err) => {

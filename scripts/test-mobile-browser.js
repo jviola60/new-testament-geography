@@ -201,7 +201,7 @@ function assertViewportFill(label, fill) {
       return s.display !== "none" && s.visibility !== "hidden" && el.getClientRects().length > 0;
     }).map((el) => {
       const r = el.getBoundingClientRect();
-      return { name: el.textContent.trim(), w: r.width, h: r.height };
+      return { name: el.textContent.trim(), w: r.width, h: r.height, left: r.left, right: r.right };
     });
     return {
       south: bounds.getSouth(),
@@ -238,6 +238,10 @@ function assertViewportFill(label, fill) {
       fail(`Overview label "${box.name}" looks stacked (${box.w}x${box.h}); should read horizontally`);
     }
   });
+  const corinthBox = startExtent.labelBoxes.find((box) => box.name === "Corinth");
+  if (corinthBox && corinthBox.left < 2) {
+    fail(`Corinth label is clipped on the left edge (left=${corinthBox.left})`);
+  }
 
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);

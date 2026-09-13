@@ -80,7 +80,7 @@ assert(mobileJs.includes("applyStartExtentIfNeeded"), "Phone invalidateSize shou
 assert(mobileCss.includes("city-label-overview"), "Phone CSS should reveal curated overview city labels at cold-start zoom");
 assert(mobileCss.includes("region-label-overview"), "Phone CSS should reveal ASIA / GALATIA at cold-start zoom");
 assert(mapJs.includes("getStartExtent") && mapJs.includes("drawOverviewRegionLabels"), "MapController should own phone start extent and overview region labels");
-assert(regionsJs.includes("startExtent") && regionsJs.includes("29.2") && regionsJs.includes("37.2"), "regions.js should document the Eastern Mediterranean start box");
+assert(regionsJs.includes("startExtent") && regionsJs.includes("23.1") && regionsJs.includes("37.2"), "regions.js should document the Eastern Mediterranean start box");
 ["jerusalem", "damascus", "antioch-syria", "ephesus", "corinth", "alexandria"].forEach((id) => {
   const block = citiesJs.split("{").find((chunk) => chunk.includes(`id: "${id}"`));
   assert(block && block.includes("overviewLabel: true"), `${id} should be flagged as an overview label`);

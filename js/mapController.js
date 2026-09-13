@@ -37,8 +37,9 @@ class MapController {
     // core overlays only — Growth Heatmap (heatmaps) is independent and starts OFF.
     this.coreOverlayKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
 
-    // Fresh-load defaults (no localStorage / URL-hash restore):
-    // every place/route overlay ON, Growth Heatmap OFF, year 100 AD.
+    // Fresh-load defaults (no localStorage / URL-hash restore).
+    // Desktop: every place/route overlay ON, Growth Heatmap OFF, year 100 AD.
+    // Phone (max-width: 768px) applies a calmer set in applyViewportDefaultFilters().
     this.filterState = {
       all: true,
       savior: true,
@@ -149,7 +150,40 @@ class MapController {
     });
 
     // Mount default-on overlays and paint the start year (100 AD).
+    // Phone cold-start applies the calmer overlay set first so the map
+    // never flashes the fuller desktop defaults.
+    this.applyViewportDefaultFilters();
     this.applyLayerVisibility();
+  }
+
+  isPhoneViewport() {
+    if (typeof document !== "undefined" && document.documentElement &&
+        document.documentElement.classList &&
+        typeof document.documentElement.classList.contains === "function" &&
+        document.documentElement.classList.contains("layout-mobile")) {
+      return true;
+    }
+    return typeof window !== "undefined" && window.matchMedia &&
+      window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  applyViewportDefaultFilters() {
+    if (!this.isPhoneViewport()) return;
+    const phoneOn = new Set(["churches", "journeys"]);
+    Object.keys(this.filterState).forEach((key) => {
+      this.filterState[key] = phoneOn.has(key);
+    });
+    this.syncFilterChipDom();
+  }
+
+  syncFilterChipDom() {
+    if (typeof document === "undefined" || !document.querySelectorAll) return;
+    document.querySelectorAll(".filter-chip").forEach((chip) => {
+      const key = chip.dataset && chip.dataset.filter;
+      if (key && Object.prototype.hasOwnProperty.call(this.filterState, key)) {
+        chip.classList.toggle("active", Boolean(this.filterState[key]));
+      }
+    });
   }
 
   setupTileLayers() {

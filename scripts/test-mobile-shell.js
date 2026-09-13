@@ -19,8 +19,14 @@ assert(html.includes('id="mobileFilterBtn"'), "Expected mobile filter dropdown t
 assert(html.includes('id="mobilePeriodBtn"'), "Expected mobile period dropdown trigger");
 assert(html.includes('id="mobileFilterMenu"'), "Expected existing filter chips to back the dropdown");
 assert(html.includes('id="eraTabs"'), "Expected existing era tabs to back the period dropdown");
-assert(html.includes("Jump to place"), "Jump idle label should be the short 'Jump to place' copy");
+assert(/id="mobileFilterLabel">Layers</.test(html), "Layers trigger must start with the fixed Layers label");
+assert(/id="mobilePeriodLabel">Period</.test(html), "Period trigger must start with the fixed Period label");
+assert(/class="mobile-city-picker-label">Jump</.test(html), "Jump idle label should be the short Jump copy");
+assert(!/Jump to place/.test(html), "Jump idle label must not use 'Jump to place'");
 assert(!/Jump to any city or region/i.test(html), "Jump idle label must not keep the long city/region sentence");
+assert(html.includes('legend.style.display = "block"'), "Phone first paint should reveal the collapsed Atlas Legend chip");
+assert(html.includes('id="mobileFilterSubtitle"'), "Layers menu should expose a subtitle for the current selection");
+assert(html.includes('id="mobilePeriodSubtitle"'), "Period menu should expose a subtitle for the current era");
 assert(html.includes('id="mobileCityPickerSheet"'), "Expected searchable city picker sheet");
 assert(html.includes('id="mobileCitySearch"'), "Expected city picker search input");
 assert(html.includes('id="filterRowPrimary"') && html.includes('id="filterRowSecondary"'), "Expected two filter chip rows");
@@ -68,8 +74,28 @@ assert(mobileJs.includes("--left-fab-top"), "FAB stack top should follow the per
 assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the compact filter dropdown");
 assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
 assert(mobileJs.includes("bindPeriodDropdown"), "Mobile shell should wire the compact period dropdown");
-assert(mobileJs.includes("syncPeriodLabel"), "Period trigger should show Period · current era");
+assert(mobileJs.includes("syncPeriodLabel"), "Period trigger should keep a Period label and put the era in the menu subtitle");
 assert(mobileJs.includes("closeChromeMenus"), "Search/Tours/More must share a close for Layers + Period menus");
+assert(mobileJs.includes("collapseLegend"), "Phone shell must be able to collapse the atlas legend");
+assert(mobileJs.includes("openLegendSheet"), "Phone legend should expand as a sheet/modal");
+assert(mobileJs.includes("legend-sheet-open"), "Expanded phone legend should use a sheet class");
+assert(mobileJs.includes("bindLegendSheet"), "Mobile shell should wire the legend chip/sheet");
+{
+  const bind = mobileJs.slice(mobileJs.indexOf("bindLegendSheet() {"), mobileJs.indexOf("bindSheet() {"));
+  assert(bind.includes("isLegendOpen"), "Legend chip toggle must use isLegendOpen(), not body display");
+  assert(/if\s*\(\s*this\.isLegendOpen\(\)\s*\)[\s\S]{0,120}collapseLegend/.test(bind), "Open legend must collapse on tap");
+  assert(/else[\s\S]{0,80}openLegendSheet/.test(bind), "Closed legend must open on tap");
+  assert(!/body\.style\.display !== "none"/.test(bind), "Inverted display !== none check must not remain");
+}
+assert(
+  /layout-mobile[\s\S]{0,80}return/.test(uiJs.slice(uiJs.indexOf("legendToggleHeader"), uiJs.indexOf("Search Bar"))),
+  "Desktop legend toggle must no-op on phone so bindLegendSheet owns the chip"
+);
+{
+  const firstPaint = html.slice(html.indexOf("legend.style.display"), html.indexOf("</script>"));
+  assert(firstPaint.includes('classList.toggle("active"'), "Phone first paint should sync chip active classes before app init");
+  assert(firstPaint.includes('"churches"') && firstPaint.includes('"journeys"'), "Phone first-paint chip sync should keep Churches + Journeys only");
+}
 {
   const header = mobileJs.slice(mobileJs.indexOf("bindHeader() {"), mobileJs.indexOf("collapseLegend() {"));
   assert(header.includes("closeChromeMenus"), "Header Search/Tours/More must close the period menu");
@@ -77,7 +103,31 @@ assert(mobileJs.includes("closeChromeMenus"), "Search/Tours/More must share a cl
   assert(/toursBtn[\s\S]{0,200}closeChromeMenus/.test(header), "Opening Tours must close the period menu");
   assert(/closeChromeMenus[\s\S]{0,80}openMoreSheet/.test(header), "Opening More must close the period menu");
 }
-assert(mobileJs.includes("Period ·"), "Period trigger copy should use the Period · current pattern");
+assert(mobileJs.includes('textContent = "Period"'), "Period trigger copy should stay the short Period label");
+assert(mobileJs.includes('textContent = "Layers"'), "Layers trigger copy should stay the short Layers label");
+assert(mobileJs.includes('textContent = "Jump"'), "Jump trigger copy should stay the short Jump label");
+{
+  const openFilter = mobileJs.slice(mobileJs.indexOf("openFilterMenu() {"), mobileJs.indexOf("closeFilterMenu() {"));
+  assert(openFilter.includes("collapseLegend"), "Opening Layers must auto-collapse the legend");
+  assert(openFilter.includes("closePeriodMenu"), "Opening Layers must close Period");
+  assert(openFilter.includes("closeJumpAndMore"), "Opening Layers must close Jump");
+  assert(openFilter.includes("showBackdrop"), "Layers should open over a dimmed backdrop");
+}
+{
+  const openPeriod = mobileJs.slice(mobileJs.indexOf("openPeriodMenu() {"), mobileJs.indexOf("closePeriodMenu() {"));
+  assert(openPeriod.includes("collapseLegend"), "Opening Period must auto-collapse the legend");
+  assert(openPeriod.includes("closeFilterMenu"), "Opening Period must close Layers");
+  assert(openPeriod.includes("closeJumpAndMore"), "Opening Period must close Jump");
+}
+{
+  const openJump = mobileJs.slice(mobileJs.indexOf("openCityPicker() {"), mobileJs.indexOf("refreshCatalog() {"));
+  assert(openJump.includes("collapseLegend"), "Opening Jump must auto-collapse the legend");
+  assert(openJump.includes("closeChromeMenus"), "Opening Jump must close Layers and Period");
+}
+{
+  const sheet = mobileJs.slice(mobileJs.indexOf("setSheet(mode, opts = {}) {"), mobileJs.indexOf("onSidebarOpened() {"));
+  assert(sheet.includes("collapseLegend"), "Opening a place sheet must auto-collapse the legend");
+}
 assert(mobileJs.includes("jumpToQuickJumpValue"), "City jump must keep using existing catalog logic");
 assert(!mobileJs.includes("speed dropdown") && !/bindSpeedDropdown/.test(mobileJs), "This PR must not add a Speed dropdown");
 assert(!/timeline-collapsed|collapseTimeline|collapsible Timeline/i.test(mobileJs + mobileCss), "This PR must not collapse the Timeline");
@@ -137,6 +187,97 @@ chipTags.forEach(chip => {
   }
 });
 assert(html.includes('id="displayYear">100 AD<'), "Mobile first paint should show 100 AD");
-assert(html.includes("Period · Apostolic Age"), "Mobile period trigger should start on Apostolic Age");
+assert(/id="mobilePeriodSubtitle">Apostolic Age</.test(html), "Mobile period menu subtitle should start on Apostolic Age");
+assert(mobileCss.includes("legend-open"), "Phone legend should expand with a .legend-open sheet");
+assert(mobileCss.includes("ATLAS LEGEND") || mobileCss.includes('content: "+"'), "Collapsed phone legend should read as an ATLAS LEGEND+ chip");
+assert(mobileCss.includes("#3B2D20"), "Period list items need dark readable text on phone");
+assert(mobileCss.includes(".era-tab.active"), "Period list must restyle the selected era on phone");
+
+const mapJs = fs.readFileSync(path.join(root, "js/mapController.js"), "utf8");
+assert(mapJs.includes("applyViewportDefaultFilters"), "MapController should apply calmer phone cold-start layers");
+assert(mapJs.includes('phoneOn') || mapJs.includes('"churches"'), "Phone defaults should keep Christian Churches on");
+assert(mapJs.includes("isPhoneViewport"), "Phone overlay defaults must be viewport-gated so desktop stays unchanged");
 
 console.log("✓ Mobile shell markup, CSS, and JS hooks look complete.");
+
+function makeClassList(initial) {
+  const set = new Set(initial || []);
+  return {
+    add(...cls) { cls.forEach((c) => set.add(c)); },
+    remove(...cls) { cls.forEach((c) => set.delete(c)); },
+    contains(cls) { return set.has(cls); },
+    toggle(cls, on) {
+      if (on === undefined) {
+        if (set.has(cls)) set.delete(cls);
+        else set.add(cls);
+      } else if (on) set.add(cls);
+      else set.delete(cls);
+      return set.has(cls);
+    }
+  };
+}
+
+const legendBody = { style: { display: "none" } };
+const legendCollapseBtn = { textContent: "+" };
+const legendEl = {
+  classList: makeClassList(),
+  style: { display: "block" },
+  setAttribute() {},
+  removeAttribute() {}
+};
+const headerListeners = [];
+const header = {
+  addEventListener(evt, fn) { if (evt === "click") headerListeners.push(fn); }
+};
+const htmlEl = { classList: makeClassList(["layout-mobile"]), style: { setProperty() {} } };
+const bodyEl = { classList: makeClassList(["layout-mobile"]) };
+const backdrop = { hidden: true, classList: makeClassList() };
+const els = {
+  legendToggleHeader: header,
+  legendBody,
+  legendCollapseBtn,
+  mapLegend: legendEl,
+  mobileBackdrop: backdrop
+};
+
+const prevWindow = global.window;
+const prevDocument = global.document;
+global.window = {
+  matchMedia: () => ({ matches: true, addEventListener() {}, addListener() {} })
+};
+global.document = {
+  documentElement: htmlEl,
+  body: bodyEl,
+  getElementById: (id) => els[id] || null,
+  querySelector: () => null,
+  querySelectorAll: () => []
+};
+
+const vm = require("vm");
+vm.runInThisContext(mobileJs);
+const shell = new MobileShell();
+shell.legendEl = legendEl;
+shell.legendBody = legendBody;
+shell.legendCollapseBtn = legendCollapseBtn;
+shell.backdrop = backdrop;
+shell.bindLegendSheet();
+
+assert.strictEqual(headerListeners.length, 1, "Legend header should bind one phone click handler");
+assert.strictEqual(shell.isLegendOpen(), false, "Legend starts closed");
+assert.strictEqual(legendBody.style.display, "none", "Collapsed first paint hides the legend body");
+
+headerListeners[0]();
+assert.strictEqual(shell.isLegendOpen(), true, "First tap on a collapsed chip must open the legend sheet");
+assert.strictEqual(legendBody.style.display, "flex", "Open sheet shows the legend body");
+assert(legendEl.classList.contains("legend-open"), "Open sheet adds .legend-open");
+assert(backdrop.classList.contains("visible"), "Open sheet shows the dimmed backdrop");
+
+headerListeners[0]();
+assert.strictEqual(shell.isLegendOpen(), false, "Second tap must collapse the open legend sheet");
+assert.strictEqual(legendBody.style.display, "none", "Collapsed sheet hides the legend body");
+assert(!legendEl.classList.contains("legend-open"), "Collapsed sheet removes .legend-open");
+assert(!backdrop.classList.contains("visible"), "Collapsed sheet dismisses the backdrop");
+
+global.window = prevWindow;
+global.document = prevDocument;
+console.log("✓ Legend chip toggle opens when closed and collapses when open.");

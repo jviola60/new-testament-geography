@@ -391,7 +391,10 @@ function assertViewportFill(label, fill) {
       .filter(el => el.closest("button, a, .floating-btn, .leaflet-control-zoom, .mobile-basemap-toggle"))
       .filter(el => !badge.contains(el) && el !== badge)
       .map(el => el.id || el.className);
-    const topleftControls = left ? left.querySelectorAll(".leaflet-control").length : 0;
+    const topleftControls = left ? [...left.querySelectorAll(".leaflet-control")].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    }).length : 0;
     const borderLeft = getComputedStyle(badge).borderLeft;
     const borderColor = getComputedStyle(badge).borderLeftColor;
     return {

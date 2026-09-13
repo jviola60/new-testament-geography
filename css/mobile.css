@@ -84,6 +84,7 @@ html:not(.layout-mobile) .mobile-menu-heading {
     padding-top: env(safe-area-inset-top);
     height: calc(var(--header-height) + env(safe-area-inset-top));
     gap: 0.4rem;
+    z-index: 1800;
   }
 
   html.layout-mobile .header-left {
@@ -310,7 +311,7 @@ html:not(.layout-mobile) .mobile-menu-heading {
     left: 0;
     right: 0;
     top: auto;
-    bottom: 0;
+    bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
     z-index: 1650;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -374,6 +375,16 @@ html:not(.layout-mobile) .mobile-menu-heading {
   html.layout-mobile.period-menu-open .era-selector-tabs {
     display: flex;
     pointer-events: auto;
+    z-index: 1750;
+  }
+
+  html.layout-mobile.filter-menu-open .layer-filter-bar {
+    pointer-events: auto;
+    z-index: 1750;
+  }
+
+  html.layout-mobile.period-menu-open .app-timeline-footer {
+    z-index: 1750;
   }
 
   html.layout-mobile .filter-chip-row {
@@ -1150,6 +1161,11 @@ html.layout-mobile .mobile-action-sheet.open,
 html.layout-mobile .mobile-nav-sheet.open,
 html.layout-mobile .mobile-about-sheet.open {
   display: flex;
+}
+
+html.layout-mobile .mobile-nav-sheet,
+html.layout-mobile .mobile-about-sheet {
+  padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
 }
 
 html.layout-mobile .mobile-picker-card {

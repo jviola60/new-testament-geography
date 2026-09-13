@@ -231,7 +231,8 @@ function assertViewportFill(label, fill) {
   await page.waitForSelector("#mobileNavSheet.open", { timeout: 3000 });
   const menuOpen = await page.evaluate(() => {
     const sheet = document.getElementById("mobileNavSheet");
-    const r = sheet.getBoundingClientRect();
+    const card = sheet.querySelector(".mobile-picker-card");
+    const r = card.getBoundingClientRect();
     const items = [...document.querySelectorAll(".mobile-nav-item")].map((el) => (el.textContent || "").replace(/\s+/g, " ").trim());
     return {
       top: r.top,
@@ -407,7 +408,7 @@ function assertViewportFill(label, fill) {
     interactiveUnder: stack.interactiveUnder,
     topleftControls: stack.topleftControls
   }, null, 2));
-  if (!/nativity/i.test(stack.title)) fail(`Expected Nativity period title, got "${stack.title}"`);
+  if (!/apostolic/i.test(stack.title)) fail(`Expected Apostolic period title at 100 AD, got "${stack.title}"`);
   if (stack.overlapBadgeFabs) fail("Period title overlaps the left FAB stack");
   if (stack.overlapBadgeZoom) fail("Period title overlaps the zoom control");
   if (stack.overlapBadgeToggle) fail("Period title overlaps the Map|Satellite chip");

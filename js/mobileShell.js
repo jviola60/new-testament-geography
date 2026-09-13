@@ -85,8 +85,9 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open");
-      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open", "basemap-submenu-open");
+      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open", "nav-menu-open", "basemap-submenu-open");
+      this.closeBasemapSubmenu();
       if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
       this.restoreDesktopLegend();
@@ -157,7 +158,15 @@ class MobileShell {
   syncZoomControl() {
     const map = window.app && window.app.map && window.app.map.map;
     if (!map || !map.zoomControl) return;
-    map.zoomControl.setPosition(this.isPhone() ? "topright" : "topleft");
+    const el = typeof map.zoomControl.getContainer === "function"
+      ? map.zoomControl.getContainer()
+      : null;
+    if (this.isPhone()) {
+      if (el) el.style.display = "none";
+      return;
+    }
+    if (el) el.style.display = "";
+    map.zoomControl.setPosition("topleft");
   }
 
   bindLeftMapStack() {
@@ -348,12 +357,26 @@ class MobileShell {
       this.openLegendSheet();
     });
     bindNav("mobileNavBasemap", () => {
-      this.toggleBasemapFromMenu();
+      this.toggleBasemapSubmenu();
     });
     bindNav("mobileNavAbout", () => {
       this.closeNavSheet();
       this.openAboutSheet();
     });
+
+    const bindAtlasTool = (id, targetId) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closeOverlays();
+        const src = document.getElementById(targetId);
+        if (src) src.click();
+      });
+    };
+    bindAtlasTool("mobileNavRecenter", "recenterBtn");
+    bindAtlasTool("mobileNavHolyLand", "holyLandQuickBtn");
+    bindAtlasTool("mobileNavJerusalem", "jerusalemQuickBtn");
 
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
@@ -391,9 +414,45 @@ class MobileShell {
       this.navSheet.classList.remove("open");
       this.navSheet.hidden = true;
     }
+    this.closeBasemapSubmenu();
     document.documentElement.classList.remove("nav-menu-open");
     document.body.classList.remove("nav-menu-open");
     if (this.menuBtn) this.menuBtn.setAttribute("aria-expanded", "false");
+  }
+
+  isBasemapSubmenuOpen() {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    return !!(panel && panel.classList.contains("open"));
+  }
+
+  toggleBasemapSubmenu() {
+    if (this.isBasemapSubmenuOpen()) this.closeBasemapSubmenu();
+    else this.openBasemapSubmenu();
+  }
+
+  openBasemapSubmenu() {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    const btn = document.getElementById("mobileNavBasemap");
+    if (panel) {
+      panel.hidden = false;
+      panel.classList.add("open");
+    }
+    if (btn) btn.setAttribute("aria-expanded", "true");
+    document.documentElement.classList.add("basemap-submenu-open");
+    document.body.classList.add("basemap-submenu-open");
+    this.syncBasemapToggle();
+  }
+
+  closeBasemapSubmenu() {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    const btn = document.getElementById("mobileNavBasemap");
+    if (panel) {
+      panel.classList.remove("open");
+      panel.hidden = true;
+    }
+    if (btn) btn.setAttribute("aria-expanded", "false");
+    document.documentElement.classList.remove("basemap-submenu-open");
+    document.body.classList.remove("basemap-submenu-open");
   }
 
   openAboutSheet() {
@@ -411,15 +470,6 @@ class MobileShell {
       this.aboutSheet.classList.remove("open");
       this.aboutSheet.hidden = true;
     }
-  }
-
-  toggleBasemapFromMenu() {
-    const theme = (window.app && window.app.map && window.app.map.currentTheme) || "parchment";
-    const next = (theme === "parchment") ? "satellite" : "parchment";
-    const src = document.querySelector(`#mapStyleDropdown [data-style="${next}"]`);
-    if (src) src.click();
-    this.syncBasemapToggle();
-    this.closeOverlays();
   }
 
   syncNavDetails() {
@@ -461,6 +511,7 @@ class MobileShell {
     if (legend) {
       legend.classList.remove("legend-open");
       legend.setAttribute("aria-expanded", "false");
+      if (this.isPhone()) legend.style.display = "none";
     }
     document.documentElement.classList.remove("legend-sheet-open");
     document.body.classList.remove("legend-sheet-open");
@@ -480,6 +531,9 @@ class MobileShell {
       legendBody.style.display = "flex";
     }
     if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+    if (window.app && window.app.map && typeof window.app.map.updateLegend === "function") {
+      window.app.map.updateLegend();
+    }
   }
 
   isLegendOpen() {
@@ -499,6 +553,7 @@ class MobileShell {
     if (legendBody) legendBody.style.display = "flex";
     if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
     if (legend) {
+      legend.style.display = "block";
       legend.classList.add("legend-open");
       legend.setAttribute("aria-expanded", "true");
     }

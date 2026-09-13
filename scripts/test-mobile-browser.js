@@ -190,7 +190,7 @@ function assertViewportFill(label, fill) {
   }
   if (coldStart.legendOpen) fail("Atlas Legend must start collapsed on phone");
   if (coldStart.legendBodyDisplay !== "none") fail("Atlas Legend body must start hidden on phone");
-  if (!/atlas legend/i.test(coldStart.legendTitle)) fail("Collapsed legend chip should still be the Atlas Legend");
+  if (!/atlas legend/i.test(coldStart.legendTitle)) fail("Hamburger Legend item should still be the Atlas Legend");
 
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);
@@ -249,10 +249,42 @@ function assertViewportFill(label, fill) {
   if (!menuOpen.backdrop) fail("Hamburger sheet must dim the map");
   if (menuOpen.top < menuOpen.viewH * 0.25) fail("Hamburger must be a bottom sheet, not a left drawer");
   if (Math.abs(menuOpen.width - menuOpen.viewW) > 8) fail("Hamburger sheet should be full width");
-  ["Layers", "Period", "Jump to place"].forEach((label) => {
+  ["Layers", "Period", "Jump to place", "Atlas Legend", "Map / Satellite"].forEach((label) => {
     if (!menuOpen.items.some((t) => t.includes(label))) fail(`Hamburger sheet missing ${label}`);
   });
   await page.screenshot({ path: path.join(OUT, "phone_hamburger_open.png"), fullPage: false });
+
+  await page.locator("#mobileNavBasemap").click();
+  await page.waitForFunction(() => {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    return panel && panel.classList.contains("open");
+  }, { timeout: 3000 });
+  const mapSection = await page.evaluate(() => {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    const r = panel.getBoundingClientRect();
+    const tools = [...panel.querySelectorAll(".mobile-nav-tool")].map((el) => (el.textContent || "").replace(/\s+/g, " ").trim());
+    const toggle = document.getElementById("mobileBasemapToggle");
+    const tr = toggle.getBoundingClientRect();
+    const navOpen = document.documentElement.classList.contains("nav-menu-open");
+    return {
+      panelH: r.height,
+      toggleVisible: tr.width > 0 && tr.height > 0,
+      tools,
+      navOpen,
+      mapLabel: ((document.querySelector('#mobileBasemapToggle [data-style="parchment"]') || {}).textContent || "").trim(),
+      satLabel: ((document.querySelector('#mobileBasemapToggle [data-style="satellite"]') || {}).textContent || "").trim()
+    };
+  });
+  console.log("Map/Satellite section:", mapSection);
+  if (!mapSection.navOpen) fail("Expanding Map / Satellite must keep the hamburger open");
+  if (!mapSection.toggleVisible) fail("Map / Satellite submenu must show the Map|Satellite control");
+  if (mapSection.mapLabel !== "Map" || mapSection.satLabel !== "Satellite") {
+    fail(`Expected Map and Satellite buttons, got "${mapSection.mapLabel}" / "${mapSection.satLabel}"`);
+  }
+  ["Reset view", "Holy Land", "Jerusalem"].forEach((label) => {
+    if (!mapSection.tools.includes(label)) fail(`Map / Satellite submenu missing atlas tool: ${label}`);
+  });
+  await page.screenshot({ path: path.join(OUT, "phone_hamburger_map_satellite.png"), fullPage: false });
   await page.locator("#mobileNavClose").click();
   await sleep(150);
 
@@ -260,24 +292,20 @@ function assertViewportFill(label, fill) {
     const box = document.getElementById("mapLegend");
     const body = document.getElementById("legendBody");
     const r = box.getBoundingClientRect();
-    const map = document.querySelector(".app-main-container").getBoundingClientRect();
     return {
       visible: r.width > 0 && r.height > 0,
       width: r.width,
       height: r.height,
       bodyH: body.getBoundingClientRect().height,
-      mapH: map.height,
       open: document.documentElement.classList.contains("legend-sheet-open")
     };
   });
   console.log("Legend chip:", legendChip);
-  if (!legendChip.visible) fail("Collapsed Atlas Legend chip should be visible on phone cold start");
+  if (legendChip.visible) fail("Atlas Legend chip must not sit on the phone map (Legend is in the hamburger)");
   if (legendChip.open) fail("Legend sheet must start closed");
   if (legendChip.bodyH > 2) fail("Collapsed legend must not show the legend list");
-  if (legendChip.height > 56) fail(`Collapsed legend chip is too tall: ${legendChip.height}px`);
-  if (legendChip.width > 220) fail(`Collapsed legend chip is too wide: ${legendChip.width}px`);
 
-  await page.locator("#legendToggleHeader").click();
+  await openFromHamburger(page, "#mobileNavLegend");
   await page.waitForFunction(() => document.documentElement.classList.contains("legend-sheet-open"), { timeout: 3000 });
   const legendSheet = await page.evaluate(() => {
     const box = document.getElementById("mapLegend");
@@ -345,96 +373,85 @@ function assertViewportFill(label, fill) {
   const stack = await page.evaluate(() => {
     const badge = document.getElementById("floatingEraBadge");
     const fabs = document.querySelector(".map-floating-actions");
-    const recenter = document.getElementById("recenterBtn");
-    const jerusalem = document.getElementById("jerusalemQuickBtn");
     const zoom = document.querySelector(".leaflet-control-zoom");
     const toggle = document.getElementById("mobileBasemapToggle");
+    const legend = document.getElementById("mapLegend");
     const left = document.querySelector(".leaflet-top.leaflet-left");
     const badgeR = badge.getBoundingClientRect();
     const fabR = fabs.getBoundingClientRect();
-    const zoomR = zoom.getBoundingClientRect();
+    const zoomR = zoom ? zoom.getBoundingClientRect() : { width: 0, height: 0, left: 0, right: 0, top: 0, bottom: 0 };
     const toggleR = toggle.getBoundingClientRect();
+    const legendR = legend.getBoundingClientRect();
     const stripeX = badgeR.left + 2;
     const stripeY = badgeR.top + badgeR.height / 2;
     const hit = (x, y) => document.elementsFromPoint(x, y);
-    const underStripe = hit(stripeX, stripeY).map(el => ({
-      id: el.id || "",
-      tag: el.tagName,
-      cls: typeof el.className === "string" ? el.className : (el.className.baseVal || el.tagName)
-    }));
-    const underBadge = hit(badgeR.left + badgeR.width / 2, badgeR.top + badgeR.height / 2)
-      .filter(el => el !== badge && !badge.contains(el))
-      .map(el => el.id || (typeof el.className === "string" ? el.className : el.tagName));
     const interactiveUnder = hit(stripeX, stripeY)
       .concat(hit(badgeR.left + badgeR.width / 2, stripeY))
       .filter((el, i, arr) => arr.indexOf(el) === i)
       .filter(el => el.closest("button, a, .floating-btn, .leaflet-control-zoom, .mobile-basemap-toggle"))
       .filter(el => !badge.contains(el) && el !== badge)
       .map(el => el.id || el.className);
-    const topleftControls = left ? left.querySelectorAll(".leaflet-control").length : 0;
+    const topleftControls = left ? [...left.querySelectorAll(".leaflet-control")].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    }).length : 0;
     const borderLeft = getComputedStyle(badge).borderLeft;
     const borderColor = getComputedStyle(badge).borderLeftColor;
     return {
       title: (document.getElementById("eraTitle") || {}).textContent || "",
-      badge: { left: badgeR.left, top: badgeR.top, right: badgeR.right, bottom: badgeR.bottom, width: badgeR.width, height: badgeR.height },
-      fabs: { left: fabR.left, top: fabR.top, right: fabR.right, bottom: fabR.bottom, width: fabR.width, height: fabR.height },
-      recenter: recenter.getBoundingClientRect(),
-      jerusalem: jerusalem.getBoundingClientRect(),
-      zoom: { left: zoomR.left, top: zoomR.top, bottom: zoomR.bottom },
-      toggle: { top: toggleR.top, bottom: toggleR.bottom, right: toggleR.right, height: toggleR.height },
-      gapBadgeFabs: fabR.top - badgeR.bottom,
-      gapToggleZoom: zoomR.top - toggleR.bottom,
-      gapBadgeToggle: toggleR.left - badgeR.right,
-      overlapBadgeFabs: badgeR.left < fabR.right && badgeR.right > fabR.left && badgeR.top < fabR.bottom && badgeR.bottom > fabR.top,
-      overlapBadgeZoom: badgeR.left < zoomR.right && badgeR.right > zoomR.left && badgeR.top < zoomR.bottom && badgeR.bottom > zoomR.top,
-      overlapBadgeToggle: badgeR.left < toggleR.right && badgeR.right > toggleR.left && badgeR.top < toggleR.bottom && badgeR.bottom > toggleR.top,
-      underStripe,
-      underBadge,
+      badge: { left: badgeR.left, top: badgeR.top, width: badgeR.width, height: badgeR.height },
+      fabsVisible: fabR.width > 0 && fabR.height > 0,
+      zoomVisible: zoomR.width > 0 && zoomR.height > 0,
+      toggleVisible: toggleR.width > 0 && toggleR.height > 0,
+      legendVisible: legendR.width > 0 && legendR.height > 0,
       interactiveUnder,
       topleftControls,
       borderLeft,
-      borderColor,
-      fabTopVar: getComputedStyle(document.documentElement).getPropertyValue("--left-fab-top").trim(),
-      zoomTopVar: getComputedStyle(document.documentElement).getPropertyValue("--zoom-stack-top").trim()
+      borderColor
     };
   });
   console.log("Period-title stack:", JSON.stringify({
     title: stack.title,
-    gapBadgeFabs: stack.gapBadgeFabs,
-    gapToggleZoom: stack.gapToggleZoom,
-    gapBadgeToggle: stack.gapBadgeToggle,
+    fabsVisible: stack.fabsVisible,
+    zoomVisible: stack.zoomVisible,
+    toggleVisible: stack.toggleVisible,
+    legendVisible: stack.legendVisible,
     borderLeft: stack.borderLeft,
     borderColor: stack.borderColor,
     interactiveUnder: stack.interactiveUnder,
     topleftControls: stack.topleftControls
   }, null, 2));
   if (!/apostolic/i.test(stack.title)) fail(`Expected Apostolic period title at 100 AD, got "${stack.title}"`);
-  if (stack.overlapBadgeFabs) fail("Period title overlaps the left FAB stack");
-  if (stack.overlapBadgeZoom) fail("Period title overlaps the zoom control");
-  if (stack.overlapBadgeToggle) fail("Period title overlaps the Map|Satellite chip");
-  if (stack.gapBadgeFabs < 6) fail(`Left FABs must clear the period title, gap=${stack.gapBadgeFabs}`);
-  if (stack.gapToggleZoom < 8) fail(`Zoom stack must clear Map|Satellite chip, gap=${stack.gapToggleZoom}`);
-  if (stack.gapBadgeToggle < 8) fail(`Period title must clear Map|Satellite chip, gap=${stack.gapBadgeToggle}`);
+  if (stack.fabsVisible) fail("On-map atlas FABs must leave the phone map");
+  if (stack.zoomVisible) fail("Phone +/- zoom buttons must be hidden");
+  if (stack.toggleVisible) fail("Map|Satellite pill must not sit on the phone map");
+  if (stack.legendVisible) fail("ATLAS LEGEND+ chip must not sit on the phone map");
   if (stack.topleftControls > 0) fail(`Leaflet top-left still has ${stack.topleftControls} control(s) under the period title`);
   if (stack.interactiveUnder.length) fail(`Interactive control under the period-title stripe: ${JSON.stringify(stack.interactiveUnder)}`);
-  if (stack.recenter.height + 0.5 < 44) fail(`Reset FAB tap height ${stack.recenter.height}px < 44px`);
-  if (stack.jerusalem.height + 0.5 < 44) fail(`Jerusalem FAB tap height ${stack.jerusalem.height}px < 44px`);
   if (!/rgb\(163,\s*40,\s*34\)|#A32822/i.test(stack.borderColor) && !/5px/.test(stack.borderLeft)) {
     fail(`Expected decorative crimson period-title accent, got border=${stack.borderLeft} color=${stack.borderColor}`);
   }
   await page.screenshot({ path: path.join(OUT, "phone_nativity_stack.png"), fullPage: false });
+  await page.screenshot({ path: path.join(OUT, "phone_map_clean.png"), fullPage: false });
 
-  const basemap = page.locator("#mobileBasemapToggle");
-  if (!(await basemap.isVisible())) fail("Map/Satellite toggle must be visible on phone");
+  await page.locator("#mobileMenuBtn").click();
+  await page.waitForSelector("#mobileNavSheet.open", { timeout: 3000 });
+  await page.locator("#mobileNavBasemap").click();
+  await page.waitForFunction(() => {
+    const panel = document.getElementById("mobileNavBasemapPanel");
+    return panel && panel.classList.contains("open");
+  }, { timeout: 3000 });
   await page.locator('#mobileBasemapToggle [data-style="satellite"]').click();
   await sleep(400);
   const satOn = await page.evaluate(() => {
     const theme = window.app.map.currentTheme;
     const pressed = document.querySelector('#mobileBasemapToggle [data-style="satellite"]').getAttribute("aria-pressed");
-    return { theme, pressed };
+    const navOpen = document.documentElement.classList.contains("nav-menu-open");
+    return { theme, pressed, navOpen };
   });
   if (satOn.theme !== "satellite") fail(`Satellite toggle did not switch basemap, theme=${satOn.theme}`);
   if (satOn.pressed !== "true") fail("Satellite toggle did not show pressed state");
+  if (!satOn.navOpen) fail("Choosing Satellite must keep the hamburger Map / Satellite section open");
   await page.locator('#mobileBasemapToggle [data-style="parchment"]').click();
   await sleep(300);
   await page.locator("#mobileBasemapMoreBtn").click();
@@ -791,14 +808,12 @@ function assertViewportFill(label, fill) {
     const label = document.querySelector(".city-label-text.city-label-primary");
     return {
       tab: box(".tab-btn"),
-      fab: box(".map-floating-actions .floating-btn"),
       speed: box(".speed-btn"),
       handle: box(".sheet-handle"),
       labelSize: label ? parseFloat(getComputedStyle(label).fontSize) : null
     };
   });
   assertTap("tab-btn", taps.tab);
-  assertTap("floating-btn", taps.fab);
   assertTap("speed-btn", taps.speed);
   assertTap("sheet-handle", taps.handle);
   await page.screenshot({ path: path.join(OUT, "phone_welcome_sheet.png"), fullPage: false });
@@ -806,6 +821,13 @@ function assertViewportFill(label, fill) {
   await sleep(250);
   const burgerTap = await page.locator("#mobileMenuBtn").boundingBox();
   assertTap("mobile-menu-btn", burgerTap);
+  await page.locator("#mobileMenuBtn").click();
+  await page.waitForSelector("#mobileNavSheet.open", { timeout: 3000 });
+  await page.locator("#mobileNavBasemap").click();
+  const toolTap = await page.locator("#mobileNavRecenter").boundingBox();
+  assertTap("mobile-nav-tool", toolTap);
+  await page.locator("#mobileNavClose").click();
+  await sleep(150);
 
   await openFromHamburger(page, "#mobileNavJump");
   await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
@@ -892,6 +914,7 @@ function assertViewportFill(label, fill) {
     const bar = document.getElementById("mobileCityBar");
     const tabs = document.querySelector(".sidebar-tabs");
     const fabs = document.querySelector(".map-floating-actions");
+    const zoom = document.querySelector(".leaflet-control-zoom");
     const play = document.getElementById("playPauseBtn");
     const year = document.getElementById("displayYear");
     const slider = document.getElementById("timelineSlider");
@@ -902,7 +925,8 @@ function assertViewportFill(label, fill) {
       commandHeight: barRect.height,
       tabHeight: tabRect.height,
       tabScroll: tabs.scrollWidth > tabs.clientWidth - 4,
-      fabLeft: fabs.getBoundingClientRect().left,
+      fabVisible: vis(fabs),
+      zoomVisible: vis(zoom),
       playVisible: vis(play),
       yearVisible: vis(year),
       scrubberVisible: vis(slider),
@@ -914,7 +938,8 @@ function assertViewportFill(label, fill) {
   if (!chrome.playVisible || !chrome.yearVisible || !chrome.scrubberVisible) {
     fail("Play, year, and scrubber must remain visible");
   }
-  if (chrome.fabLeft > 80) fail(`Map FABs should sit on the left, left=${chrome.fabLeft}`);
+  if (chrome.fabVisible) fail("Map FABs must stay off the phone map");
+  if (chrome.zoomVisible) fail("Zoom +/- must stay off the phone map");
 
   await page.locator("#mobileToursBtn").click();
   await page.waitForSelector("#tourModal", { state: "visible", timeout: 5000 });
@@ -960,23 +985,21 @@ function assertViewportFill(label, fill) {
       return s.display !== "none" && s.visibility !== "hidden" && el.offsetParent !== null;
     }).map(el => el.textContent.trim());
     const primary = document.querySelector(".city-label-text.city-label-primary");
-    const zoomR = zoom.getBoundingClientRect();
+    const zoomR = zoom ? zoom.getBoundingClientRect() : { width: 0, height: 0 };
     const fabR = fabs.getBoundingClientRect();
     const toggle = document.getElementById("mobileBasemapToggle").getBoundingClientRect();
-    const overlap = zoomR.left < fabR.right && zoomR.right > fabR.left && zoomR.top < fabR.bottom && zoomR.bottom > fabR.top;
     return {
-      zoomLeft: zoomR.left,
-      fabRight: fabR.right,
+      zoomVisible: zoomR.width > 0 && zoomR.height > 0,
+      fabVisible: fabR.width > 0 && fabR.height > 0,
       toggleVisible: toggle.width > 0,
-      overlap,
       labels,
       zoomClass: document.documentElement.classList.contains("mobile-zoomed"),
       primaryLabelPx: primary ? parseFloat(getComputedStyle(primary).fontSize) : null
     };
   });
-  if (holy.zoomLeft < 200) fail(`Zoom control should sit on the right, left=${holy.zoomLeft}`);
-  if (holy.overlap) fail("Zoom control overlaps the left FAB stack");
-  if (!holy.toggleVisible) fail("Basemap toggle missing on Holy Land view");
+  if (holy.zoomVisible) fail("Zoom +/- must stay hidden on the Holy Land view");
+  if (holy.fabVisible) fail("Atlas FABs must stay hidden on the Holy Land view");
+  if (holy.toggleVisible) fail("Map|Satellite pill must stay off the Holy Land view");
   if (holy.labels.some(n => /smyrna/i.test(n))) fail("Smyrna label should stay hidden at Holy Land zoom");
   if (holy.primaryLabelPx != null && holy.primaryLabelPx < 11) {
     fail(`Primary zoomed city labels are ${holy.primaryLabelPx}px; need ≥11px`);

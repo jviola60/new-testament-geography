@@ -28,9 +28,16 @@ class MobileShell {
     this.filterLabel = document.getElementById("mobileFilterLabel");
     this.filterDot = document.getElementById("mobileFilterDot");
     this.filterMenu = document.getElementById("mobileFilterMenu");
+    this.filterSubtitle = document.getElementById("mobileFilterSubtitle");
     this.periodBtn = document.getElementById("mobilePeriodBtn");
     this.periodLabel = document.getElementById("mobilePeriodLabel");
+    this.periodSubtitle = document.getElementById("mobilePeriodSubtitle");
     this.periodMenu = document.getElementById("eraTabs");
+    this.jumpLabel = document.querySelector(".mobile-city-picker-label");
+    this.jumpSubtitle = document.getElementById("mobileJumpSubtitle");
+    this.legendEl = document.getElementById("mapLegend");
+    this.legendBody = document.getElementById("legendBody");
+    this.legendCollapseBtn = document.getElementById("legendCollapseBtn");
     this.cityBar = document.getElementById("mobileCityBar");
     this.dateBadge = document.getElementById("currentDateBadge");
 
@@ -41,6 +48,7 @@ class MobileShell {
     this.bindFilterDropdown();
     this.bindPeriodDropdown();
     this.bindCityPicker();
+    this.bindLegendSheet();
     this.bindMoreSheet();
     this.bindBasemapToggle();
     this.bindMapInvalidation();
@@ -68,10 +76,11 @@ class MobileShell {
     body.classList.toggle("layout-desktop", !phone);
 
     if (!this.isPhone()) {
-      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open");
-      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open");
+      root.classList.remove("search-open", "mobile-zoomed", "mobile-zoomed-deep", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open");
+      body.classList.remove("search-open", "sheet-open", "filter-menu-open", "period-menu-open", "legend-sheet-open");
       if (this.cityBar) this.cityBar.removeAttribute("aria-hidden");
       this.closeOverlays();
+      this.restoreDesktopLegend();
       if (this.sidebar) {
         this.sidebar.classList.remove("sheet-half", "sheet-full", "sheet-peek", "sheet-dragging", "closed");
         this.sidebar.style.height = "";
@@ -241,6 +250,8 @@ class MobileShell {
         this.searchBtn.setAttribute("aria-expanded", open ? "true" : "false");
         if (open) {
           this.closeChromeMenus();
+          this.collapseLegend();
+          this.syncBackdrop();
           const input = document.getElementById("globalSearchInput");
           if (input) input.focus();
         }
@@ -251,6 +262,7 @@ class MobileShell {
       this.toursBtn.addEventListener("click", () => {
         this.closeSearch();
         this.closeChromeMenus();
+        this.collapseLegend();
         this.closeOverlays();
         const desktopTours = document.getElementById("storyToursBtn");
         if (desktopTours) desktopTours.click();
@@ -262,6 +274,7 @@ class MobileShell {
         e.stopPropagation();
         this.closeSearch();
         this.closeChromeMenus();
+        this.collapseLegend();
         this.openMoreSheet();
       });
     }
@@ -285,10 +298,72 @@ class MobileShell {
   }
 
   collapseLegend() {
-    const legendBody = document.getElementById("legendBody");
-    const legendCollapseBtn = document.getElementById("legendCollapseBtn");
+    const legendBody = this.legendBody || document.getElementById("legendBody");
+    const legendCollapseBtn = this.legendCollapseBtn || document.getElementById("legendCollapseBtn");
+    const legend = this.legendEl || document.getElementById("mapLegend");
     if (legendBody) legendBody.style.display = "none";
     if (legendCollapseBtn) legendCollapseBtn.textContent = "+";
+    if (legend) {
+      legend.classList.remove("legend-open");
+      legend.setAttribute("aria-expanded", "false");
+    }
+    document.documentElement.classList.remove("legend-sheet-open");
+    document.body.classList.remove("legend-sheet-open");
+  }
+
+  restoreDesktopLegend() {
+    const legend = this.legendEl || document.getElementById("mapLegend");
+    const legendBody = this.legendBody || document.getElementById("legendBody");
+    const legendCollapseBtn = this.legendCollapseBtn || document.getElementById("legendCollapseBtn");
+    if (legend) {
+      legend.classList.remove("legend-open");
+      legend.removeAttribute("aria-expanded");
+    }
+    document.documentElement.classList.remove("legend-sheet-open");
+    document.body.classList.remove("legend-sheet-open");
+    if (legendBody && legendBody.style.display === "none") {
+      legendBody.style.display = "flex";
+    }
+    if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+  }
+
+  isLegendOpen() {
+    return document.documentElement.classList.contains("legend-sheet-open");
+  }
+
+  openLegendSheet() {
+    if (!this.isPhone()) return;
+    this.closeSearch();
+    this.closeChromeMenus();
+    this.closeJumpAndMore();
+    const legendBody = this.legendBody || document.getElementById("legendBody");
+    const legendCollapseBtn = this.legendCollapseBtn || document.getElementById("legendCollapseBtn");
+    const legend = this.legendEl || document.getElementById("mapLegend");
+    if (legendBody) legendBody.style.display = "flex";
+    if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+    if (legend) {
+      legend.classList.add("legend-open");
+      legend.setAttribute("aria-expanded", "true");
+    }
+    document.documentElement.classList.add("legend-sheet-open");
+    document.body.classList.add("legend-sheet-open");
+    this.showBackdrop();
+  }
+
+  bindLegendSheet() {
+    const header = document.getElementById("legendToggleHeader");
+    if (!header || header.__mobileLegendBound) return;
+    header.__mobileLegendBound = true;
+    header.addEventListener("click", () => {
+      if (!this.isPhone()) return;
+      const body = this.legendBody || document.getElementById("legendBody");
+      const open = body && body.style.display !== "none";
+      if (open) this.openLegendSheet();
+      else {
+        this.collapseLegend();
+        this.syncBackdrop();
+      }
+    });
   }
 
   bindSheet() {
@@ -369,7 +444,11 @@ class MobileShell {
     document.documentElement.classList.toggle("sheet-open", sheetOpen);
     document.body.classList.toggle("sheet-open", sheetOpen);
     if (this.cityBar) this.cityBar.setAttribute("aria-hidden", sheetOpen ? "true" : "false");
-    if (sheetOpen) this.closeChromeMenus();
+    if (sheetOpen) {
+      this.closeChromeMenus();
+      this.collapseLegend();
+      this.syncBackdrop();
+    }
     if (!opts.silent) this.invalidateMap(320);
   }
 
@@ -407,19 +486,26 @@ class MobileShell {
     this.filterBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.closeSearch();
-      this.closePeriodMenu();
-      if (this.isFilterMenuOpen()) this.closeChromeMenus();
-      else this.openFilterMenu();
+      if (this.isFilterMenuOpen()) {
+        this.closeChromeMenus();
+        this.syncBackdrop();
+      } else {
+        this.openFilterMenu();
+      }
     });
 
     document.addEventListener("click", (e) => {
       if (!this.isFilterMenuOpen()) return;
       if (e.target.closest("#mobileFilterBtn") || e.target.closest("#mobileFilterMenu")) return;
       this.closeFilterMenu();
+      this.syncBackdrop();
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.isFilterMenuOpen()) this.closeFilterMenu();
+      if (e.key === "Escape" && this.isFilterMenuOpen()) {
+        this.closeFilterMenu();
+        this.syncBackdrop();
+      }
     });
 
     document.querySelectorAll(".filter-chip").forEach((chip) => {
@@ -427,6 +513,7 @@ class MobileShell {
     });
 
     this.syncFilterLabel();
+    if (this.jumpLabel) this.jumpLabel.textContent = "Jump";
   }
 
   isFilterMenuOpen() {
@@ -434,11 +521,15 @@ class MobileShell {
   }
 
   openFilterMenu() {
-    if (this.citySheet && this.citySheet.classList.contains("open")) this.closeOverlays();
+    this.closePeriodMenu();
+    this.closeJumpAndMore();
+    this.collapseLegend();
     document.documentElement.classList.add("filter-menu-open");
     document.body.classList.add("filter-menu-open");
     this.filterBtn.setAttribute("aria-expanded", "true");
     if (this.filterMenu) this.filterMenu.setAttribute("role", "listbox");
+    this.syncFilterLabel();
+    this.showBackdrop();
   }
 
   closeFilterMenu() {
@@ -450,15 +541,17 @@ class MobileShell {
   syncFilterLabel() {
     const chips = [...document.querySelectorAll(".filter-chip")];
     const active = chips.filter((chip) => chip.classList.contains("active"));
-    const names = active.map((chip) => (chip.textContent || "").replace(/\s+/g, " ").trim());
-    let label = "Layers";
+    const names = active
+      .filter((chip) => chip.dataset.filter !== "all")
+      .map((chip) => (chip.textContent || "").replace(/\s+/g, " ").trim());
+    let detail = "No overlays";
     let dotClass = "";
 
-    if (active.some((chip) => chip.dataset.filter === "all") || names.includes("All Visible")) {
-      label = "All Visible";
+    if (active.some((chip) => chip.dataset.filter === "all")) {
+      detail = "All Visible";
       dotClass = "dot-all";
     } else if (names.length === 1) {
-      label = names[0];
+      detail = names[0];
       const key = active[0].dataset.filter;
       const mapped = {
         savior: "dot-savior",
@@ -472,16 +565,21 @@ class MobileShell {
       };
       dotClass = mapped[key] || "";
     } else if (names.length > 1) {
-      label = `${names[0]} +${names.length - 1}`;
-      dotClass = "dot-all";
+      detail = names.join(" · ");
+      const churchOn = active.some((chip) => chip.dataset.filter === "churches");
+      const journeyOn = active.some((chip) => chip.dataset.filter === "journeys");
+      if (churchOn && !journeyOn) dotClass = "dot-church";
+      else if (journeyOn && !churchOn) dotClass = "dot-journey";
+      else dotClass = "dot-all";
     }
 
-    if (this.filterLabel) this.filterLabel.textContent = label;
+    if (this.filterLabel) this.filterLabel.textContent = "Layers";
+    if (this.filterSubtitle) this.filterSubtitle.textContent = detail;
     if (this.filterDot) {
       this.filterDot.className = `mobile-filter-dot ${dotClass}`.trim();
     }
     if (this.filterBtn) {
-      this.filterBtn.setAttribute("aria-label", `Map layers, ${label}`);
+      this.filterBtn.setAttribute("aria-label", `Map layers, ${detail}`);
     }
   }
 
@@ -491,25 +589,33 @@ class MobileShell {
     this.periodBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.closeSearch();
-      this.closeFilterMenu();
-      if (this.isPeriodMenuOpen()) this.closeChromeMenus();
-      else this.openPeriodMenu();
+      if (this.isPeriodMenuOpen()) {
+        this.closeChromeMenus();
+        this.syncBackdrop();
+      } else {
+        this.openPeriodMenu();
+      }
     });
 
     document.addEventListener("click", (e) => {
       if (!this.isPeriodMenuOpen()) return;
       if (e.target.closest("#mobilePeriodBtn") || e.target.closest("#eraTabs")) return;
       this.closePeriodMenu();
+      this.syncBackdrop();
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.isPeriodMenuOpen()) this.closePeriodMenu();
+      if (e.key === "Escape" && this.isPeriodMenuOpen()) {
+        this.closePeriodMenu();
+        this.syncBackdrop();
+      }
     });
 
     document.querySelectorAll(".era-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
         this.closePeriodMenu();
         this.syncPeriodLabel(tab);
+        this.syncBackdrop();
       });
     });
 
@@ -543,11 +649,15 @@ class MobileShell {
   }
 
   openPeriodMenu() {
-    if (this.citySheet && this.citySheet.classList.contains("open")) this.closeOverlays();
+    this.closeFilterMenu();
+    this.closeJumpAndMore();
+    this.collapseLegend();
     document.documentElement.classList.add("period-menu-open");
     document.body.classList.add("period-menu-open");
     this.periodBtn.setAttribute("aria-expanded", "true");
     if (this.periodMenu) this.periodMenu.setAttribute("role", "listbox");
+    this.syncPeriodLabel();
+    this.showBackdrop();
   }
 
   closePeriodMenu() {
@@ -566,8 +676,8 @@ class MobileShell {
     const actives = [...document.querySelectorAll(".era-tab.active")];
     const active = preferred || actives[actives.length - 1] || document.querySelector(".era-tab");
     const name = this.shortEraName(active);
-    const label = `Period · ${name}`;
-    if (this.periodLabel) this.periodLabel.textContent = label;
+    if (this.periodLabel) this.periodLabel.textContent = "Period";
+    if (this.periodSubtitle) this.periodSubtitle.textContent = name;
     if (this.periodBtn) {
       this.periodBtn.setAttribute("aria-label", `Timeline period, ${name}`);
     }
@@ -591,6 +701,7 @@ class MobileShell {
     this.cityBtn.addEventListener("click", () => {
       this.closeSearch();
       this.closeChromeMenus();
+      this.collapseLegend();
       this.openCityPicker();
     });
 
@@ -611,8 +722,11 @@ class MobileShell {
   }
 
   openCityPicker() {
+    this.closeChromeMenus();
+    this.collapseLegend();
     this.refreshCatalog();
     this.renderCityList(this.citySearch ? this.citySearch.value : "");
+    this.syncJumpSubtitle();
     this.citySheet.hidden = false;
     this.citySheet.classList.add("open");
     this.showBackdrop();
@@ -659,6 +773,8 @@ class MobileShell {
       this.cityCurrent.textContent = label;
       if (this.cityBar) this.cityBar.classList.add("has-place");
     }
+    this.syncJumpSubtitle();
+    if (this.jumpLabel) this.jumpLabel.textContent = "Jump";
     if (window.app && window.app.ui) {
       window.app.ui.jumpToQuickJumpValue(value);
     }
@@ -674,6 +790,7 @@ class MobileShell {
         e.preventDefault();
         this.closeSearch();
         this.closeChromeMenus();
+        this.collapseLegend();
         this.openMoreSheet();
         return;
       }
@@ -716,6 +833,7 @@ class MobileShell {
 
   openMoreSheet() {
     this.closeChromeMenus();
+    this.collapseLegend();
     this.populateMoreLists();
     this.moreSheet.hidden = false;
     this.moreSheet.classList.add("open");
@@ -763,7 +881,30 @@ class MobileShell {
     this.backdrop.classList.add("visible");
   }
 
-  closeOverlays() {
+  hideBackdrop() {
+    if (!this.backdrop) return;
+    this.backdrop.classList.remove("visible");
+    this.backdrop.hidden = true;
+  }
+
+  syncBackdrop() {
+    const need = this.isFilterMenuOpen() || this.isPeriodMenuOpen() || this.isLegendOpen() ||
+      (this.citySheet && this.citySheet.classList.contains("open")) ||
+      (this.moreSheet && this.moreSheet.classList.contains("open"));
+    if (need) this.showBackdrop();
+    else this.hideBackdrop();
+  }
+
+  syncJumpSubtitle() {
+    if (!this.jumpSubtitle) return;
+    const current = ((this.cityCurrent && this.cityCurrent.textContent) || "").trim();
+    const hasPlace = this.cityBar && this.cityBar.classList.contains("has-place") && current &&
+      !/searchable list/i.test(current);
+    this.jumpSubtitle.textContent = hasPlace ? current : "";
+    this.jumpSubtitle.hidden = !hasPlace;
+  }
+
+  closeJumpAndMore() {
     if (this.citySheet) {
       this.citySheet.classList.remove("open");
       this.citySheet.hidden = true;
@@ -772,12 +913,14 @@ class MobileShell {
       this.moreSheet.classList.remove("open");
       this.moreSheet.hidden = true;
     }
-    if (this.backdrop) {
-      this.backdrop.classList.remove("visible");
-      this.backdrop.hidden = true;
-    }
     if (this.cityBtn) this.cityBtn.setAttribute("aria-expanded", "false");
     if (this.moreBtn) this.moreBtn.setAttribute("aria-expanded", "false");
+  }
+
+  closeOverlays() {
+    this.closeJumpAndMore();
     this.closeChromeMenus();
+    if (this.isPhone()) this.collapseLegend();
+    this.hideBackdrop();
   }
 }

@@ -172,6 +172,44 @@ assert.strictEqual(mapCtrl.filterState.jerusalemGeography, true, 'Default jerusa
 assert.strictEqual(mapCtrl.filterState.heatmaps, false, 'Default Growth Heatmap should be false');
 console.log('✓ MapController constructor enables core overlays and starts at 100 AD with Growth off.');
 
+// Phone viewport: calmer cold-start (Christian Churches + Paul's Journeys only)
+const phoneDocEl = { classList: { contains: (c) => c === "layout-mobile" } };
+const savedDocumentElement = global.document.documentElement;
+global.document.documentElement = phoneDocEl;
+global.window = { matchMedia: (q) => ({ matches: String(q).includes("max-width: 768px") }) };
+const phoneChipState = {};
+global.document.querySelectorAll = (sel) => {
+  if (sel === ".filter-chip") {
+    return ["all", "savior", "diaspora", "churches", "journeys", "heatmaps", "provinces", "jerusalemSites", "jerusalemGeography"].map((key) => ({
+      dataset: { filter: key },
+      classList: {
+        toggle: (cls, on) => { if (cls === "active") phoneChipState[key] = Boolean(on); }
+      }
+    }));
+  }
+  return [];
+};
+const phoneMap = new MapController();
+assert.strictEqual(phoneMap.filterState.savior, true, "Constructor still starts from desktop defaults before viewport apply");
+phoneMap.applyViewportDefaultFilters();
+assert.strictEqual(phoneMap.filterState.churches, true, "Phone cold start keeps Christian Churches ON");
+assert.strictEqual(phoneMap.filterState.journeys, true, "Phone cold start keeps Paul's Journeys ON");
+assert.strictEqual(phoneMap.filterState.all, false, "Phone cold start must not master All Visible");
+assert.strictEqual(phoneMap.filterState.savior, false, "Phone cold start turns Savior OFF");
+assert.strictEqual(phoneMap.filterState.diaspora, false, "Phone cold start turns Diaspora OFF");
+assert.strictEqual(phoneMap.filterState.provinces, false, "Phone cold start turns Provinces OFF");
+assert.strictEqual(phoneMap.filterState.jerusalemSites, false, "Phone cold start turns Jerusalem Landmarks OFF");
+assert.strictEqual(phoneMap.filterState.jerusalemGeography, false, "Phone cold start turns Quarters & Walls OFF");
+assert.strictEqual(phoneMap.filterState.heatmaps, false, "Phone cold start keeps Growth Heatmap OFF");
+assert.strictEqual(phoneChipState.churches, true, "Phone chip sync leaves Churches active");
+assert.strictEqual(phoneChipState.journeys, true, "Phone chip sync leaves Journeys active");
+assert.strictEqual(phoneChipState.all, false, "Phone chip sync turns All Visible off");
+assert.strictEqual(phoneChipState.heatmaps, false, "Phone chip sync leaves Growth inactive");
+console.log('✓ Phone viewport defaults are Churches + Journeys only, Growth off, All Visible off.');
+global.document.documentElement = savedDocumentElement;
+global.document.querySelectorAll = () => [];
+global.window = undefined;
+
 // Init map
 mapCtrl.init("map");
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.hydrography), 'Hydrography must be on map by default');

@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=7.1">
+  <link rel="stylesheet" href="css/mobile.css?v=7.3">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -159,6 +159,10 @@
       <div class="filter-group filter-group-layers">
         <span class="filter-label">Layers:</span>
         <div class="filter-chip-rows" id="mobileFilterMenu">
+          <div class="mobile-menu-heading" id="mobileFilterHeading">
+            <span class="mobile-menu-heading-kicker">Layers</span>
+            <span class="mobile-menu-heading-detail" id="mobileFilterSubtitle"></span>
+          </div>
           <div class="filter-chip-row" id="filterRowPrimary">
             <button class="filter-chip active" data-filter="all">
               <span class="chip-dot dot-all"></span>All Visible
@@ -215,17 +219,17 @@
   <div class="mobile-city-bar" id="mobileCityBar">
     <button type="button" id="mobileFilterBtn" class="mobile-filter-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="mobileFilterMenu">
       <span class="mobile-filter-dot" id="mobileFilterDot" aria-hidden="true"></span>
-      <span class="mobile-filter-label" id="mobileFilterLabel">All Visible</span>
+      <span class="mobile-filter-label" id="mobileFilterLabel">Layers</span>
       <span class="mobile-filter-caret" aria-hidden="true">▾</span>
     </button>
     <button type="button" id="mobilePeriodBtn" class="mobile-period-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="eraTabs">
-      <span class="mobile-period-label" id="mobilePeriodLabel">Period · Apostolic Age</span>
+      <span class="mobile-period-label" id="mobilePeriodLabel">Period</span>
       <span class="mobile-period-caret" aria-hidden="true">▾</span>
     </button>
     <button type="button" id="mobileCityPickerBtn" class="mobile-city-picker-btn" aria-haspopup="dialog" aria-expanded="false">
       <span class="mobile-city-picker-icon" aria-hidden="true">📍</span>
       <span class="mobile-city-picker-text">
-        <span class="mobile-city-picker-label">Jump to place</span>
+        <span class="mobile-city-picker-label">Jump</span>
         <span class="mobile-city-picker-current" id="mobileCityPickerCurrent">Searchable list of every place</span>
       </span>
       <span class="mobile-city-picker-caret" aria-hidden="true">▾</span>
@@ -461,6 +465,10 @@
 
       <!-- Timeline Era Filter Tabs -->
       <div class="era-selector-tabs" id="eraTabs">
+        <div class="mobile-menu-heading" id="mobilePeriodHeading">
+          <span class="mobile-menu-heading-kicker">Period</span>
+          <span class="mobile-menu-heading-detail" id="mobilePeriodSubtitle">Apostolic Age</span>
+        </div>
         <button class="era-tab" data-start-year="-6" data-end-year="-4" title="Nativity & Infancy">Nativity (-6 to -4)</button>
         <button class="era-tab" data-start-year="-4" data-end-year="26" title="Childhood & Silent Years">Nazareth (-4 to 26)</button>
         <button class="era-tab" data-start-year="26" data-end-year="29" title="Early Ministry">Baptism & Judea (26–29)</button>
@@ -495,7 +503,10 @@
   <div class="mobile-picker-sheet" id="mobileCityPickerSheet" hidden role="dialog" aria-modal="true" aria-labelledby="mobileCityPickerTitle">
     <div class="mobile-picker-card">
       <div class="mobile-picker-header">
-        <h3 id="mobileCityPickerTitle">Jump to a biblical place</h3>
+        <div class="mobile-picker-heading-text">
+          <h3 id="mobileCityPickerTitle">Jump to a biblical place</h3>
+          <p class="mobile-menu-heading-detail" id="mobileJumpSubtitle" hidden></p>
+        </div>
         <button type="button" class="close-btn" id="mobileCityPickerClose" aria-label="Close place picker">&times;</button>
       </div>
       <div class="mobile-picker-search-wrap">
@@ -571,11 +582,11 @@
   <script src="js/data/tours.js?v=3.5"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.3"></script>
+  <script src="js/mapController.js?v=4.4"></script>
   <script src="js/timelineController.js?v=3.6"></script>
   <script src="js/uiController.js?v=4.5"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=7.2"></script>
+  <script src="js/mobileShell.js?v=7.3"></script>
   <script src="js/app.js?v=4.3"></script>
 </body>
 </html>

@@ -119,6 +119,9 @@ function assertViewportFill(label, fill) {
       slider: document.getElementById("timelineSlider") ? document.getElementById("timelineSlider").value : "",
       period: ((document.getElementById("mobilePeriodLabel") || {}).textContent || "").trim(),
       filterLabel: ((document.getElementById("mobileFilterLabel") || {}).textContent || "").trim(),
+      jumpLabel: ((document.querySelector(".mobile-city-picker-label") || {}).textContent || "").trim(),
+      filterSubtitle: ((document.getElementById("mobileFilterSubtitle") || {}).textContent || "").trim(),
+      periodSubtitle: ((document.getElementById("mobilePeriodSubtitle") || {}).textContent || "").trim(),
       chips,
       heatmaps: window.app.map.filterState.heatmaps,
       savior: window.app.map.filterState.savior,
@@ -126,7 +129,13 @@ function assertViewportFill(label, fill) {
       churches: window.app.map.filterState.churches,
       journeys: window.app.map.filterState.journeys,
       provinces: window.app.map.filterState.provinces,
-      timelineYear: window.app.timeline.currentYear
+      jerusalemSites: window.app.map.filterState.jerusalemSites,
+      jerusalemGeography: window.app.map.filterState.jerusalemGeography,
+      all: window.app.map.filterState.all,
+      timelineYear: window.app.timeline.currentYear,
+      legendOpen: document.documentElement.classList.contains("legend-sheet-open"),
+      legendBodyDisplay: document.getElementById("legendBody") ? document.getElementById("legendBody").style.display : "",
+      legendTitle: ((document.querySelector(".legend-title") || {}).textContent || "").trim()
     };
   });
   console.log("Cold start:", coldStart);
@@ -134,24 +143,127 @@ function assertViewportFill(label, fill) {
     fail(`Cold start year should be 100 AD, got year="${coldStart.year}" slider=${coldStart.slider} js=${coldStart.timelineYear}`);
   }
   if (coldStart.heatmaps) fail("Growth Heatmap must start OFF");
-  ["savior", "diaspora", "churches", "journeys", "provinces"].forEach((key) => {
-    if (!coldStart[key]) fail(`${key} overlay must start ON`);
+  if (coldStart.all) fail("All Visible must start OFF on phone");
+  if (!coldStart.churches) fail("Christian Churches must start ON on phone");
+  if (!coldStart.journeys) fail("Paul's Journeys must start ON on phone");
+  ["savior", "diaspora", "provinces", "jerusalemSites", "jerusalemGeography"].forEach((key) => {
+    if (coldStart[key]) fail(`${key} overlay must start OFF on phone`);
   });
   const growthChip = coldStart.chips.find((chip) => chip.key === "heatmaps");
   if (!growthChip || growthChip.active) fail("Growth Heatmap chip must start inactive");
-  const coreOff = coldStart.chips.filter((chip) => chip.key !== "heatmaps" && !chip.active);
-  if (coreOff.length) fail(`Core overlay chips must start ON, off=${coreOff.map((c) => c.key).join(",")}`);
-  if (!/All Visible/i.test(coldStart.filterLabel)) {
-    fail(`Mobile layer trigger should read All Visible, got "${coldStart.filterLabel}"`);
+  const allChip = coldStart.chips.find((chip) => chip.key === "all");
+  if (!allChip || allChip.active) fail("All Visible chip must start inactive on phone");
+  const phoneOn = coldStart.chips.filter((chip) => chip.active).map((c) => c.key).sort();
+  if (phoneOn.join(",") !== "churches,journeys") {
+    fail(`Phone cold-start chips should be churches+journeys, got ${phoneOn.join(",")}`);
   }
-  if (!/Period · Apostolic Age/i.test(coldStart.period)) {
-    fail(`Mobile period trigger should read Period · Apostolic Age, got "${coldStart.period}"`);
+  if (coldStart.filterLabel !== "Layers") {
+    fail(`Mobile layer trigger should read Layers, got "${coldStart.filterLabel}"`);
   }
+  if (coldStart.period !== "Period") {
+    fail(`Mobile period trigger should read Period, got "${coldStart.period}"`);
+  }
+  if (coldStart.jumpLabel !== "Jump") {
+    fail(`Mobile jump trigger should read Jump, got "${coldStart.jumpLabel}"`);
+  }
+  if (!/Christian Churches/i.test(coldStart.filterSubtitle) || !/Paul's Journeys/i.test(coldStart.filterSubtitle)) {
+    fail(`Layers subtitle should name Churches + Journeys, got "${coldStart.filterSubtitle}"`);
+  }
+  if (!/Apostolic Age/i.test(coldStart.periodSubtitle)) {
+    fail(`Period subtitle should start on Apostolic Age, got "${coldStart.periodSubtitle}"`);
+  }
+  if (coldStart.legendOpen) fail("Atlas Legend must start collapsed on phone");
+  if (coldStart.legendBodyDisplay !== "none") fail("Atlas Legend body must start hidden on phone");
+  if (!/atlas legend/i.test(coldStart.legendTitle)) fail("Collapsed legend chip should still be the Atlas Legend");
 
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");
   if (phoneOverflow.overflowX > 2) fail(`Horizontal overflow on phone: ${phoneOverflow.overflowX}px`);
+  await page.screenshot({ path: path.join(OUT, "phone_cold_start.png"), fullPage: false });
+
+  const legendChip = await page.evaluate(() => {
+    const box = document.getElementById("mapLegend");
+    const body = document.getElementById("legendBody");
+    const r = box.getBoundingClientRect();
+    const map = document.querySelector(".app-main-container").getBoundingClientRect();
+    return {
+      visible: r.width > 0 && r.height > 0,
+      width: r.width,
+      height: r.height,
+      bodyH: body.getBoundingClientRect().height,
+      mapH: map.height,
+      open: document.documentElement.classList.contains("legend-sheet-open")
+    };
+  });
+  console.log("Legend chip:", legendChip);
+  if (!legendChip.visible) fail("Collapsed Atlas Legend chip should be visible on phone cold start");
+  if (legendChip.open) fail("Legend sheet must start closed");
+  if (legendChip.bodyH > 2) fail("Collapsed legend must not show the legend list");
+  if (legendChip.height > 56) fail(`Collapsed legend chip is too tall: ${legendChip.height}px`);
+  if (legendChip.width > 220) fail(`Collapsed legend chip is too wide: ${legendChip.width}px`);
+
+  await page.locator("#legendToggleHeader").click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("legend-sheet-open"), { timeout: 3000 });
+  const legendSheet = await page.evaluate(() => {
+    const box = document.getElementById("mapLegend");
+    const r = box.getBoundingClientRect();
+    return {
+      top: r.top,
+      width: r.width,
+      viewW: window.innerWidth,
+      viewH: window.innerHeight,
+      backdrop: document.getElementById("mobileBackdrop") && document.getElementById("mobileBackdrop").classList.contains("visible")
+    };
+  });
+  if (Math.abs(legendSheet.width - legendSheet.viewW) > 8) fail("Expanded legend should be a full-width sheet");
+  if (!legendSheet.backdrop) fail("Expanded legend should use a dimmed backdrop");
+  if (legendSheet.top < legendSheet.viewH * 0.25) fail("Expanded legend should be a sheet, not a persistent map card");
+
+  await page.locator("#mobileFilterBtn").click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("filter-menu-open"), { timeout: 3000 });
+  const afterLayers = await page.evaluate(() => ({
+    legend: document.documentElement.classList.contains("legend-sheet-open"),
+    period: document.documentElement.classList.contains("period-menu-open"),
+    jump: document.getElementById("mobileCityPickerSheet").classList.contains("open"),
+    layers: document.documentElement.classList.contains("filter-menu-open"),
+    backdrop: document.getElementById("mobileBackdrop").classList.contains("visible"),
+    subtitle: ((document.getElementById("mobileFilterSubtitle") || {}).textContent || "").trim()
+  }));
+  if (!afterLayers.layers) fail("Layers menu did not open");
+  if (afterLayers.legend) fail("Opening Layers must auto-collapse the legend");
+  if (afterLayers.period) fail("Opening Layers must close Period");
+  if (afterLayers.jump) fail("Opening Layers must close Jump");
+  if (!afterLayers.backdrop) fail("Layers menu should sit over a dimmed backdrop");
+  await page.screenshot({ path: path.join(OUT, "phone_layers_open.png"), fullPage: false });
+
+  await page.locator("#mobilePeriodBtn").click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("period-menu-open"), { timeout: 3000 });
+  const afterPeriodOpen = await page.evaluate(() => ({
+    layers: document.documentElement.classList.contains("filter-menu-open"),
+    period: document.documentElement.classList.contains("period-menu-open"),
+    legend: document.documentElement.classList.contains("legend-sheet-open"),
+    jump: document.getElementById("mobileCityPickerSheet").classList.contains("open")
+  }));
+  if (!afterPeriodOpen.period) fail("Period menu did not open");
+  if (afterPeriodOpen.layers) fail("Opening Period must close Layers");
+  if (afterPeriodOpen.legend) fail("Opening Period must close the legend");
+  if (afterPeriodOpen.jump) fail("Opening Period must close Jump");
+
+  await page.locator("#mobileCityPickerBtn").click();
+  await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
+  const afterJump = await page.evaluate(() => ({
+    layers: document.documentElement.classList.contains("filter-menu-open"),
+    period: document.documentElement.classList.contains("period-menu-open"),
+    legend: document.documentElement.classList.contains("legend-sheet-open"),
+    jump: document.getElementById("mobileCityPickerSheet").classList.contains("open")
+  }));
+  if (!afterJump.jump) fail("Jump sheet did not open");
+  if (afterJump.layers) fail("Opening Jump must close Layers");
+  if (afterJump.period) fail("Opening Jump must close Period");
+  if (afterJump.legend) fail("Opening Jump must close the legend");
+  await page.locator("#mobileCityPickerClose").click();
+  await page.waitForTimeout(150);
 
   const stack = await page.evaluate(() => {
     const badge = document.getElementById("floatingEraBadge");
@@ -324,24 +436,34 @@ function assertViewportFill(label, fill) {
   if (commandRow.barHeight > 56) fail(`Command row should be one compact strip, height=${commandRow.barHeight}`);
   if (commandRow.chipMenuOpen) fail("Filter list should stay closed until the dropdown is opened");
   if (commandRow.periodMenuOpen) fail("Period list should stay closed until the dropdown is opened");
-  if (!/^Jump to place$/i.test(commandRow.jumpLabel)) {
-    fail(`Jump idle label should be "Jump to place", got "${commandRow.jumpLabel}"`);
+  if (!/^Jump$/i.test(commandRow.jumpLabel)) {
+    fail(`Jump idle label should be "Jump", got "${commandRow.jumpLabel}"`);
   }
-  if (/JUMP TO ANY CITY OR REGION/i.test(commandRow.jumpLabel)) {
-    fail("Jump idle label must not use the long all-caps city/region sentence");
+  if (/JUMP TO ANY CITY OR REGION|Jump to place/i.test(commandRow.jumpLabel)) {
+    fail("Jump idle label must stay the short Jump word");
   }
   await page.evaluate(() => (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve());
-  const jumpFits = await page.evaluate(() => {
-    const label = document.querySelector(".mobile-city-picker-label");
-    if (!label) return { ok: false };
-    return { ok: label.scrollWidth <= label.clientWidth + 2, scroll: label.scrollWidth, client: label.clientWidth };
+  const commandFits = await page.evaluate(() => {
+    const labels = [
+      ["Layers", document.getElementById("mobileFilterLabel")],
+      ["Period", document.getElementById("mobilePeriodLabel")],
+      ["Jump", document.querySelector(".mobile-city-picker-label")]
+    ];
+    return labels.map(([name, el]) => ({
+      name,
+      text: (el && el.textContent || "").trim(),
+      ok: !!el && el.scrollWidth <= el.clientWidth + 2,
+      scroll: el ? el.scrollWidth : 0,
+      client: el ? el.clientWidth : 0
+    }));
   });
-  console.log("Jump label fit:", jumpFits);
-  if (!jumpFits.ok) {
-    console.warn('Idle "Jump to place" is ellipsized at 390px; Riley should-fix left for Jeff phone-check');
-  }
-  if (!/^Period · Nativity$/i.test(commandRow.periodLabel)) {
-    fail(`Period trigger should read Period · Nativity at 6 BC, got "${commandRow.periodLabel}"`);
+  console.log("Command label fit:", commandFits);
+  commandFits.forEach((row) => {
+    if (row.text !== row.name) fail(`Command label ${row.name} should stay "${row.name}", got "${row.text}"`);
+    if (!row.ok) fail(`${row.name} command label is ellipsized (${row.scroll} > ${row.client})`);
+  });
+  if (!/^Period$/i.test(commandRow.periodLabel)) {
+    fail(`Period trigger should read Period at 6 BC, got "${commandRow.periodLabel}"`);
   }
   assertTap("mobile-filter-trigger", commandRow.filter);
   assertTap("mobile-period-trigger", commandRow.period);
@@ -398,8 +520,12 @@ function assertViewportFill(label, fill) {
   const active = await page.locator(".filter-chip.active").count();
   if (active < 3) fail("Layer chips did not activate");
   const filterLabel = (await page.locator("#mobileFilterLabel").innerText()).trim();
-  if (!/Savior|Journey|Heatmap|\+\d/i.test(filterLabel)) {
-    fail(`Filter trigger should show current selection, got "${filterLabel}"`);
+  const filterSubtitle = (await page.locator("#mobileFilterSubtitle").innerText()).trim();
+  if (filterLabel !== "Layers") {
+    fail(`Filter trigger must stay Layers, got "${filterLabel}"`);
+  }
+  if (!/Savior|Journey|Heatmap|Church/i.test(filterSubtitle)) {
+    fail(`Filter menu subtitle should show current selection, got "${filterSubtitle}"`);
   }
   await page.screenshot({ path: path.join(OUT, "phone_filter_dropdown.png"), fullPage: false });
   await page.locator("#mobileFilterBtn").click();
@@ -452,6 +578,45 @@ function assertViewportFill(label, fill) {
   if (eraCount < 8) fail(`Expected 8 era tabs in the period menu, found ${eraCount}`);
   const openEra = await page.locator(".era-tab").nth(1).boundingBox();
   assertTap("era-tab", openEra);
+  const periodContrast = await page.evaluate(() => {
+    const parse = (c) => {
+      const m = String(c).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
+    };
+    const lum = ([r, g, b]) => {
+      const n = [r, g, b].map((v) => {
+        const x = v / 255;
+        return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * n[0] + 0.7152 * n[1] + 0.0722 * n[2];
+    };
+    const contrast = (a, b) => {
+      const l1 = lum(a);
+      const l2 = lum(b);
+      const hi = Math.max(l1, l2);
+      const lo = Math.min(l1, l2);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const idle = document.querySelector(".era-tab:not(.active)");
+    const active = document.querySelector(".era-tab.active");
+    const idleCs = getComputedStyle(idle);
+    const activeCs = getComputedStyle(active);
+    return {
+      idleRatio: contrast(parse(idleCs.color), parse(idleCs.backgroundColor)),
+      activeRatio: contrast(parse(activeCs.color), parse(activeCs.backgroundColor)),
+      idleColor: idleCs.color,
+      idleBg: idleCs.backgroundColor,
+      activeColor: activeCs.color,
+      activeBg: activeCs.backgroundColor
+    };
+  });
+  console.log("Period contrast:", periodContrast);
+  if (periodContrast.idleRatio < 4.5) {
+    fail(`Period list text is too faint: contrast ${periodContrast.idleRatio.toFixed(2)} (${periodContrast.idleColor} on ${periodContrast.idleBg})`);
+  }
+  if (periodContrast.activeRatio < 4.5) {
+    fail(`Selected period state is too weak: contrast ${periodContrast.activeRatio.toFixed(2)} (${periodContrast.activeColor} on ${periodContrast.activeBg})`);
+  }
   await page.screenshot({ path: path.join(OUT, "phone_period_dropdown.png"), fullPage: false });
   await page.evaluate(() => {
     const tab = document.querySelectorAll(".era-tab")[1];
@@ -461,17 +626,22 @@ function assertViewportFill(label, fill) {
     const year = (document.getElementById("displayYear") || {}).textContent || "";
     const open = document.documentElement.classList.contains("period-menu-open");
     const label = (document.getElementById("mobilePeriodLabel") || {}).textContent || "";
-    return /4 BC/.test(year) && !open && /Period · Nazareth/i.test(label);
+    const subtitle = (document.getElementById("mobilePeriodSubtitle") || {}).textContent || "";
+    return /4 BC/.test(year) && !open && /^Period$/i.test(label.trim()) && /Nazareth/i.test(subtitle);
   }, { timeout: 4000 });
   const afterPeriod = await page.evaluate(() => ({
     open: document.documentElement.classList.contains("period-menu-open"),
     label: (document.getElementById("mobilePeriodLabel") || {}).textContent || "",
+    subtitle: (document.getElementById("mobilePeriodSubtitle") || {}).textContent || "",
     year: (document.getElementById("displayYear") || {}).textContent || "",
     eraDisplay: getComputedStyle(document.querySelector(".era-selector-tabs")).display
   }));
   if (afterPeriod.open || afterPeriod.eraDisplay !== "none") fail("Period menu should close after choosing an era");
-  if (!/Period · Nazareth/i.test(afterPeriod.label)) {
-    fail(`Period trigger should show Period · Nazareth, got "${afterPeriod.label}"`);
+  if (!/^Period$/i.test(afterPeriod.label.trim())) {
+    fail(`Period trigger should stay Period, got "${afterPeriod.label}"`);
+  }
+  if (!/Nazareth/i.test(afterPeriod.subtitle)) {
+    fail(`Period menu subtitle should show Nazareth, got "${afterPeriod.subtitle}"`);
   }
   if (!/4 BC/.test(afterPeriod.year)) fail(`Choosing Nazareth should jump the timeline to 4 BC, year=${afterPeriod.year}`);
 
@@ -628,7 +798,11 @@ function assertViewportFill(label, fill) {
     hasPlace: document.getElementById("mobileCityBar").classList.contains("has-place")
   }));
   if (!/corinth/i.test(jumpedPlace.current)) {
-    fail(`After pick, Jump should show the place name, got "${jumpedPlace.current}"`);
+    fail(`After pick, Jump sheet should remember the place name, got "${jumpedPlace.current}"`);
+  }
+  const jumpBtnLabel = await page.locator(".mobile-city-picker-label").innerText();
+  if (jumpBtnLabel.trim() !== "Jump") {
+    fail(`Jump command button must stay Jump after a pick, got "${jumpBtnLabel}"`);
   }
 
   if (!sheetOpen.open) fail("Place sheet did not open to half after city jump");
@@ -887,7 +1061,21 @@ function assertViewportFill(label, fill) {
     periodBtn: getComputedStyle(document.getElementById("mobilePeriodBtn")).display,
     basemap: getComputedStyle(document.getElementById("mobileBasemapToggle")).display,
     sidebar: getComputedStyle(document.getElementById("detailSidebar")).width,
-    headerRight: getComputedStyle(document.querySelector(".header-right")).display
+    headerRight: getComputedStyle(document.querySelector(".header-right")).display,
+    heading: getComputedStyle(document.getElementById("mobileFilterHeading")).display,
+    filters: {
+      all: window.app.map.filterState.all,
+      savior: window.app.map.filterState.savior,
+      diaspora: window.app.map.filterState.diaspora,
+      churches: window.app.map.filterState.churches,
+      journeys: window.app.map.filterState.journeys,
+      provinces: window.app.map.filterState.provinces,
+      jerusalemSites: window.app.map.filterState.jerusalemSites,
+      jerusalemGeography: window.app.map.filterState.jerusalemGeography,
+      heatmaps: window.app.map.filterState.heatmaps
+    },
+    year: window.app.map.currentYear,
+    legendBody: document.getElementById("legendBody") ? getComputedStyle(document.getElementById("legendBody")).display : ""
   }));
   console.log("Desktop layout:", deskState);
   if (deskState.layout.includes("layout-mobile")) fail("Desktop should not use layout-mobile");
@@ -895,6 +1083,13 @@ function assertViewportFill(label, fill) {
   if (deskState.filterBtn !== "none") fail("Mobile filter dropdown should be hidden on desktop");
   if (deskState.periodBtn !== "none") fail("Mobile period dropdown should be hidden on desktop");
   if (deskState.basemap !== "none") fail("Mobile basemap toggle should be hidden on desktop");
+  if (deskState.heading !== "none") fail("Mobile menu heading must stay hidden on desktop");
+  ["all", "savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"].forEach((key) => {
+    if (!deskState.filters[key]) fail(`Desktop cold start must keep ${key} ON`);
+  });
+  if (deskState.filters.heatmaps) fail("Desktop Growth Heatmap must stay OFF");
+  if (deskState.year !== 100) fail(`Desktop timeline must stay 100 AD, got ${deskState.year}`);
+  if (deskState.legendBody === "none") fail("Desktop Atlas Legend must stay expanded/open by default");
   await dpage.screenshot({ path: path.join(OUT, "desktop_home.png"), fullPage: false });
   await desk.close();
 

@@ -75,6 +75,14 @@ assert(mobileJs.includes("bindFilterDropdown"), "Mobile shell should wire the co
 assert(mobileJs.includes("syncFilterLabel"), "Filter trigger should show the current layer selection");
 assert(mobileJs.includes("bindPeriodDropdown"), "Mobile shell should wire the compact period dropdown");
 assert(mobileJs.includes("syncPeriodLabel"), "Period trigger should keep a Period label and put the era in the menu subtitle");
+{
+  const bindPeriod = mobileJs.slice(mobileJs.indexOf("bindPeriodDropdown() {"), mobileJs.indexOf("isPeriodMenuOpen() {"));
+  const observe = bindPeriod.match(/\.observe\(\s*eraHost\s*,\s*\{([\s\S]*?)\}\s*\)/);
+  assert(observe, "Period menu should observe #eraTabs for active-tab class changes");
+  assert(!/childList\s*:\s*true/.test(observe[1]), "Period observer must not watch childList (subtitle lives inside #eraTabs)");
+  assert(!/characterData\s*:\s*true/.test(observe[1]), "Period observer must not watch characterData (syncPeriodLabel writes the nested subtitle)");
+  assert(/attributeFilter\s*:\s*\[\s*["']class["']\s*\]/.test(observe[1]), "Period observer should watch only class changes on era tabs");
+}
 assert(mobileJs.includes("closeChromeMenus"), "Search/Tours/More must share a close for Layers + Period menus");
 assert(mobileJs.includes("collapseLegend"), "Phone shell must be able to collapse the atlas legend");
 assert(mobileJs.includes("openLegendSheet"), "Phone legend should expand as a sheet/modal");
@@ -281,3 +289,80 @@ assert(!backdrop.classList.contains("visible"), "Collapsed sheet dismisses the b
 global.window = prevWindow;
 global.document = prevDocument;
 console.log("✓ Legend chip toggle opens when closed and collapses when open.");
+
+// Writing the Period subtitle (a child of #eraTabs) must not re-enter the
+// MutationObserver. childList/characterData on that host froze App.init.
+{
+  const observed = [];
+  class FakeMutationObserver {
+    constructor(cb) { this.cb = cb; }
+    observe(target, options) { observed.push({ target, options }); }
+    disconnect() {}
+  }
+  const periodHtml = { classList: makeClassList(["layout-mobile"]), style: { setProperty() {} } };
+  const periodBody = { classList: makeClassList(["layout-mobile"]) };
+  const periodLabel = { textContent: "Period" };
+  const periodSubtitle = { textContent: "Apostolic Age" };
+  const periodBtn = {
+    addEventListener() {},
+    setAttribute() {},
+    getAttribute() { return ""; }
+  };
+  const eraTab = { textContent: "Apostolic Age (70–100)", classList: makeClassList(["active"]), addEventListener() {} };
+  const eraHost = { __periodLabelObs: null };
+  const prevMO = global.MutationObserver;
+  const prevWin = global.window;
+  const prevDoc = global.document;
+  global.MutationObserver = FakeMutationObserver;
+  global.window = { matchMedia: () => ({ matches: true, addEventListener() {}, addListener() {} }) };
+  global.document = {
+    documentElement: periodHtml,
+    body: periodBody,
+    getElementById: () => null,
+    querySelector: (sel) => (sel === ".era-tab" ? eraTab : null),
+    querySelectorAll: (sel) => (sel === ".era-tab.active" || sel === ".era-tab" ? [eraTab] : []),
+    addEventListener() {}
+  };
+  const periodShell = new MobileShell();
+  periodShell.periodBtn = periodBtn;
+  periodShell.periodLabel = periodLabel;
+  periodShell.periodSubtitle = periodSubtitle;
+  periodShell.periodMenu = eraHost;
+  periodShell.bindPeriodDropdown();
+
+  assert.strictEqual(observed.length, 1, "Period dropdown should attach one MutationObserver");
+  assert.strictEqual(observed[0].options.childList, undefined, "Observer must omit childList");
+  assert.strictEqual(observed[0].options.characterData, undefined, "Observer must omit characterData");
+  assert.deepStrictEqual(observed[0].options.attributeFilter, ["class"], "Observer should watch class only");
+
+  let syncs = 0;
+  const observerCb = eraHost.__periodLabelObs && eraHost.__periodLabelObs.cb;
+  assert(typeof observerCb === "function", "Observer callback should be stored");
+  const origText = Object.getOwnPropertyDescriptor(periodSubtitle, "textContent");
+  Object.defineProperty(periodSubtitle, "textContent", {
+    get() { return origText.get ? origText.get.call(this) : this._text; },
+    set(v) {
+      this._text = v;
+      const opts = observed[0].options;
+      if (opts.childList || opts.characterData) observerCb();
+    },
+    configurable: true
+  });
+  periodSubtitle._text = "Apostolic Age";
+  const origSync = periodShell.syncPeriodLabel.bind(periodShell);
+  periodShell.syncPeriodLabel = function (preferred) {
+    syncs += 1;
+    assert(syncs < 25, "syncPeriodLabel re-entered — period subtitle write must not notify the eraTabs observer");
+    return origSync(preferred);
+  };
+  periodSubtitle._text = "Stale era";
+  periodShell.syncPeriodLabel();
+  observerCb();
+  assert.strictEqual(periodSubtitle._text, "Apostolic Age", "Subtitle should sync to the active era");
+  assert(syncs >= 2 && syncs < 25, `Expected a bounded sync (got ${syncs}), not an observer loop`);
+
+  global.MutationObserver = prevMO;
+  global.window = prevWin;
+  global.document = prevDoc;
+  console.log("✓ Period subtitle write does not re-enter the eraTabs MutationObserver.");
+}

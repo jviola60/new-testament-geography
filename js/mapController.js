@@ -88,15 +88,14 @@ class MapController {
   applyStartExtent({ animate = false, force = false } = {}) {
     if (!this.map || !this.isPhoneViewport()) return false;
     if (!force && !this._startExtentPending) return false;
-    const size = this.map.getSize && this.map.getSize();
-    if (!size || size.x < 80 || size.y < 80) return false;
     const extent = this.getStartExtent();
-    this.map.fitBounds(extent.bounds, {
-      padding: [10, 10],
-      animate,
-      duration: animate ? 1.2 : 0,
-      maxZoom: extent.maxZoom
-    });
+    // setView (not fitBounds): the documented box is ~17.2° wide, which is the
+    // full 390px pane at zoom 5. fitBounds + padding drops to zoom 4 and shows Italy.
+    if (animate && typeof this.map.flyTo === "function") {
+      this.map.flyTo(extent.center, extent.zoom, { duration: 1.2 });
+    } else if (typeof this.map.setView === "function") {
+      this.map.setView(extent.center, extent.zoom, { animate: false });
+    }
     this._startExtentPending = false;
     return true;
   }
@@ -1273,11 +1272,7 @@ class MapController {
   recenter() {
     if (this.isPhoneViewport()) {
       this._startExtentPending = true;
-      if (!this.applyStartExtent({ animate: true, force: true })) {
-        const extent = this.getStartExtent();
-        this.map.flyTo(extent.center, extent.zoom, { duration: 1.2 });
-        this._startExtentPending = false;
-      }
+      this.applyStartExtent({ animate: true, force: true });
       return;
     }
     this.focusRegion("mediterranean");

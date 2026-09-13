@@ -243,7 +243,6 @@ assert(mobileCss.includes("legend-open"), "Phone legend should expand with a .le
 assert(mobileCss.includes("#3B2D20"), "Period list items need dark readable text on phone");
 assert(mobileCss.includes(".era-tab.active"), "Period list must restyle the selected era on phone");
 
-const mapJs = fs.readFileSync(path.join(root, "js/mapController.js"), "utf8");
 assert(mapJs.includes("applyViewportDefaultFilters"), "MapController should apply calmer phone cold-start layers");
 assert(mapJs.includes('phoneOn') || mapJs.includes('"churches"'), "Phone defaults should keep Christian Churches on");
 assert(mapJs.includes("isPhoneViewport"), "Phone overlay defaults must be viewport-gated so desktop stays unchanged");

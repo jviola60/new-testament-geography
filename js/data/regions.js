@@ -378,11 +378,12 @@ const REGIONS_DATA = {
   },
 
   // Phone cold-start Eastern Mediterranean overview (Greece–Levant / Black Sea–Egypt).
-  // Preferred 100 AD churches+journeys frame. Desktop ≥1280 keeps the historic
-  // Leaflet start of center [34.5, 31.0] zoom 6 so a wide viewport does not
-  // jump to an empire-scale zoom-5 view.
+  // Preferred 100 AD churches+journeys frame. Applied with setView(center, zoom).
+  // `bounds` is the visible box on a 390×844 phone at that view — not a fitBounds
+  // target (fitBounds + padding drops to zoom 4). Desktop ≥1280 keeps the historic
+  // Leaflet start of center [34.5, 31.0] zoom 6.
   startExtent: {
-    bounds: [[29.2, 20.0], [42.8, 37.2]], // SW, NE (lat, lng)
+    bounds: [[29.2, 20.0], [42.8, 37.2]], // SW, NE (lat, lng) at 390×844 / zoom 5
     center: [36.0, 28.6],
     zoom: 5,
     maxZoom: 5.5

@@ -218,7 +218,7 @@ function assertViewportFill(label, fill) {
   if (startExtent.south > 31.4 || startExtent.north < 41.0) {
     fail(`Phone start latitude should cover Egypt–Black Sea, south=${startExtent.south} north=${startExtent.north}`);
   }
-  if (startExtent.zoom < 4.4 || startExtent.zoom > 5.7) {
+  if (startExtent.zoom < 4.8 || startExtent.zoom > 5.2) {
     fail(`Phone start zoom should stay an overview (~5), got ${startExtent.zoom}`);
   }
   ["Jerusalem", "Antioch", "Ephesus", "Corinth", "Alexandria", "Damascus", "ASIA", "GALATIA"].forEach((name) => {

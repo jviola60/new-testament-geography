@@ -83,7 +83,8 @@ global.L = {
       removeLayer: (l) => mapLayers.delete(l),
       hasLayer: (l) => mapLayers.has(l),
       on: () => {},
-      flyTo: () => {},
+      flyTo: (center, zoom) => { state.center = center; state.zoom = zoom; state.fly = { center, zoom }; },
+      setView: (center, zoom) => { state.center = center; state.zoom = zoom; state.setView = { center, zoom }; },
       fitBounds: (bounds, options) => { state.fit = { bounds, options }; },
       _state: state,
       _mapLayers: mapLayers
@@ -234,11 +235,10 @@ global.window = { matchMedia: (q) => ({ matches: String(q).includes("max-width: 
 phoneStart.init("map");
 assert.deepStrictEqual(phoneStart.map._state.center, [36.0, 28.6], "Phone Leaflet start center is Eastern Mediterranean");
 assert.strictEqual(phoneStart.map._state.zoom, 5, "Phone Leaflet start zoom is 5");
-assert(phoneStart.map._state.fit, "Phone init should fitBounds the overview box");
-assert.deepStrictEqual(phoneStart.map._state.fit.bounds[0], [29.2, 20.0], "Phone start SW bound");
-assert.deepStrictEqual(phoneStart.map._state.fit.bounds[1], [42.8, 37.2], "Phone start NE bound");
-assert.strictEqual(phoneStart.map._state.fit.options.maxZoom, 5.5, "Phone start fitBounds caps zoom at 5.5");
-console.log("✓ Phone cold-start uses Eastern Mediterranean bounds 29.2N/20.0E–42.8N/37.2E.");
+assert(phoneStart.map._state.setView, "Phone init should setView the overview center/zoom");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[0], [29.2, 20.0], "Documented phone start SW bound");
+assert.deepStrictEqual(phoneStart.getStartExtent().bounds[1], [42.8, 37.2], "Documented phone start NE bound");
+console.log("✓ Phone cold-start uses Eastern Mediterranean center 36.0N, 28.6E zoom 5.");
 global.document.documentElement = savedDocumentElement;
 global.window = undefined;
 
@@ -247,6 +247,7 @@ mapCtrl.init("map");
 assert.deepStrictEqual(mapCtrl.map._state.center, [34.5, 31.0], "Desktop start center stays 34.5, 31.0");
 assert.strictEqual(mapCtrl.map._state.zoom, 6, "Desktop start zoom stays 6");
 assert.strictEqual(mapCtrl.map._state.fit, null, "Desktop must not fitBounds the phone overview");
+assert.strictEqual(mapCtrl.map._state.setView, undefined, "Desktop must not re-setView the phone overview");
 console.log("✓ Desktop cold-start stays center 34.5°N, 31.0°E zoom 6.");
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.hydrography), 'Hydrography must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.cities), 'Cities must be on map by default');

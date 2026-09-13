@@ -24,6 +24,7 @@ assert(/id="mobilePeriodLabel">Period</.test(html), "Period trigger must start w
 assert(/class="mobile-city-picker-label">Jump</.test(html), "Jump idle label should be the short Jump copy");
 assert(!/Jump to place/.test(html), "Jump idle label must not use 'Jump to place'");
 assert(!/Jump to any city or region/i.test(html), "Jump idle label must not keep the long city/region sentence");
+assert(html.includes('legend.style.display = "block"'), "Phone first paint should reveal the collapsed Atlas Legend chip");
 assert(html.includes('id="mobileFilterSubtitle"'), "Layers menu should expose a subtitle for the current selection");
 assert(html.includes('id="mobilePeriodSubtitle"'), "Period menu should expose a subtitle for the current era");
 assert(html.includes('id="mobileCityPickerSheet"'), "Expected searchable city picker sheet");

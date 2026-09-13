@@ -8,6 +8,7 @@ const path = require("path");
 
 const OUT = "/tmp/ntg-mobile-shots";
 fs.mkdirSync(OUT, { recursive: true });
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function fail(msg) {
   console.error("FAIL:", msg);
@@ -104,9 +105,9 @@ function assertViewportFill(label, fill) {
   const page = await phone.newPage();
   page.on("pageerror", err => console.warn("pageerror:", err.message));
 
-  await page.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
   await page.waitForFunction(() => window.app && window.app.map && window.app.ui, { timeout: 20000 });
-  await page.waitForTimeout(1200);
+  await sleep(1200);
 
   const coldStart = await page.evaluate(() => {
     const chips = [...document.querySelectorAll(".filter-chip")].map((chip) => ({
@@ -263,7 +264,7 @@ function assertViewportFill(label, fill) {
   if (afterJump.period) fail("Opening Jump must close Period");
   if (afterJump.legend) fail("Opening Jump must close the legend");
   await page.locator("#mobileCityPickerClose").click();
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   const stack = await page.evaluate(() => {
     const badge = document.getElementById("floatingEraBadge");
@@ -350,7 +351,7 @@ function assertViewportFill(label, fill) {
   const basemap = page.locator("#mobileBasemapToggle");
   if (!(await basemap.isVisible())) fail("Map/Satellite toggle must be visible on phone");
   await page.locator('#mobileBasemapToggle [data-style="satellite"]').click();
-  await page.waitForTimeout(400);
+  await sleep(400);
   const satOn = await page.evaluate(() => {
     const theme = window.app.map.currentTheme;
     const pressed = document.querySelector('#mobileBasemapToggle [data-style="satellite"]').getAttribute("aria-pressed");
@@ -359,7 +360,7 @@ function assertViewportFill(label, fill) {
   if (satOn.theme !== "satellite") fail(`Satellite toggle did not switch basemap, theme=${satOn.theme}`);
   if (satOn.pressed !== "true") fail("Satellite toggle did not show pressed state");
   await page.locator('#mobileBasemapToggle [data-style="parchment"]').click();
-  await page.waitForTimeout(300);
+  await sleep(300);
   await page.locator("#mobileBasemapMoreBtn").click();
   await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
   const styleItems = await page.locator("#mobileMapStyleList .mobile-more-item").allTextContents();
@@ -373,7 +374,7 @@ function assertViewportFill(label, fill) {
     el.value = "100";
     el.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.waitForTimeout(200);
+  await sleep(200);
   const thumbFit = await page.evaluate(() => {
     const slider = document.getElementById("timelineSlider");
     const footer = document.querySelector(".app-timeline-footer");
@@ -397,7 +398,7 @@ function assertViewportFill(label, fill) {
     el.value = "-6";
     el.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   const cityBar = page.locator("#mobileCityPickerBtn");
   const filterBtn = page.locator("#mobileFilterBtn");
@@ -516,7 +517,7 @@ function assertViewportFill(label, fill) {
   await page.locator('.filter-chip[data-filter="savior"]').click();
   await page.locator('.filter-chip[data-filter="journeys"]').click();
   await page.locator('.filter-chip[data-filter="heatmaps"]').click();
-  await page.waitForTimeout(300);
+  await sleep(300);
   const active = await page.locator(".filter-chip.active").count();
   if (active < 3) fail("Layer chips did not activate");
   const filterLabel = (await page.locator("#mobileFilterLabel").innerText()).trim();
@@ -529,7 +530,7 @@ function assertViewportFill(label, fill) {
   }
   await page.screenshot({ path: path.join(OUT, "phone_filter_dropdown.png"), fullPage: false });
   await page.locator("#mobileFilterBtn").click();
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   const yearBadge = await page.evaluate(() => {
     const year = document.getElementById("displayYear");
@@ -664,21 +665,21 @@ function assertViewportFill(label, fill) {
   });
   await page.screenshot({ path: path.join(OUT, "phone_period_closed_by_search.png"), fullPage: false });
   await page.locator("#mobileSearchBtn").click();
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   await assertPeriodClosedBy("More", async () => {
     await page.locator("#mobileMoreBtn").click();
     await page.waitForSelector("#mobileMoreSheet.open", { timeout: 5000 });
   });
   await page.locator("#mobileMoreClose").click();
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   await assertPeriodClosedBy("Tours", async () => {
     await page.locator("#mobileToursBtn").click();
     await page.waitForSelector("#tourModal", { state: "visible", timeout: 5000 });
   });
   await page.locator("#closeTourModalBtn").click();
-  await page.waitForTimeout(150);
+  await sleep(150);
 
   const closedSheet = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
@@ -691,7 +692,7 @@ function assertViewportFill(label, fill) {
   await page.screenshot({ path: path.join(OUT, "phone_layers.png"), fullPage: false });
 
   await page.evaluate(() => window.app.ui.openSidebar());
-  await page.waitForTimeout(400);
+  await sleep(400);
   const welcomeOverlap = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
     const footer = document.querySelector(".app-timeline-footer");
@@ -760,19 +761,19 @@ function assertViewportFill(label, fill) {
   assertTap("sheet-handle", taps.handle);
   await page.screenshot({ path: path.join(OUT, "phone_welcome_sheet.png"), fullPage: false });
   await page.locator("#closeSidebarBtn").click();
-  await page.waitForTimeout(250);
+  await sleep(250);
   const cityTap = await page.locator("#mobileCityPickerBtn").boundingBox();
   assertTap("mobile-city-picker-btn", cityTap);
 
   await cityBar.click();
   await page.waitForSelector("#mobileCityPickerSheet.open", { timeout: 5000 });
   await page.fill("#mobileCitySearch", "Corinth");
-  await page.waitForTimeout(200);
+  await sleep(200);
   const corinth = page.locator('#mobileCityList [data-jump-value="city:corinth"]');
   if (!(await corinth.count())) fail("Corinth not found in searchable city list");
   await page.screenshot({ path: path.join(OUT, "phone_city_picker.png"), fullPage: false });
   await corinth.click();
-  await page.waitForTimeout(800);
+  await sleep(800);
 
   const sheetOpen = await page.evaluate(() => {
     const el = document.getElementById("detailSidebar");
@@ -818,9 +819,9 @@ function assertViewportFill(label, fill) {
   const tabs = await page.locator(".sidebar-tabs .tab-btn").count();
   if (tabs !== 7) fail(`Expected 7 place tabs, found ${tabs}`);
   await page.locator('.tab-btn[data-tab="scripture"]').click();
-  await page.waitForTimeout(250);
+  await sleep(250);
   await page.locator('.tab-btn[data-tab="people"]').click();
-  await page.waitForTimeout(250);
+  await sleep(250);
   await page.screenshot({ path: path.join(OUT, "phone_place_sheet.png"), fullPage: false });
 
   await page.locator("#timelineSlider").evaluate(el => {
@@ -832,11 +833,11 @@ function assertViewportFill(label, fill) {
   if (!/50/.test(year) && !/AD/.test(year)) fail(`Unexpected year after scrub: ${year}`);
 
   await page.locator("#playPauseBtn").click();
-  await page.waitForTimeout(400);
+  await sleep(400);
   await page.locator("#playPauseBtn").click();
 
   await page.locator("#mobileSearchBtn").click();
-  await page.waitForTimeout(200);
+  await sleep(200);
   const searchOpen = await page.evaluate(() => document.body.classList.contains("search-open"));
   if (!searchOpen) fail("Search overlay did not open");
   await page.screenshot({ path: path.join(OUT, "phone_search.png"), fullPage: false });
@@ -892,7 +893,7 @@ function assertViewportFill(label, fill) {
   if (tourOverlap.count < 4) fail(`Expected 4+ tour cards, found ${tourOverlap.count}`);
   if (tourOverlap.overlap) fail("Tour picker cards overlap");
   await page.locator("#tourModalBody").evaluate(el => { el.scrollTop = el.scrollHeight; });
-  await page.waitForTimeout(200);
+  await sleep(200);
   const lastCard = await page.evaluate(() => {
     const cards = [...document.querySelectorAll(".tour-select-card")];
     const last = cards[cards.length - 1];
@@ -906,9 +907,9 @@ function assertViewportFill(label, fill) {
   await page.locator("#closeTourModalBtn").click();
 
   await page.locator("#closeSidebarBtn").click();
-  await page.waitForTimeout(250);
+  await sleep(250);
   await page.evaluate(() => window.app.map.focusRegion("holy-land"));
-  await page.waitForTimeout(1800);
+  await sleep(1800);
   const holy = await page.evaluate(() => {
     const zoom = document.querySelector(".leaflet-control-zoom");
     const fabs = document.querySelector(".map-floating-actions");
@@ -948,9 +949,9 @@ function assertViewportFill(label, fill) {
     hasTouch: true
   });
   const tallPage = await tallPhone.newPage();
-  await tallPage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await tallPage.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
   await tallPage.waitForFunction(() => window.app && window.app.map && window.app.ui, { timeout: 20000 });
-  await tallPage.waitForTimeout(800);
+  await sleep(800);
   const fill932 = await measureViewportFill(tallPage);
   console.log("Phone 430x932 fill:", fill932);
   assertViewportFill("430x932", fill932);
@@ -974,10 +975,10 @@ function assertViewportFill(label, fill) {
     hasTouch: true
   });
   const npage = await narrow.newPage();
-  await npage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await npage.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
   await npage.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
   await npage.addStyleTag({ content: "html { font-size: 20px; }" });
-  await npage.waitForTimeout(400);
+  await sleep(400);
   const narrowState = await npage.evaluate(() => {
     const filter = document.getElementById("mobileFilterBtn").getBoundingClientRect();
     const period = document.getElementById("mobilePeriodBtn").getBoundingClientRect();
@@ -1038,9 +1039,9 @@ function assertViewportFill(label, fill) {
     hasTouch: true
   });
   const tpage = await tablet.newPage();
-  await tpage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await tpage.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
   await tpage.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
-  await tpage.waitForTimeout(1000);
+  await sleep(1000);
   const tabletOverflow = await measureOverflow(tpage);
   console.log("Tablet layout:", tabletOverflow);
   if (tabletOverflow.overflowX > 2) fail(`Horizontal overflow on tablet: ${tabletOverflow.overflowX}px`);
@@ -1051,9 +1052,9 @@ function assertViewportFill(label, fill) {
   // Desktop regression
   const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const dpage = await desk.newPage();
-  await dpage.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await dpage.goto("http://127.0.0.1:8080/", { waitUntil: "commit", timeout: 60000 });
   await dpage.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
-  await dpage.waitForTimeout(1000);
+  await sleep(1000);
   const deskState = await dpage.evaluate(() => ({
     layout: document.body.className,
     cityBar: getComputedStyle(document.getElementById("mobileCityBar")).display,

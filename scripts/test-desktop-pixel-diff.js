@@ -81,9 +81,9 @@ function pixelDiff(a, b) {
     for (const [label, port] of [["main", 8081], ["branch", 8082]]) {
       const ctx = await browser.newContext({ viewport: { width: size.width, height: size.height } });
       const page = await ctx.newPage();
-      await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "commit", timeout: 60000 });
       await page.waitForFunction(() => window.app && window.app.map, { timeout: 20000 });
-      await page.waitForTimeout(1800);
+      await new Promise((resolve) => setTimeout(resolve, 1800));
       const file = path.join(OUT, `desktop_${size.name}_${label}.png`);
       await page.screenshot({ path: file, fullPage: false });
       shots.push(await page.screenshot({ fullPage: false }));

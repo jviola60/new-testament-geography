@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=7.3">
+  <link rel="stylesheet" href="css/mobile.css?v=7.4">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -45,6 +45,15 @@
         if (phone) {
           var sidebar = document.getElementById("detailSidebar");
           if (sidebar) sidebar.classList.add("closed");
+          var legend = document.getElementById("mapLegend");
+          var legendBody = document.getElementById("legendBody");
+          var legendBtn = document.getElementById("legendCollapseBtn");
+          if (legend) {
+            legend.style.display = "block";
+            legend.setAttribute("aria-expanded", "false");
+          }
+          if (legendBody) legendBody.style.display = "none";
+          if (legendBtn) legendBtn.textContent = "+";
         }
       });
     })();

@@ -620,13 +620,14 @@ class MobileShell {
 
     const eraHost = this.periodMenu;
     if (eraHost && !eraHost.__periodLabelObs) {
+      // Watch only .era-tab class changes. #mobilePeriodSubtitle lives inside
+      // #eraTabs; childList/characterData here re-enters syncPeriodLabel() and
+      // freezes App.init (map tiles partial, chrome never finishes).
       eraHost.__periodLabelObs = new MutationObserver(() => this.syncPeriodLabel());
       eraHost.__periodLabelObs.observe(eraHost, {
         subtree: true,
         attributes: true,
-        attributeFilter: ["class"],
-        childList: true,
-        characterData: true
+        attributeFilter: ["class"]
       });
     }
 
@@ -675,8 +676,12 @@ class MobileShell {
     const actives = [...document.querySelectorAll(".era-tab.active")];
     const active = preferred || actives[actives.length - 1] || document.querySelector(".era-tab");
     const name = this.shortEraName(active);
-    if (this.periodLabel) this.periodLabel.textContent = "Period";
-    if (this.periodSubtitle) this.periodSubtitle.textContent = name;
+    if (this.periodLabel && this.periodLabel.textContent !== "Period") {
+      this.periodLabel.textContent = "Period";
+    }
+    if (this.periodSubtitle && this.periodSubtitle.textContent !== name) {
+      this.periodSubtitle.textContent = name;
+    }
     if (this.periodBtn) {
       this.periodBtn.setAttribute("aria-label", `Timeline period, ${name}`);
     }

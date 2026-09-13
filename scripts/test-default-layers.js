@@ -28,6 +28,11 @@ filterChips.forEach(chip => {
 });
 console.log('✓ Core overlay chips start active; Growth Heatmap starts inactive.');
 
+{
+  const firstPaint = htmlContent.slice(htmlContent.indexOf("(function () {"), htmlContent.indexOf("</script>"));
+  assert(firstPaint.includes('classList.toggle("active"'), "Phone first paint should drop desktop-all-active chip classes");
+  assert(firstPaint.includes('"churches"') && firstPaint.includes('"journeys"'), "Phone first-paint chip sync should keep Churches + Journeys");
+}
 assert(htmlContent.includes('id="displayYear">100 AD<'), 'Expected first-paint year badge 100 AD');
 assert(/id="timelineSlider"[^>]*value="100"/.test(htmlContent), 'Expected timeline slider to start at 100');
 assert(/class="era-tab active"[^>]*data-start-year="70"/.test(htmlContent), 'Expected Apostolic Age era tab active at 100 AD');

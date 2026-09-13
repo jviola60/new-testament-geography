@@ -81,6 +81,22 @@ assert(mobileJs.includes("openLegendSheet"), "Phone legend should expand as a sh
 assert(mobileJs.includes("legend-sheet-open"), "Expanded phone legend should use a sheet class");
 assert(mobileJs.includes("bindLegendSheet"), "Mobile shell should wire the legend chip/sheet");
 {
+  const bind = mobileJs.slice(mobileJs.indexOf("bindLegendSheet() {"), mobileJs.indexOf("bindSheet() {"));
+  assert(bind.includes("isLegendOpen"), "Legend chip toggle must use isLegendOpen(), not body display");
+  assert(/if\s*\(\s*this\.isLegendOpen\(\)\s*\)[\s\S]{0,120}collapseLegend/.test(bind), "Open legend must collapse on tap");
+  assert(/else[\s\S]{0,80}openLegendSheet/.test(bind), "Closed legend must open on tap");
+  assert(!/body\.style\.display !== "none"/.test(bind), "Inverted display !== none check must not remain");
+}
+assert(
+  /layout-mobile[\s\S]{0,80}return/.test(uiJs.slice(uiJs.indexOf("legendToggleHeader"), uiJs.indexOf("Search Bar"))),
+  "Desktop legend toggle must no-op on phone so bindLegendSheet owns the chip"
+);
+{
+  const firstPaint = html.slice(html.indexOf("legend.style.display"), html.indexOf("</script>"));
+  assert(firstPaint.includes('classList.toggle("active"'), "Phone first paint should sync chip active classes before app init");
+  assert(firstPaint.includes('"churches"') && firstPaint.includes('"journeys"'), "Phone first-paint chip sync should keep Churches + Journeys only");
+}
+{
   const header = mobileJs.slice(mobileJs.indexOf("bindHeader() {"), mobileJs.indexOf("collapseLegend() {"));
   assert(header.includes("closeChromeMenus"), "Header Search/Tours/More must close the period menu");
   assert(/if \(open\)[\s\S]{0,80}closeChromeMenus/.test(header), "Opening Search must close the period menu");

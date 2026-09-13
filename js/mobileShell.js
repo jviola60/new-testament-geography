@@ -356,12 +356,11 @@ class MobileShell {
     header.__mobileLegendBound = true;
     header.addEventListener("click", () => {
       if (!this.isPhone()) return;
-      const body = this.legendBody || document.getElementById("legendBody");
-      const open = body && body.style.display !== "none";
-      if (open) this.openLegendSheet();
-      else {
+      if (this.isLegendOpen()) {
         this.collapseLegend();
         this.syncBackdrop();
+      } else {
+        this.openLegendSheet();
       }
     });
   }

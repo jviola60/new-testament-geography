@@ -198,6 +198,8 @@ class UIController {
     const legendCollapseBtn = document.getElementById("legendCollapseBtn");
     if (legendHeader && legendBody) {
       legendHeader.addEventListener("click", () => {
+        // Phone uses MobileShell.bindLegendSheet() + .legend-open / isLegendOpen().
+        if (document.documentElement.classList.contains("layout-mobile")) return;
         const isHidden = legendBody.style.display === "none";
         legendBody.style.display = isHidden ? "flex" : "none";
         legendCollapseBtn.textContent = isHidden ? "−" : "+";

@@ -74,7 +74,7 @@ const MISSIONARY_JOURNEYS = [
     color: "#0284C7",
     companions: "Timothy, Titus, Luke, Erastus",
     scriptures: "Acts 18:23 – 21:17",
-    description: "Paul spends nearly three years ministering in Ephesus, where the Gospel transforms the entire province of Asia. He later revisits Macedonia and Greece, pens Galatians, Romans, and Corinthians, and bids an affectionate farewell to the Ephesian elders at Miletus.",
+    description: "Paul spends nearly three years ministering in Ephesus, where the Gospel transforms the entire province of Asia. He later revisits Macedonia and Greece, pens Romans and the Corinthian letters, and bids an affectionate farewell to the Ephesian elders at Miletus. Dating Galatians to this journey is a scholarly option, not a New Testament date.",
     stops: [
       { name: "Antioch (Syria)", lat: 36.2021, lng: 36.1606, note: "Departs to strengthen disciples in Galatia & Phrygia" },
       { name: "Ephesus", lat: 37.9400, lng: 27.3414, note: "Teaches daily in School of Tyrannus; Artemis riot" },

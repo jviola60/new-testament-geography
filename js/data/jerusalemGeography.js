@@ -45,7 +45,7 @@ const JERUSALEM_GEOGRAPHY = {
       ],
       peopleAndChurch: "The twelve-year-old Jesus with doctors of the law; Simeon and Anna; Jesus overturning moneychangers' tables; Peter and John healing at the Beautiful Gate; thousands of early Christian converts meeting daily in Solomon's Porch (Acts 5:12).",
       politicalInsights: "The Roman Prefect stationed in Caesarea kept custody of the High Priest's holy garments inside the adjoining Antonia Fortress. During Passover, the garrison watched over the esplanade from battlements to crush nationalistic riots against Roman rule.",
-      eraChronology: "20 BC: Herodian reconstruction commences; ~8 AD: boy Jesus in the Temple; 30 AD: Passion Week teachings; 30–66 AD: Apostolic preaching; 70 AD: incinerated and razed by Roman Legions under Titus."
+      eraChronology: "20 BC: Herodian reconstruction commences; ~8 AD: boy Jesus in the Temple (Luke 2:46–49); ~27–30 AD: Passion Week teachings of Jesus (Matthew 21:12–13; John 2:13–17); after Pentecost: apostolic preaching (Acts 3:1–16; 5:12)—not the Lord discoursing in 30–35 AD; 70 AD: incinerated and razed by Roman Legions under Titus."
     },
     {
       id: "area-mount-of-olives",

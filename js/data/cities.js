@@ -82,7 +82,7 @@ const CITIES_DATA = [
     jewishDiasporaInfo: "Fishing town rebuilt as Julias by Philip the Tetrarch.",
     christianChurchInfo: "Hometown of the apostles Peter, Andrew, and Philip (John 1:44).",
     epistles: [],
-    significance: "Near the site of the Feeding of the 5,000 and healing of the blind man (Mark 8:22)."
+    significance: "Feeding of the 5,000 in a desert place belonging to Bethsaida (Luke 9:10–17). Healing of the blind man at Bethsaida (Mark 8:22–26)."
   },
   {
     id: "cana",
@@ -323,7 +323,7 @@ const CITIES_DATA = [
     population: "~5,000",
     jewishDiasporaInfo: "Rural Roman colony with very small Jewish presence (no synagogue mentioned).",
     christianChurchInfo: "Hometown of young Timothy, Eunice, and Lois.",
-    epistles: ["Galatians", "1 & 2 Timothy"],
+    epistles: ["Galatians"],
     significance: "Paul healed a crippled man; locals hailed Paul and Barnabas as Hermes and Zeus. Later Paul was stoned and left for dead (Acts 14:8-20)."
   },
   {
@@ -370,7 +370,7 @@ const CITIES_DATA = [
     hasChurch: true,
     population: "~100,000",
     jewishDiasporaInfo: "Wealthy Aegean seaport with strong imperial cult and hostile Jewish leadership in 90 AD.",
-    christianChurchInfo: "Faithful church under persecution. Commended unconditionally in Revelation. Bishop Polycarp martyred here ~155 AD.",
+    christianChurchInfo: "Faithful church under persecution. Commended unconditionally in Revelation 2:8–11. Later Christian memory (~155 AD, not a NT verse): Bishop Polycarp martyred here.",
     epistles: ["Revelation 2:8-11"],
     significance: "2nd of the Seven Churches: 'Be thou faithful unto death, and I will give thee a crown of life.'"
   },
@@ -516,7 +516,7 @@ const CITIES_DATA = [
     hasSynagogue: false,
     hasChurch: true,
     population: "~15,000 (Roman Veteran Colony)",
-    jewishDiasporaInfo: "Fewer than 10 Jewish men (no formal synagogue); women gathered for prayer outside the city gate by the Gangites river.",
+    jewishDiasporaInfo: "On the sabbath they went out of the city by a river side, where prayer was wont to be made (Acts 16:13). Identifying that river as the Gangites, and explaining the outdoor prayer by a missing minyan, is reconstruction.",
     christianChurchInfo: "First church planted on European soil (50 AD). Deeply generous congregation supporting Paul's missionary work.",
     epistles: ["Philippians"],
     significance: "Conversion of Lydia, deliverance of the fortune-telling slave girl, midnight praise in prison, earthquake, and salvation of the Philippian jailer (Acts 16)."

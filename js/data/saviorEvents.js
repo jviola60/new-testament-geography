@@ -42,7 +42,7 @@ const SAVIOR_EVENTS = [
     era: "Nativity & Infancy",
     lat: 31.2001,
     lng: 29.9187,
-    locationName: "Alexandria / Nile Delta, Egypt",
+    locationName: "Egypt (Matthew 2:13–15); any city pin is traditional/uncertain, not a verse",
     category: "nativity",
     scriptures: [
       { ref: "Matthew 2:13-15", text: "Arise, and take the young child and his mother, and flee into Egypt, and be thou there until I bring thee word: for Herod will seek the young child to destroy him." }
@@ -103,12 +103,12 @@ const SAVIOR_EVENTS = [
     era: "Baptism & Judea",
     lat: 31.8600,
     lng: 35.4300,
-    locationName: "Mount of Temptation / Judean Wilderness",
+    locationName: "Wilderness of Judea (Matthew 4:1–11); Mount of Temptation is a later traditional identification",
     category: "ministry",
     scriptures: [
       { ref: "Matthew 4:1-11", text: "Then was Jesus led up of the Spirit into the wilderness to be tempted of the devil. And when he had fasted forty days and forty nights, he was afterward an hungred." }
     ],
-    description: "Jesus fasts for forty days and forty nights in the arid Judean wilderness overlooking Jericho, rebuking Satan's threefold temptations with the word of God ('It is written')."
+    description: "Jesus is led of the Spirit into the wilderness to be tempted of the devil, and fasts forty days and forty nights (Matthew 4:1–2). He rebukes the threefold temptations with the word of God ('It is written'). The Mount of Temptation above Jericho is a later traditional identification, not named in Matthew 4."
   },
   {
     id: "savior-wedding-cana",
@@ -194,7 +194,7 @@ const SAVIOR_EVENTS = [
     era: "Galilean Ministry",
     lat: 32.8814,
     lng: 35.5561,
-    locationName: "Mount of Beatitudes (near Tabgha)",
+    locationName: "A mountain in Galilee (Matthew 5:1); Mount of Beatitudes / Tabgha is a traditional identification",
     category: "teaching",
     scriptures: [
       { ref: "Matthew 5:3-14", text: "Blessed are the poor in spirit: for theirs is the kingdom of heaven... Ye are the light of the world. A city that is set on an hill cannot be hid." }
@@ -224,12 +224,14 @@ const SAVIOR_EVENTS = [
     era: "Galilean Ministry",
     lat: 32.9090,
     lng: 35.6310,
-    locationName: "Bethsaida / Plain of Bethsaida",
+    locationName: "A desert place belonging to Bethsaida (Luke 9:10)",
     category: "miracle",
     scriptures: [
-      { ref: "John 6:9-11", text: "There is a lad here, which hath five barley loaves, and two small fishes: but what are they among so many?... And Jesus took the loaves; and when he had given thanks, he distributed to the disciples." }
+      { ref: "Luke 9:10-17", text: "And he took them, and went aside privately into a desert place belonging to the city called Bethsaida... And they did eat, and were all filled: and there was taken up of fragments that remained to them twelve baskets." },
+      { ref: "Mark 6:34-44", text: "And Jesus, when he came out, saw much people, and was moved with compassion toward them... And they took up twelve baskets full of the fragments, and of the fishes." },
+      { ref: "Matthew 14:15-21", text: "They say unto him, We have here but five loaves, and two fishes... And they that had eaten were about five thousand men, beside women and children." }
     ],
-    description: "Compassionate upon the multitudes who followed Him into a desert place, Jesus multiplies a lad's five loaves and two small fish to feed five thousand men besides women and children."
+    description: "He went aside into a desert place belonging to the city called Bethsaida (Luke 9:10) and fed about five thousand men (Luke 9:14; Mark 6:44; Matthew 14:21). John's lad-and-loaves account and the sea of Tiberias / Capernaum sequel belong to John 6, not this Bethsaida citation."
   },
   {
     id: "savior-walks-water",
@@ -263,18 +265,18 @@ const SAVIOR_EVENTS = [
   },
   {
     id: "savior-transfiguration",
-    title: "The Transfiguration on Mount Hermon",
+    title: "The Transfiguration on a High Mountain",
     year: 29,
     season: "Summer 29 AD",
     era: "Galilean Ministry",
     lat: 33.4167,
     lng: 35.8500,
-    locationName: "Mount Hermon / High Mountain",
+    locationName: "A high mountain apart (Matthew 17:1); Hermon is a traditional identification",
     category: "miracle",
     scriptures: [
-      { ref: "Matthew 17:1-5", text: "And was transfigured before them: and his face did shine as the sun, and his raiment was white as the light. And, behold, there appeared unto them Moses and Elias talking with him." }
+      { ref: "Matthew 17:1-5", text: "And after six days Jesus taketh Peter, James, and John his brother, and bringeth them up into an high mountain apart, And was transfigured before them: and his face did shine as the sun, and his raiment was white as the light." }
     ],
-    description: "Jesus takes Peter, James, and John up into a high mountain apart. Moses and Elijah appear in glory talking of His decease, and the Father speaks from a bright cloud."
+    description: "Jesus takes Peter, James, and John up into a high mountain apart (Matthew 17:1). Moses and Elijah appear in glory, and the Father speaks from a bright cloud. The Gospels do not name the peak; Mount Hermon is a traditional identification only."
   },
   {
     id: "savior-raising-lazarus",
@@ -329,7 +331,7 @@ const SAVIOR_EVENTS = [
     era: "Passion Week",
     lat: 31.7717,
     lng: 35.2289,
-    locationName: "Upper Room (Cenacle), Mount Zion, Jerusalem",
+    locationName: "An upper room in Jerusalem (Luke 22:12–13); the Cenacle on Mount Zion is a traditional identification",
     category: "passion",
     scriptures: [
       { ref: "Luke 22:19-20", text: "And he took bread, and gave thanks, and brake it, and gave unto them, saying, This is my body which is given for you: this do in remembrance of me. Likewise also the cup after supper, saying, This cup is the new testament in my blood." }

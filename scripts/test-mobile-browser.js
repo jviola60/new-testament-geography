@@ -201,7 +201,7 @@ function assertViewportFill(label, fill) {
       return s.display !== "none" && s.visibility !== "hidden" && el.getClientRects().length > 0;
     }).map((el) => {
       const r = el.getBoundingClientRect();
-      return { name: el.textContent.trim(), w: r.width, h: r.height, left: r.left, right: r.right };
+      return { name: el.textContent.trim(), w: r.width, h: r.height, left: r.left, right: r.right, top: r.top, bottom: r.bottom };
     });
     return {
       south: bounds.getSouth(),
@@ -241,6 +241,14 @@ function assertViewportFill(label, fill) {
   const corinthBox = startExtent.labelBoxes.find((box) => box.name === "Corinth");
   if (corinthBox && corinthBox.left < 2) {
     fail(`Corinth label is clipped on the left edge (left=${corinthBox.left})`);
+  }
+  for (let i = 0; i < startExtent.labelBoxes.length; i++) {
+    for (let j = i + 1; j < startExtent.labelBoxes.length; j++) {
+      const a = startExtent.labelBoxes[i];
+      const b = startExtent.labelBoxes[j];
+      const hits = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+      if (hits) fail(`Overview labels overlap: ${a.name} vs ${b.name}`);
+    }
   }
 
   const phoneOverflow = await measureOverflow(page);

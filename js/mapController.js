@@ -56,13 +56,62 @@ class MapController {
 
     this.currentYear = 100;
     this.activeHighlightMarker = null;
+    this._startExtentPending = true;
+  }
+
+  getStartView() {
+    if (this.isPhoneViewport()) {
+      const extent = this.getStartExtent();
+      return { center: extent.center, zoom: extent.zoom };
+    }
+    // Desktop ≥1280: historic Rome-to-Jerusalem frame. Do not use the phone
+    // zoom-5 overview here — a wide monitor at zoom 5 reads as empire-scale.
+    return { center: [34.5, 31.0], zoom: 6 };
+  }
+
+  getStartExtent() {
+    const fallback = {
+      bounds: [[29.2, 20.0], [42.8, 37.2]],
+      center: [36.0, 28.6],
+      zoom: 5,
+      maxZoom: 5.5
+    };
+    const fromData = (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.startExtent) || {};
+    return {
+      bounds: fromData.bounds || fallback.bounds,
+      center: fromData.center || fallback.center,
+      zoom: fromData.zoom != null ? fromData.zoom : fallback.zoom,
+      maxZoom: fromData.maxZoom != null ? fromData.maxZoom : fallback.maxZoom
+    };
+  }
+
+  applyStartExtent({ animate = false, force = false } = {}) {
+    if (!this.map || !this.isPhoneViewport()) return false;
+    if (!force && !this._startExtentPending) return false;
+    const size = this.map.getSize && this.map.getSize();
+    if (!size || size.x < 80 || size.y < 80) return false;
+    const extent = this.getStartExtent();
+    this.map.fitBounds(extent.bounds, {
+      padding: [10, 10],
+      animate,
+      duration: animate ? 1.2 : 0,
+      maxZoom: extent.maxZoom
+    });
+    this._startExtentPending = false;
+    return true;
+  }
+
+  applyStartExtentIfNeeded() {
+    return this.applyStartExtent({ animate: false, force: false });
   }
 
   init(containerId = "map") {
-    // Center initially on the Eastern Mediterranean encompassing Rome to Jerusalem
+    const start = this.getStartView();
+    // Phone: Eastern Mediterranean overview (Greece–Levant / Black Sea–Egypt).
+    // Desktop: historic center [34.5, 31.0] zoom 6.
     this.map = L.map(containerId, {
-      center: [34.5, 31.0],
-      zoom: 6,
+      center: start.center,
+      zoom: start.zoom,
       minZoom: 4,
       maxZoom: 18,
       zoomControl: true,
@@ -86,6 +135,7 @@ class MapController {
     this.drawHydrography();
     this.drawProvinces();
     this.drawCities();
+    this.drawOverviewRegionLabels();
     this.drawFirstCenturySatelliteOverlays();
     this.drawJerusalemGeography();
     this.drawJerusalemSites();
@@ -154,6 +204,7 @@ class MapController {
     // never flashes the fuller desktop defaults.
     this.applyViewportDefaultFilters();
     this.applyLayerVisibility();
+    this.applyStartExtentIfNeeded();
   }
 
   isPhoneViewport() {
@@ -485,14 +536,21 @@ class MapController {
 
       // Create custom HTML label
       const isMajor = city.isMajor;
-      const labelHtml = `<div class="city-label-text ${isMajor ? 'city-label-major' : ''}">${city.name}</div>`;
+      const isOverview = Boolean(city.overviewLabel);
+      const labelName = (isOverview && city.overviewName && this.isPhoneViewport())
+        ? city.overviewName
+        : city.name;
+      const labelClasses = ["city-label-text"];
+      if (isMajor) labelClasses.push("city-label-major");
+      if (isOverview) labelClasses.push("city-label-overview");
+      const labelHtml = `<div class="${labelClasses.join(" ")}">${labelName}</div>`;
 
       const textMarker = L.marker([city.lat, city.lng], {
         icon: L.divIcon({
           className: "custom-city-label",
           html: labelHtml,
           iconSize: [80, 20],
-          iconAnchor: [40, 10]
+          iconAnchor: [40, (isOverview && this.isPhoneViewport()) ? -4 : 10]
         }),
         zIndexOffset: isMajor ? 300 : 100
       });
@@ -507,6 +565,29 @@ class MapController {
       }
 
       this.layers.cities.addLayer(textMarker);
+    });
+  }
+
+  // Sparse region captions for the phone overview zoom (provinces stay OFF
+  // on phone cold-start, so these are not the full province layer).
+  drawOverviewRegionLabels() {
+    if (!this.isPhoneViewport()) return;
+    const labels = [
+      { name: "ASIA", lat: 38.95, lng: 29.35 },
+      { name: "GALATIA", lat: 39.15, lng: 32.65 }
+    ];
+    labels.forEach((label) => {
+      const marker = L.marker([label.lat, label.lng], {
+        icon: L.divIcon({
+          className: "custom-region-label",
+          html: `<div class="region-label-text region-label-overview">${label.name}</div>`,
+          iconSize: [120, 20],
+          iconAnchor: [60, 10]
+        }),
+        zIndexOffset: 90,
+        interactive: false
+      });
+      this.layers.cities.addLayer(marker);
     });
   }
 
@@ -1190,6 +1271,15 @@ class MapController {
   }
 
   recenter() {
+    if (this.isPhoneViewport()) {
+      this._startExtentPending = true;
+      if (!this.applyStartExtent({ animate: true, force: true })) {
+        const extent = this.getStartExtent();
+        this.map.flyTo(extent.center, extent.zoom, { duration: 1.2 });
+        this._startExtentPending = false;
+      }
+      return;
+    }
     this.focusRegion("mediterranean");
   }
 }

@@ -66,21 +66,30 @@ global.L = {
       _layers: layers
     };
   },
-  map: () => {
+  map: (_id, opts) => {
     const mapLayers = new Set();
+    const state = {
+      center: (opts && opts.center) || [34.5, 31.0],
+      zoom: (opts && opts.zoom) || 6,
+      fit: null
+    };
     return {
-      center: [34.5, 31.0],
-      zoom: 6,
-      getZoom: () => 6,
-      getCenter: () => ({ lat: 34.5, lng: 31.0 }),
+      center: state.center,
+      zoom: state.zoom,
+      getZoom: () => state.zoom,
+      getCenter: () => ({ lat: state.center[0], lng: state.center[1] }),
+      getSize: () => ({ x: 1280, y: 800 }),
       addLayer: (l) => mapLayers.add(l),
       removeLayer: (l) => mapLayers.delete(l),
       hasLayer: (l) => mapLayers.has(l),
       on: () => {},
       flyTo: () => {},
+      fitBounds: (bounds, options) => { state.fit = { bounds, options }; },
+      _state: state,
       _mapLayers: mapLayers
     };
   },
+  latLngBounds: (a, b) => [a, b],
   control: { attribution: () => ({ addAttribution: () => ({ addTo: () => {} }) }) },
   tileLayer: () => ({ addTo: () => {} }),
   marker: () => ({ bindTooltip: () => {}, on: () => {} }),
@@ -96,10 +105,14 @@ global.L = {
 
 // Global mocks
 global.HYDROGRAPHY_DATA = { jordanRiver: [[32, 35]], seaOfGalilee: [[32, 35]], deadSea: [[31, 35]], roads: [] };
-global.REGIONS_DATA = { regions: [{ id: "judea", name: "Judea", capital: "Caesarea", bounds: [[31, 34], [32, 36]] }], cameraPresets: { mediterranean: { center: [34.5, 31.0], zoom: 6 } } };
+global.REGIONS_DATA = {
+  regions: [{ id: "judea", name: "Judea", capital: "Caesarea", bounds: [[31, 34], [32, 36]] }],
+  cameraPresets: { mediterranean: { center: [34.5, 31.0], zoom: 6 } },
+  startExtent: { bounds: [[29.2, 20.0], [42.8, 37.2]], center: [36.0, 28.6], zoom: 5, maxZoom: 5.5 }
+};
 global.CITIES_DATA = [
-  { id: "jerusalem", name: "Jerusalem", region: "Judea", lat: 31.77, lng: 35.23, isMajor: true },
-  { id: "corinth", name: "Corinth", region: "Achaia", lat: 37.93, lng: 22.93, isMajor: true }
+  { id: "jerusalem", name: "Jerusalem", region: "Judea", lat: 31.77, lng: 35.23, isMajor: true, overviewLabel: true },
+  { id: "corinth", name: "Corinth", region: "Achaia", lat: 37.93, lng: 22.93, isMajor: true, overviewLabel: true }
 ];
 global.JERUSALEM_SITES = [
   { id: "jer-temple", name: "Second Temple", area: "Temple Mount", icon: "🏛️", lat: 31.778, lng: 35.235, scriptures: [] }
@@ -215,8 +228,26 @@ global.document.documentElement = savedDocumentElement;
 global.document.querySelectorAll = () => [];
 global.window = undefined;
 
+const phoneStart = new MapController();
+global.document.documentElement = phoneDocEl;
+global.window = { matchMedia: (q) => ({ matches: String(q).includes("max-width: 768px") }) };
+phoneStart.init("map");
+assert.deepStrictEqual(phoneStart.map._state.center, [36.0, 28.6], "Phone Leaflet start center is Eastern Mediterranean");
+assert.strictEqual(phoneStart.map._state.zoom, 5, "Phone Leaflet start zoom is 5");
+assert(phoneStart.map._state.fit, "Phone init should fitBounds the overview box");
+assert.deepStrictEqual(phoneStart.map._state.fit.bounds[0], [29.2, 20.0], "Phone start SW bound");
+assert.deepStrictEqual(phoneStart.map._state.fit.bounds[1], [42.8, 37.2], "Phone start NE bound");
+assert.strictEqual(phoneStart.map._state.fit.options.maxZoom, 5.5, "Phone start fitBounds caps zoom at 5.5");
+console.log("✓ Phone cold-start uses Eastern Mediterranean bounds 29.2N/20.0E–42.8N/37.2E.");
+global.document.documentElement = savedDocumentElement;
+global.window = undefined;
+
 // Init map
 mapCtrl.init("map");
+assert.deepStrictEqual(mapCtrl.map._state.center, [34.5, 31.0], "Desktop start center stays 34.5, 31.0");
+assert.strictEqual(mapCtrl.map._state.zoom, 6, "Desktop start zoom stays 6");
+assert.strictEqual(mapCtrl.map._state.fit, null, "Desktop must not fitBounds the phone overview");
+console.log("✓ Desktop cold-start stays center 34.5°N, 31.0°E zoom 6.");
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.hydrography), 'Hydrography must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.cities), 'Cities must be on map by default');
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.provinces), 'Provinces must be on map by default');

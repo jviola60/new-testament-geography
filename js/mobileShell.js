@@ -151,6 +151,9 @@ class MobileShell {
       if (map && typeof map.invalidateSize === "function") {
         map.invalidateSize({ animate: false, pan: false });
       }
+      if (window.app && window.app.map && typeof window.app.map.applyStartExtentIfNeeded === "function") {
+        window.app.map.applyStartExtentIfNeeded();
+      }
       this.syncLeftMapStack();
     }, delay);
   }

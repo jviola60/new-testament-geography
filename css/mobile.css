@@ -546,8 +546,28 @@ html:not(.layout-mobile) .mobile-menu-heading {
     display: none !important;
   }
 
+  html.layout-mobile:not(.mobile-zoomed) .city-label-text.city-label-overview {
+    display: block !important;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  html.layout-mobile:not(.mobile-zoomed) .region-label-text.region-label-overview {
+    display: block !important;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgba(92, 58, 26, 0.78);
+  }
+
   html.layout-mobile.mobile-zoomed:not(.mobile-zoomed-deep) .city-label-text:not(.city-label-primary) {
     display: none !important;
+  }
+
+  html.layout-mobile.mobile-zoomed .region-label-text.region-label-overview {
+    display: none;
   }
 
   html.layout-mobile .map-legend-box:not(.legend-open) {

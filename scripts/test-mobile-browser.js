@@ -192,6 +192,44 @@ function assertViewportFill(label, fill) {
   if (coldStart.legendBodyDisplay !== "none") fail("Atlas Legend body must start hidden on phone");
   if (!/atlas legend/i.test(coldStart.legendTitle)) fail("Hamburger Legend item should still be the Atlas Legend");
 
+  const startExtent = await page.evaluate(() => {
+    const map = window.app.map.map;
+    const bounds = map.getBounds();
+    const center = map.getCenter();
+    const visible = [...document.querySelectorAll(".city-label-text, .region-label-text")].filter((el) => {
+      const s = getComputedStyle(el);
+      return s.display !== "none" && s.visibility !== "hidden" && el.getClientRects().length > 0;
+    }).map((el) => el.textContent.trim());
+    return {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+      lat: center.lat,
+      lng: center.lng,
+      zoom: map.getZoom(),
+      labels: visible
+    };
+  });
+  console.log("Phone start extent:", startExtent);
+  if (startExtent.west > 21.5 || startExtent.east < 35.0) {
+    fail(`Phone start longitude should cover Greece–Levant, west=${startExtent.west} east=${startExtent.east}`);
+  }
+  if (startExtent.south > 31.4 || startExtent.north < 41.0) {
+    fail(`Phone start latitude should cover Egypt–Black Sea, south=${startExtent.south} north=${startExtent.north}`);
+  }
+  if (startExtent.zoom < 4.4 || startExtent.zoom > 5.7) {
+    fail(`Phone start zoom should stay an overview (~5), got ${startExtent.zoom}`);
+  }
+  ["Jerusalem", "Antioch", "Ephesus", "Corinth", "Alexandria", "Damascus", "ASIA", "GALATIA"].forEach((name) => {
+    if (!startExtent.labels.some((label) => label === name || label.startsWith(name))) {
+      fail(`Cold-start overview should show "${name}", got ${startExtent.labels.join(", ")}`);
+    }
+  });
+  if (startExtent.labels.some((label) => /smyrna|bethlehem|nazareth|capernaum/i.test(label))) {
+    fail(`Overview labels are cluttered: ${startExtent.labels.join(", ")}`);
+  }
+
   const phoneOverflow = await measureOverflow(page);
   console.log("Phone layout:", phoneOverflow);
   if (!phoneOverflow.layout.includes("layout-mobile")) fail("Expected layout-mobile at 390x844");

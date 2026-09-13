@@ -14,13 +14,14 @@ Every **fresh load** uses the same desktop and mobile defaults. The app does **n
 - **Layers ON:** `all` (All Visible), `savior` (Savior's Ministry), `diaspora` (Jewish Diaspora), `churches` (Christian Churches), `journeys` (Paul's Journeys), `provinces` (Roman Provinces), `jerusalemSites` (Jerusalem Landmarks), `jerusalemGeography` (Quarters & Walls).
 - **Layer OFF:** `heatmaps` (Growth Heatmap). All Visible masters the core place/route overlays only; Growth stays independent.
 - **Map start extent (phone, max-width 768px):** Eastern Mediterranean overview — Greece–Levant / Black Sea–Egypt. Leaflet `setView` at **36.0°N, 28.6°E**, zoom **5**. Measured visible box on a 390×844 phone (678px-tall map pane): **SW 23.1°N, 20.0°E → NE 47.1°N, 37.2°E**. Reset view uses the same center/zoom. Sparse overview labels: Jerusalem, Antioch, Ephesus, Corinth, Alexandria, Damascus, plus ASIA and GALATIA.
+- **Default basemap:** [Digital Atlas of the Roman Empire (DARE)](https://dh.gu.se/dare/) / Johan Åhlfeldt, CC BY 4.0 — `https://dh.gu.se/tiles/imperium/{z}/{x}/{y}.png`. Native tiles at zoom 5–11. Esri World Shaded Relief and Esri Satellite remain selectable (phone hamburger Map / Satellite; desktop header dropdown). Modern OSM street labels are not the default because they are anachronistic for −6 BC–100 AD.
 - **Map start extent (desktop ≥1280):** Unchanged historic frame — center **34.5°N, 31.0°E**, zoom **6**. A phone-style zoom-5 box on a wide monitor would read as an empire-scale map, so the tighter start is phone-only.
 
 ---
 
 ## 🌟 Key Features
 
-- **Dual-Mode Geospatial Engine**: Switch between an **Ancient Biblical Parchment** map and high-definition **Physical Satellite / Topographic Terrain**.
+- **Period-accurate basemap**: Default **DARE** (Digital Atlas of the Roman Empire) with selectable **Esri World Shaded Relief** and **Satellite** terrain.
 - **Interactive Chronological Timeline (-6 BC to 100 AD)**: Fluid timeline slider with 1×, 2×, and 5× auto-playback controls.
 - **Savior's Footsteps & Passion Week**: Dedicated routes, miracles, and Passion Week stations in Jerusalem.
 - **Jewish Diaspora & Church Growth**: Visualizing synagogues, house churches, growth heatmaps, and New Testament epistles.

@@ -5,7 +5,7 @@
 class MapController {
   constructor() {
     this.map = null;
-    this.currentTheme = "parchment"; // 'parchment' or 'satellite'
+    this.currentTheme = "dare"; // 'dare' | 'parchment' | 'satellite' | 'modern'
     
     // Layer Groups
     this.layers = {
@@ -27,6 +27,7 @@ class MapController {
 
     // Tile layers
     this.tileLayers = {
+      dare: null,
       parchment: null,
       satellite: null,
       modern: null,
@@ -119,7 +120,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri Shaded, Imagery & OSM')
+      .addAttribution("New Testament Atlas")
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -237,7 +238,21 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Clean Ancient Shaded Relief (Default: pure historical terrain without modern street names or city labels)
+    // 1. Digital Atlas of the Roman Empire (default). Period-accurate place
+    // names for −6 BC–100 AD. Native tiles are z=5–11; Leaflet scales outside that.
+    this.tileLayers.dare = L.tileLayer(
+      "https://dh.gu.se/tiles/imperium/{z}/{x}/{y}.png",
+      {
+        minNativeZoom: 5,
+        maxNativeZoom: 11,
+        minZoom: 4,
+        maxZoom: 18,
+        opacity: 1.0,
+        attribution: 'Digital Atlas of the Roman Empire / Johan Åhlfeldt, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>'
+      }
+    );
+
+    // 2. Esri World Shaded Relief (selectable; no modern country/street labels)
     this.tileLayers.parchment = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
       {
@@ -248,27 +263,26 @@ class MapController {
       }
     );
 
-    // 2. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
+    // 3. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
     );
 
-    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    // 4. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    // 5. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to clean ancient shaded relief
-    this.tileLayers.parchment.addTo(this.map);
-    document.body.classList.add("parchment-theme");
+    this.tileLayers.dare.addTo(this.map);
+    document.body.classList.add("dare-theme");
   }
 
   setMapStyle(theme) {
@@ -276,12 +290,14 @@ class MapController {
     const body = document.body;
 
     // Remove all basemap tiles first
-    this.map.removeLayer(this.tileLayers.parchment);
-    this.map.removeLayer(this.tileLayers.satellite);
-    this.map.removeLayer(this.tileLayers.modern);
+    if (this.tileLayers.dare) this.map.removeLayer(this.tileLayers.dare);
+    if (this.tileLayers.parchment) this.map.removeLayer(this.tileLayers.parchment);
+    if (this.tileLayers.satellite) this.map.removeLayer(this.tileLayers.satellite);
+    if (this.tileLayers.modern) this.map.removeLayer(this.tileLayers.modern);
 
-    // Remove theme classes
-    body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
+    // Remove theme classes. DARE is unfiltered so Johan Åhlfeldt's period
+    // coloring stays intact; Esri relief still uses the parchment wash.
+    body.classList.remove("dare-theme", "parchment-theme", "satellite-theme", "modern-theme");
 
     if (theme === "satellite" || theme === "modern-satellite") {
       this.tileLayers.satellite.addTo(this.map);
@@ -289,9 +305,13 @@ class MapController {
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
-    } else {
+    } else if (theme === "parchment") {
       this.tileLayers.parchment.addTo(this.map);
       body.classList.add("parchment-theme");
+    } else {
+      this.currentTheme = "dare";
+      this.tileLayers.dare.addTo(this.map);
+      body.classList.add("dare-theme");
     }
   }
 

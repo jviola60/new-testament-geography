@@ -26,11 +26,11 @@
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/main.css?v=4.2">
-  <link rel="stylesheet" href="css/map.css?v=4.3">
+  <link rel="stylesheet" href="css/map.css?v=4.4">
   <link rel="stylesheet" href="css/timeline.css?v=4.2">
   <link rel="stylesheet" href="css/sidebar.css?v=4.2">
   <link rel="stylesheet" href="css/components.css?v=4.2">
-  <link rel="stylesheet" href="css/mobile.css?v=7.9">
+  <link rel="stylesheet" href="css/mobile.css?v=8.0">
   <script>
     (function () {
       var phone = window.matchMedia("(max-width: 768px)").matches;
@@ -63,7 +63,7 @@
     })();
   </script>
 </head>
-<body class="parchment-theme">
+<body class="dare-theme">
   <!-- Top Navigation Bar -->
   <header class="app-header" id="appHeader">
     <div class="header-left">
@@ -141,14 +141,15 @@
       <!-- Map Style Mode Dropdown / Toggle -->
       <div class="dropdown-container">
         <button id="mapStyleToggle" class="btn btn-mode-toggle" title="Switch Map Base Style">
-          <span class="mode-icon parchment-icon" id="mapStyleIcon">📜</span>
-          <span class="mode-text" id="mapStyleText">Ancient Relief</span>
+          <span class="mode-icon parchment-icon" id="mapStyleIcon">🏛️</span>
+          <span class="mode-text" id="mapStyleText">DARE Atlas</span>
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div id="mapStyleDropdown" class="dropdown-menu">
-          <button data-style="parchment" class="dropdown-item">📜 Ancient Shaded Relief (Biblical Terrain)</button>
+          <button data-style="dare" class="dropdown-item">🏛️ DARE — Roman Empire Atlas (default)</button>
+          <button data-style="parchment" class="dropdown-item">📜 Esri World Shaded Relief</button>
           <button data-style="satellite" class="dropdown-item">🛰️ Satellite Earth Terrain (Whole Map)</button>
-          <button data-style="first-century-satellite" class="dropdown-item" style="color:#F59E0B; font-weight:700;">🏛️ 1st-C. Architectural Satellite View</button>
+          <button data-style="first-century-satellite" class="dropdown-item" style="color:#F59E0B; font-weight:700;">🛰️ 1st-C. Architectural Satellite View</button>
           <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
         </div>
       </div>
@@ -564,14 +565,15 @@
           <button type="button" class="mobile-nav-item" id="mobileNavBasemap" data-nav="basemap" aria-expanded="false" aria-controls="mobileNavBasemapPanel">
             <span class="mobile-nav-item-text">
               <span class="mobile-nav-item-label">Map / Satellite</span>
-              <span class="mobile-nav-item-detail" id="mobileNavBasemapDetail">Ancient relief</span>
+              <span class="mobile-nav-item-detail" id="mobileNavBasemapDetail">DARE Roman atlas</span>
             </span>
             <span class="mobile-nav-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="mobile-nav-submenu" id="mobileNavBasemapPanel" hidden>
             <p class="mobile-nav-submenu-label">Basemap</p>
-            <div class="mobile-basemap-toggle" id="mobileBasemapToggle" role="group" aria-label="Choose map or satellite basemap">
-              <button type="button" class="mobile-basemap-btn active" data-style="parchment" aria-pressed="true">Map</button>
+            <div class="mobile-basemap-toggle" id="mobileBasemapToggle" role="group" aria-label="Choose DARE, Esri relief, or satellite basemap">
+              <button type="button" class="mobile-basemap-btn active" data-style="dare" aria-pressed="true">DARE</button>
+              <button type="button" class="mobile-basemap-btn" data-style="parchment" aria-pressed="false">Esri</button>
               <button type="button" class="mobile-basemap-btn" data-style="satellite" aria-pressed="false">Satellite</button>
               <button type="button" class="mobile-basemap-btn mobile-basemap-more" id="mobileBasemapMoreBtn" aria-label="More map styles" title="More map styles">···</button>
             </div>
@@ -599,7 +601,7 @@
       </div>
       <div class="mobile-about-body">
         <p>New Testament Geography is an interactive atlas of the biblical world from 6 BC to 100 AD — the life and ministry of Jesus Christ, Paul's missionary journeys, the Jewish diaspora, and the growth of the early Church across the Roman Empire.</p>
-        <p>Scrub the timeline, choose a layer, or jump to any city or holy site. Map and Satellite views compare ancient relief with modern terrain.</p>
+        <p>Scrub the timeline, choose a layer, or jump to any city or holy site. The default DARE Roman atlas can be switched to Esri shaded relief or satellite terrain.</p>
       </div>
     </div>
   </div>
@@ -686,11 +688,11 @@
   <script src="js/data/tours.js?v=3.5"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.8"></script>
+  <script src="js/mapController.js?v=4.9"></script>
   <script src="js/timelineController.js?v=3.6"></script>
-  <script src="js/uiController.js?v=4.6"></script>
+  <script src="js/uiController.js?v=4.7"></script>
   <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/mobileShell.js?v=7.8"></script>
+  <script src="js/mobileShell.js?v=7.9"></script>
   <script src="js/app.js?v=4.3"></script>
 </body>
 </html>

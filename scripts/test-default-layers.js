@@ -92,7 +92,10 @@ global.L = {
   },
   latLngBounds: (a, b) => [a, b],
   control: { attribution: () => ({ addAttribution: () => ({ addTo: () => {} }) }) },
-  tileLayer: () => ({ addTo: () => {} }),
+  tileLayer: (url, opts) => {
+    const layer = { url, opts, _added: false, addTo() { layer._added = true; return layer; } };
+    return layer;
+  },
   marker: () => ({ bindTooltip: () => {}, on: () => {} }),
   divIcon: () => ({}),
   polygon: () => ({ bindTooltip: () => {}, on: () => {} }),
@@ -179,6 +182,7 @@ const mapControllerCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'mapC
 vm.runInThisContext(mapControllerCode);
 
 const mapCtrl = new MapController();
+assert.strictEqual(mapCtrl.currentTheme, "dare", "Default basemap theme should be DARE");
 assert.strictEqual(mapCtrl.currentYear, 100, 'Default timeline year should be 100 AD');
 assert.strictEqual(mapCtrl.filterState.all, true, 'Default all should be true');
 assert.strictEqual(mapCtrl.filterState.savior, true, 'Default savior should be true');
@@ -259,7 +263,23 @@ assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.diaspora), 'Diaspora must be on
 assert(mapCtrl.map._mapLayers.has(mapCtrl.layers.churches), 'Churches must be on map by default');
 assert(!mapCtrl.map._mapLayers.has(mapCtrl.layers.heatmaps), 'Growth Heatmap must NOT be on map by default');
 assert.strictEqual(domElements.mapLegend.style.display, 'block', '#mapLegend must appear when default overlays are on');
+assert.strictEqual(mapCtrl.currentTheme, "dare", "Init should leave DARE as the active basemap");
+assert(mapCtrl.tileLayers.dare && /dh\.gu\.se\/tiles\/imperium/.test(mapCtrl.tileLayers.dare.url), "DARE Imperium tiles must be configured");
+assert.strictEqual(mapCtrl.tileLayers.dare.opts.maxNativeZoom, 11, "DARE native tiles end at z=11");
+assert(mapCtrl.tileLayers.dare._added, "DARE tiles must be added on init");
+assert(!mapCtrl.tileLayers.parchment._added, "Esri relief must not be the default layer");
+assert(!mapCtrl.tileLayers.satellite._added, "Satellite must not be the default layer");
+assert(/Johan Åhlfeldt/.test(mapCtrl.tileLayers.dare.opts.attribution), "DARE attribution must credit Johan Åhlfeldt");
+assert(/CC BY 4.0/.test(mapCtrl.tileLayers.dare.opts.attribution), "DARE attribution must include CC BY 4.0");
 console.log('✓ Initial map mounts core overlays, hides Growth, and shows the Atlas Legend.');
+console.log('✓ Default basemap is DARE; Esri relief and Satellite stay selectable.');
+mapCtrl.setMapStyle("parchment");
+assert.strictEqual(mapCtrl.currentTheme, "parchment", "setMapStyle('parchment') should select Esri relief");
+assert(mapCtrl.tileLayers.parchment._added, "Esri relief tiles should mount when selected");
+mapCtrl.setMapStyle("satellite");
+assert.strictEqual(mapCtrl.currentTheme, "satellite", "setMapStyle('satellite') should select Esri imagery");
+mapCtrl.setMapStyle("dare");
+assert.strictEqual(mapCtrl.currentTheme, "dare", "setMapStyle('dare') should restore DARE");
 
 // User toggle after load: turning Savior off must not reset other defaults
 mapCtrl.setLayerFilter("savior", false);

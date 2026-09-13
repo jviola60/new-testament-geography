@@ -650,15 +650,15 @@ html:not(.layout-mobile) .mobile-menu-heading {
 
   html.layout-mobile .mobile-basemap-btn {
     min-height: var(--tap);
-    min-width: var(--tap);
+    min-width: 0;
     flex: 1;
-    padding: 0 0.7rem;
+    padding: 0 0.35rem;
     border: none;
     border-right: 1px solid var(--border-parchment);
     background: #FFFDF8;
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     cursor: pointer;
   }

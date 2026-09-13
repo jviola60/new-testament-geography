@@ -50,7 +50,11 @@ assert((html.match(/class="tab-btn/g) || []).length >= 7, "Expected all seven pl
 assert(html.includes('id="sheetHandle"'), "Expected bottom-sheet handle");
 assert(html.includes('id="mobileMoreSheet"'), "Expected more-tools sheet");
 assert(html.includes('id="mobileBasemapToggle"'), "Expected visible mobile Map/Satellite control");
-assert(html.includes('data-style="parchment"') && html.includes('data-style="satellite"'), "Basemap toggle must expose parchment and satellite");
+assert(/id="mapStyleText">DARE Atlas</.test(html), "Desktop header should default to DARE Atlas");
+assert(html.includes('data-style="dare"') && html.includes("Esri World Shaded Relief"), "Desktop dropdown must list DARE and Esri relief");
+assert(html.includes('data-style="dare"') && html.includes('data-style="parchment"') && html.includes('data-style="satellite"'), "Basemap toggle must expose DARE, Esri relief, and satellite");
+assert(/data-style="dare"[^>]*>DARE</.test(html), "Phone hamburger should label the default basemap DARE");
+assert(/data-style="parchment"[^>]*>Esri</.test(html), "Phone hamburger should keep Esri World Shaded Relief selectable");
 assert(html.includes("viewport-fit=cover"), "Expected notch-safe viewport");
 
 assert(mobileCss.includes("layout-mobile"), "mobile.css should key off layout-mobile");
@@ -80,6 +84,9 @@ assert(mobileJs.includes("applyStartExtentIfNeeded"), "Phone invalidateSize shou
 assert(mobileCss.includes("city-label-overview"), "Phone CSS should reveal curated overview city labels at cold-start zoom");
 assert(mobileCss.includes("region-label-overview"), "Phone CSS should reveal ASIA / GALATIA at cold-start zoom");
 assert(mapJs.includes("getStartExtent") && mapJs.includes("drawOverviewRegionLabels"), "MapController should own phone start extent and overview region labels");
+assert(mapJs.includes("dh.gu.se/tiles/imperium") && mapJs.includes('currentTheme = "dare"'), "Default basemap must be DARE Imperium tiles");
+assert(!/tile\.opentopomap\.org/.test(mapJs), "OpenTopoMap must not be a production basemap");
+assert(mapJs.includes("tileLayers.dare.addTo") || mapJs.includes("this.tileLayers.dare.addTo"), "DARE tiles must be the layer added on setup");
 assert(regionsJs.includes("startExtent") && regionsJs.includes("23.1") && regionsJs.includes("37.2"), "regions.js should document the Eastern Mediterranean start box");
 ["jerusalem", "damascus", "antioch-syria", "ephesus", "corinth", "alexandria"].forEach((id) => {
   const block = citiesJs.split("{").find((chunk) => chunk.includes(`id: "${id}"`));

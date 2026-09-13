@@ -64,7 +64,7 @@ class UIController {
       });
     });
 
-    // Map Style Mode Dropdown (Parchment / Satellite / Modern Streets)
+    // Map Style Mode Dropdown (DARE / Esri relief / Satellite / Modern Streets)
     const mapStyleBtn = document.getElementById("mapStyleToggle");
     const mapStyleDropdown = document.getElementById("mapStyleDropdown");
     const mapStyleIcon = document.getElementById("mapStyleIcon");
@@ -99,11 +99,16 @@ class UIController {
             window.app.map.setMapStyle("modern");
             if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
             if (mapStyleText) mapStyleText.textContent = "Modern Streets";
-          } else {
-            // Ancient Shaded Relief (Biblical Terrain)
+          } else if (style === "parchment") {
+            // Esri World Shaded Relief (selectable; not the period default)
             window.app.map.setMapStyle("parchment");
             if (mapStyleIcon) mapStyleIcon.textContent = "📜";
-            if (mapStyleText) mapStyleText.textContent = "Ancient Relief";
+            if (mapStyleText) mapStyleText.textContent = "Esri Relief";
+          } else {
+            // Digital Atlas of the Roman Empire (period-accurate default)
+            window.app.map.setMapStyle("dare");
+            if (mapStyleIcon) mapStyleIcon.textContent = "🏛️";
+            if (mapStyleText) mapStyleText.textContent = "DARE Atlas";
           }
           mapStyleDropdown.classList.remove("open");
         });

@@ -17,9 +17,11 @@ filterChipsMatch.forEach(chipHtml => {
 });
 console.log('✓ All filter chips have no active class by default.');
 
-// Ensure #mapLegend is display: none by default
-assert(htmlContent.includes('id="mapLegend" style="display: none;"'), 'Expected #mapLegend to have style="display: none;"');
-console.log('✓ #mapLegend is style="display: none;" by default.');
+// Ensure #mapLegend exists in index.html and .map-legend-box is display: none by default in map.css
+assert(htmlContent.includes('id="mapLegend"'), 'Expected #mapLegend to exist');
+const mapCssContent = fs.readFileSync(path.join(__dirname, '..', 'css', 'map.css'), 'utf8');
+assert(/\.map-legend-box\s*\{[^}]*display:\s*none;/.test(mapCssContent), 'Expected .map-legend-box to have display: none in map.css');
+console.log('✓ #mapLegend is present and hidden via CSS display: none by default.');
 
 // Ensure quick-jump-container and quickJumpSelect are present in index.html
 assert(htmlContent.includes('id="quickJumpContainer"'), 'Expected #quickJumpContainer to exist');

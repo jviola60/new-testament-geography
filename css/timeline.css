@@ -138,7 +138,13 @@
   align-items: center;
   gap: 0.3rem;
   overflow-x: auto;
-  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+@supports (scrollbar-width: none) {
+  .era-selector-tabs {
+    scrollbar-width: none;
+  }
 }
 
 .era-selector-tabs::-webkit-scrollbar {
@@ -261,6 +267,7 @@
   font-size: 0.68rem;
   color: #A3937C;
   font-weight: 500;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -286,4 +293,8 @@
   .timeline-control-bar {
     justify-content: space-between;
   }
+}
+
+#pauseIcon {
+  display: none;
 }

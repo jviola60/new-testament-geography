@@ -23,8 +23,8 @@
   left: 20px;
   z-index: 800;
   background: rgba(247, 243, 233, 0.94);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--color-gold);
   border-left: 5px solid var(--color-crimson);
   border-radius: 8px;
@@ -88,6 +88,15 @@
   text-align: center;
 }
 
+.holy-land-btn-label {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.jerusalem-btn-icon {
+  font-size: 14px;
+}
+
 .floating-btn:hover {
   background: #FFF;
   color: var(--color-crimson);
@@ -98,13 +107,14 @@
 
 /* Map Legend */
 .map-legend-box {
+  display: none;
   position: absolute;
   bottom: 20px;
   left: 20px;
   z-index: 800;
   background: rgba(247, 243, 233, 0.94);
-  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   border: 1px solid var(--border-parchment-dark);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
@@ -212,6 +222,16 @@
 .line-province {
   background: transparent;
   border-bottom: 2px dashed #92400E;
+}
+
+.line-jerusalem-walls {
+  background: #78350F;
+  height: 3px;
+}
+
+.marker-growth-heatmap {
+  background: rgba(220, 38, 38, 0.5);
+  border: 1px solid #DC2626;
 }
 
 /* ==========================================================================
@@ -671,8 +691,8 @@
   letter-spacing: 0.05em;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 12px rgba(245, 158, 11, 0.25);
   cursor: pointer;
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   transition: all 0.25s ease;
   pointer-events: auto;
 }
@@ -699,8 +719,8 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 .satellite-modal-backdrop {
@@ -836,6 +856,7 @@
   align-items: center;
   justify-content: center;
   cursor: grab;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -950,8 +971,8 @@
   width: 380px;
   max-width: calc(100vw - 48px);
   background: rgba(17, 24, 39, 0.95);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1.5px solid #D97706;
   border-radius: 10px;
   padding: 16px;

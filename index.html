@@ -32,10 +32,31 @@
   <link rel="stylesheet" href="css/components.css?v=3.1">
 </head>
 <body class="parchment-theme">
+  <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
+  <nav class="cross-atlas-bar" id="crossAtlasBar" aria-label="Scriptural Atlases Navigation">
+    <div class="cross-atlas-container">
+      <span class="cross-atlas-label">Scriptural Atlases:</span>
+      <div class="cross-atlas-links">
+        <a href="https://jviola60.github.io/old-testament-geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
+          <span>📜 Old Testament Atlas</span>
+          <span class="atlas-ext-arrow">↗</span>
+        </a>
+        <span class="atlas-link active" title="Currently viewing New Testament Geography (~6 BC – 100 AD)">
+          <span>✝️ New Testament Atlas</span>
+          <span class="atlas-current-badge">Current</span>
+        </span>
+        <a href="https://jviola60.github.io/book-of-mormon-geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Book of Mormon Geography (~2200 BC – AD 421)">
+          <span>📖 Book of Mormon Atlas</span>
+          <span class="atlas-ext-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
   <!-- Top Navigation Bar -->
   <header class="app-header" id="appHeader">
     <div class="header-left">
-      <div class="app-branding">
+      <div class="app-branding" id="brandLogoBtn" title="Reset view & return to Atlas Overview">
         <div class="brand-symbol">
           <svg viewBox="0 0 40 40" class="menorah-cross-icon" aria-hidden="true">
             <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.6"/>
@@ -59,39 +80,20 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" id="globalSearchInput" placeholder="Search city, miracle, event, scripture, or person..." autocomplete="off" aria-label="Search the New Testament Atlas">
-        <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" aria-label="Clear search" style="display: none;">&times;</button>
-        <div id="searchResultsDropdown" class="search-results-dropdown" style="display: none;"></div>
+        <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" aria-label="Clear search">&times;</button>
+        <div id="searchResultsDropdown" class="search-results-dropdown"></div>
       </div>
     </div>
 
-    <!-- Header Actions -->
+    <!-- Header Actions (Desktop, matching Book of Mormon Atlas) -->
     <div class="header-right">
-      <!-- Quick Region Focus Dropdown -->
-      <div class="dropdown-container">
-        <button id="regionSelectBtn" class="btn btn-outline" title="Zoom to biblical region">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
-          <span class="btn-text">Regions</span>
-        </button>
-        <div id="regionDropdown" class="dropdown-menu">
-          <button data-region="holy-land" class="dropdown-item">📍 Holy Land (Galilee & Judea)</button>
-          <button data-region="galilee" class="dropdown-item">🌊 Sea of Galilee & North</button>
-          <button data-region="jerusalem" class="dropdown-item">🏛️ Jerusalem & Inset</button>
-          <button data-region="satellite-explorer" class="dropdown-item" style="color:#F59E0B;font-weight:700;">🛰️ 1st-C. Satellite Reconnaissance</button>
-          <button data-region="mediterranean" class="dropdown-item">🌍 Mediterranean / Roman Empire</button>
-          <button data-region="asia-minor" class="dropdown-item">🏛️ Asia Minor (Seven Churches)</button>
-          <button data-region="greece" class="dropdown-item">🏛️ Greece & Macedonia</button>
-          <button data-region="rome" class="dropdown-item">🦅 Rome & Italy</button>
-          <button data-region="egypt" class="dropdown-item">🏺 Egypt & Alexandria</button>
-        </div>
-      </div>
-
-      <!-- Curated Tours Button -->
-      <button id="storyToursBtn" class="btn btn-primary glow-gold" title="Explore Curated Scripture Tours">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <!-- Curated Guided Tours Button -->
+      <button id="storyToursBtn" class="btn btn-primary glow-gold" title="Explore Guided Tours of the Savior's Ministry">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         <span>Guided Tours</span>
       </button>
 
-      <!-- Location Quick Jump Dropdown in Header (Replaces redundant 1st-C Satellite button) -->
+      <!-- Location Quick Jump Dropdown -->
       <div class="header-quick-jump-container" id="quickJumpContainer" title="Jump directly to any Biblical City, Holy Site, or Region">
         <span class="quick-jump-icon">📍</span>
         <select id="quickJumpSelect" class="header-quick-jump-select" aria-label="Jump to Any Biblical Location">
@@ -99,59 +101,65 @@
         </select>
       </div>
 
-      <!-- Map Style Mode Dropdown / Toggle -->
-      <div class="dropdown-container">
-        <button id="mapStyleToggle" class="btn btn-mode-toggle" title="Switch Map Base Style">
-          <span class="mode-icon parchment-icon" id="mapStyleIcon">📜</span>
-          <span class="mode-text" id="mapStyleText">Ancient Relief</span>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      <!-- Secondary Tools Consolidated Dropdown (Matching Book of Mormon Atlas) -->
+      <div class="dropdown-container" id="toolsDropdownContainer">
+        <button id="toolsDropdownBtn" class="btn btn-outline" title="Atlas Tools & Secondary Utilities" aria-expanded="false">
+          <span>🛠️</span>
+          <span class="btn-text">Tools</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-caret"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
-        <div id="mapStyleDropdown" class="dropdown-menu">
-          <button data-style="parchment" class="dropdown-item">📜 Ancient Shaded Relief (Biblical Terrain)</button>
-          <button data-style="satellite" class="dropdown-item">🛰️ Satellite Earth Terrain (Whole Map)</button>
-          <button data-style="first-century-satellite" class="dropdown-item" style="color:#F59E0B; font-weight:700;">🏛️ 1st-C. Architectural Satellite View</button>
-          <button data-style="modern" class="dropdown-item">🗺️ Modern Streets & Infrastructure</button>
+        <div id="toolsDropdownMenu" class="dropdown-menu dropdown-menu-wide">
+          <div class="dropdown-heading">Geographic Utilities</div>
+          <button id="distanceToolBtn" class="dropdown-item">
+            <span>📏</span> Biblical Distances & Travel Calculator
+          </button>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-heading">Map Base Style</div>
+          <button data-style="parchment" class="dropdown-item map-style-item active-style">📜 Ancient Shaded Relief (Biblical)</button>
+          <button data-style="satellite" class="dropdown-item map-style-item">🛰️ Satellite Earth Terrain</button>
+          <button data-style="first-century-satellite" class="dropdown-item map-style-item dropdown-item-gold">🏛️ 1st-C. Architectural Satellite</button>
+          <button data-style="modern" class="dropdown-item map-style-item">🗺️ Modern Roads & Infrastructure</button>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-heading">Region Focus</div>
+          <button data-region="holy-land" class="dropdown-item region-item">📍 Holy Land (Galilee & Judea)</button>
+          <button data-region="galilee" class="dropdown-item region-item">🌊 Sea of Galilee & North</button>
+          <button data-region="jerusalem" class="dropdown-item region-item">🏛️ Jerusalem & Inset</button>
+          <button data-region="mediterranean" class="dropdown-item region-item">🌍 Mediterranean / Roman Empire</button>
+          <button data-region="asia-minor" class="dropdown-item region-item">🏛️ Asia Minor (Seven Churches)</button>
+          <button data-region="greece" class="dropdown-item region-item">🏛️ Greece & Macedonia</button>
+          <button data-region="rome" class="dropdown-item region-item">🦅 Rome & Italy</button>
+          <button data-region="egypt" class="dropdown-item region-item">🏺 Egypt & Alexandria</button>
         </div>
       </div>
 
-      <!-- Sidebar Toggle -->
-      <button id="sidebarToggleBtn" class="btn btn-icon sidebar-toggle-btn" title="Toggle Information Panel" aria-label="Toggle drawer">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+      <!-- Detail Sidebar Toggle Button -->
+      <button id="sidebarToggleBtn" class="btn btn-outline" title="Toggle Information Panel" aria-label="Toggle drawer">
+        <span id="sidebarToggleIcon">📖</span>
+        <span class="btn-text" id="sidebarToggleText">Details</span>
       </button>
     </div>
   </header>
 
-  <!-- Filter & Layer Command Bar -->
+  <!-- Streamlined Filter & Layer Command Bar (Cleaned & Focused) -->
   <nav class="layer-filter-bar" id="filterBar" aria-label="Map layers and category filters">
     <div class="filter-scroll-track">
       <div class="filter-group">
         <span class="filter-label">Layers:</span>
-        <button class="filter-chip" data-filter="all">
+        <button class="filter-chip" data-filter="all" id="chipAllVisible" title="Toggle all foundational layers">
           <span class="chip-dot dot-all"></span>All Visible
         </button>
-        <button class="filter-chip" data-filter="savior">
+        <button class="filter-chip filter-chip-savior" data-filter="savior" id="chipSavior" title="View Jesus's Ministry, Miracles and Holy Routes">
           <span class="chip-dot dot-savior"></span>Savior's Ministry
         </button>
-        <button class="filter-chip" data-filter="diaspora">
-          <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
-        </button>
-        <button class="filter-chip" data-filter="churches">
-          <span class="chip-dot dot-church"></span>Christian Churches
-        </button>
-        <button class="filter-chip" data-filter="journeys">
+        <button class="filter-chip" data-filter="journeys" id="chipJourneys" title="Paul's 4 Epic Missionary Journeys">
           <span class="chip-dot dot-journey"></span>Paul's Journeys
         </button>
-        <button class="filter-chip" data-filter="heatmaps">
+        <button class="filter-chip" data-filter="heatmaps" id="chipHeatmaps" title="Radiant Christian Growth Heatmap">
           <span class="chip-dot dot-heatmap"></span>Growth Heatmap
         </button>
-        <button class="filter-chip" data-filter="provinces">
-          <span class="chip-dot dot-provinces"></span>Roman Provinces
-        </button>
-        <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="Granular 1st-Century sacred sites and landmarks across Jerusalem">
-          <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
-        </button>
-        <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
-          <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
+        <button class="filter-chip filter-chip-toggle" id="toggleFiltersPanelBtn" title="Open full atlas layers & filters drawer" aria-expanded="false">
+          <span>⚙️ Filters</span>
+          <span class="active-filters-badge" id="activeFiltersBadge">0</span>
         </button>
       </div>
 
@@ -168,6 +176,61 @@
         <div class="stat-pill" title="Jewish diaspora settlements recorded">
           <span class="stat-num" id="statDiasporaCount">0</span>
           <span class="stat-name">Diaspora Hubs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expandable Desktop Filters Flyout Panel -->
+    <div class="desktop-filters-panel" id="desktopFiltersPanel">
+      <div class="desktop-filters-content">
+        <div class="df-section">
+          <span class="df-section-title">Savior & Sacred Sites:</span>
+          <div class="df-chips">
+            <button class="filter-chip filter-chip-savior" data-filter="savior" title="Jesus's Ministry, Miracles and Footsteps">
+              <span class="chip-dot dot-savior"></span>Savior's Ministry
+            </button>
+            <button class="filter-chip" data-filter="jerusalemSites" id="jerusalemSitesChip" title="1st-Century sacred sites and landmarks across Jerusalem">
+              <span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks
+            </button>
+            <button class="filter-chip" data-filter="jerusalemGeography" id="jerusalemGeoChip" title="1st-Century Jerusalem Topography, Valleys, Quarters & Defensive Walls">
+              <span class="chip-dot dot-jerusalem-geo"></span>Quarters & Walls
+            </button>
+          </div>
+        </div>
+
+        <div class="df-section">
+          <span class="df-section-title">Apostolic Ministry & Expansion:</span>
+          <div class="df-chips">
+            <button class="filter-chip" data-filter="journeys" title="Paul's 4 Epic Missionary Journeys">
+              <span class="chip-dot dot-journey"></span>Paul's Journeys
+            </button>
+            <button class="filter-chip" data-filter="churches" title="Active Christian Assemblies & Seven Churches of Revelation">
+              <span class="chip-dot dot-church"></span>Christian Churches
+            </button>
+            <button class="filter-chip" data-filter="heatmaps" title="Interactive Growth Heatmap across the Mediterranean">
+              <span class="chip-dot dot-heatmap"></span>Growth Heatmap
+            </button>
+          </div>
+        </div>
+
+        <div class="df-section">
+          <span class="df-section-title">Empire & Diaspora:</span>
+          <div class="df-chips">
+            <button class="filter-chip" data-filter="diaspora" title="Jewish Synagogues and Diaspora Communities">
+              <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
+            </button>
+            <button class="filter-chip" data-filter="provinces" title="Roman Imperial and Senatorial Provincial Boundaries">
+              <span class="chip-dot dot-provinces"></span>Roman Provinces
+            </button>
+            <button class="filter-chip" data-filter="all" title="Toggle all foundational layers">
+              <span class="chip-dot dot-all"></span>All Visible
+            </button>
+          </div>
+        </div>
+
+        <div class="df-actions">
+          <button id="clearAllFiltersBtn" class="btn btn-outline btn-sm">Reset Layers</button>
+          <button id="closeFiltersPanelBtn" class="btn btn-primary btn-sm">Done</button>
         </div>
       </div>
     </div>
@@ -191,15 +254,15 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
       </button>
       <button id="holyLandQuickBtn" class="floating-btn" title="Zoom to Holy Land / Galilee & Judea" aria-label="Zoom to Holy Land">
-        <span style="font-weight: 700; font-size: 12px;">HOLY<br>LAND</span>
+        <span class="holy-land-btn-label">HOLY<br>LAND</span>
       </button>
       <button id="jerusalemQuickBtn" class="floating-btn" title="Zoom to Jerusalem & Passion Week Inset" aria-label="Zoom to Jerusalem">
-        <span style="font-size: 14px;">🏛️</span>
+        <span class="jerusalem-btn-icon">🏛️</span>
       </button>
     </div>
 
     <!-- Floating Map Legend (Hidden by default; appears when any overlay layer is active) -->
-    <div class="map-legend-box" id="mapLegend" style="display: none;">
+    <div class="map-legend-box" id="mapLegend">
       <div class="legend-header" id="legendToggleHeader">
         <span class="legend-title">Atlas Legend</span>
         <button class="legend-collapse-btn" id="legendCollapseBtn" aria-label="Toggle legend">−</button>
@@ -208,7 +271,7 @@
         <div class="legend-item" data-layer="savior"><span class="legend-marker marker-savior"></span> <span>Jesus's Ministry & Miracles</span></div>
         <div class="legend-item" data-layer="savior"><span class="legend-line line-savior"></span> <span>Savior's Footsteps / Routes</span></div>
         <div class="legend-item" data-layer="jerusalemSites"><span class="legend-marker marker-jerusalem-site"></span> <span>Jerusalem Sacred Sites</span></div>
-        <div class="legend-item" data-layer="jerusalemGeography"><span class="legend-line" style="background: #78350F; height: 3px;"></span> <span>Jerusalem Walls & Quarters</span></div>
+        <div class="legend-item" data-layer="jerusalemGeography"><span class="legend-line line-jerusalem-walls"></span> <span>Jerusalem Walls & Quarters</span></div>
         <div class="legend-item" data-layer="diaspora"><span class="legend-marker marker-diaspora"></span> <span>Jewish Synagogues & Diaspora</span></div>
         <div class="legend-item" data-layer="churches"><span class="legend-marker marker-church"></span> <span>Christian Congregations</span></div>
         <div class="legend-item" data-layer="churches"><span class="legend-marker marker-epistle"></span> <span>Seven Churches / Epistle Centers</span></div>
@@ -217,12 +280,19 @@
         <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul3"></span> <span>Paul's 3rd Journey (53–58 AD)</span></div>
         <div class="legend-item" data-layer="journeys"><span class="legend-line line-paul4"></span> <span>Paul's Voyage to Rome (59–60 AD)</span></div>
         <div class="legend-item" data-layer="provinces"><span class="legend-line line-province"></span> <span>Roman Provincial Boundaries</span></div>
-        <div class="legend-item" data-layer="heatmaps"><span class="legend-marker" style="background: rgba(220,38,38,0.5); border: 1px solid #DC2626;"></span> <span>Christian Growth Heatmap</span></div>
+        <div class="legend-item" data-layer="heatmaps"><span class="legend-marker marker-growth-heatmap"></span> <span>Christian Growth Heatmap</span></div>
       </div>
     </div>
 
-    <!-- Detail Drawer / Sidebar -->
+    <!-- Detail Drawer / Sidebar (Thin Flyout matching Book of Mormon Atlas) -->
     <aside class="detail-sidebar" id="detailSidebar" aria-label="Scripture & Information Panel">
+      <!-- Edge toggle button sticking out on desktop when closed -->
+      <button class="sidebar-edge-toggle" id="sidebarEdgeToggleBtn" title="Collapse / Expand Details" aria-label="Toggle Details Panel">
+        <span class="edge-toggle-icon" id="edgeToggleIcon">▶</span>
+        <span class="edge-toggle-text">Details</span>
+      </button>
+      <div class="mobile-drag-handle" id="mobileDragHandle" aria-hidden="true"><span class="drag-pill"></span></div>
+
       <div class="sidebar-header">
         <div class="sidebar-title-wrap">
           <span class="sidebar-eyebrow" id="sidebarEyebrow">SELECTION DETAILS</span>
@@ -231,14 +301,21 @@
         <button id="closeSidebarBtn" class="close-btn" aria-label="Close sidebar">&times;</button>
       </div>
 
-      <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="overview">Overview</button>
-        <button class="tab-btn" data-tab="scripture">Scriptures</button>
-        <button class="tab-btn" data-tab="teachings">Teachings & Context</button>
-        <button class="tab-btn" data-tab="videos">Bible Videos</button>
-        <button class="tab-btn" data-tab="people">People & Church</button>
-        <button class="tab-btn" data-tab="political">Political Insights</button>
-        <button class="tab-btn" data-tab="chronology">Era Events</button>
+      <div class="sidebar-tabs" id="sidebarTabs">
+        <!-- Row 1: Primary Doctrine & Archaeology (4 tabs) -->
+        <div class="sidebar-tab-row">
+          <button class="tab-btn active" data-tab="overview">Overview</button>
+          <button class="tab-btn" data-tab="archaeology">Archaeology</button>
+          <button class="tab-btn" data-tab="scripture">Scriptures</button>
+          <button class="tab-btn" data-tab="teachings">Teachings</button>
+        </div>
+        <!-- Row 2: Media, People, Politics & History (4 tabs) -->
+        <div class="sidebar-tab-row">
+          <button class="tab-btn" data-tab="videos">Videos</button>
+          <button class="tab-btn" data-tab="people">People</button>
+          <button class="tab-btn" data-tab="political">Political</button>
+          <button class="tab-btn" data-tab="chronology">Events</button>
+        </div>
       </div>
 
       <div class="sidebar-content" id="sidebarContent">
@@ -260,52 +337,52 @@
           </div>
 
           <!-- Growth of Christianity Showcase Card -->
-          <div class="feature-card christian-growth-showcase" style="border-left: 4px solid #DC2626; background: linear-gradient(180deg, #FFFDF9 0%, #FEF2F2 100%);">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;">
-              <span style="font-size: 1.25rem;">🔥</span>
-              <h3 style="margin: 0; color: #991B1B; font-family: var(--font-serif-title); font-size: 0.98rem;">The Exponential Growth of Christianity (~30–100 AD)</h3>
+          <div class="feature-card christian-growth-showcase">
+            <div class="growth-showcase-header">
+              <span class="growth-showcase-icon">🔥</span>
+              <h3 class="growth-showcase-title">The Exponential Growth of Christianity (~30–100 AD)</h3>
             </div>
             
-            <p style="font-size: 0.82rem; line-height: 1.55; color: var(--text-primary); margin-bottom: 0.75rem;">
+            <p class="growth-showcase-intro">
               The New Testament records one of the most astonishing transformations in human history: the exponential multiplication of a humble gathering in Roman Judea into a vibrant spiritual movement spanning the entire Mediterranean world within a single generation.
             </p>
 
-            <div style="background: rgba(220,38,38,0.06); border: 1px dashed rgba(220,38,38,0.3); border-radius: 6px; padding: 0.65rem 0.8rem; margin-bottom: 0.75rem;">
-              <div style="display:flex; align-items:center; gap:6px; font-weight:700; color:#B91C1C; font-size:0.8rem; margin-bottom:3px;">
+            <div class="growth-heatmap-callout">
+              <div class="growth-callout-header">
                 <span>🔴 Interactive Growth Heatmap</span>
               </div>
-              <p style="font-size:0.77rem; line-height:1.4; color:#7F1D1D; margin:0;">
+              <p class="growth-callout-text">
                 Click <strong>Growth Heatmap</strong> in the top layers bar and scrub the timeline. Radiant diffusion halos emerge at Pentecost (~30 AD) and swell across the Mediterranean as churches multiply from Jerusalem to Rome.
               </p>
             </div>
 
-            <div class="demographic-stats-grid" style="margin-bottom: 0.75rem;">
-              <div class="demographic-stat-box" style="border-left: 2px solid #DC2626;">
+            <div class="demographic-stats-grid">
+              <div class="demographic-stat-box stat-upper-room">
                 <span class="demographic-label">Upper Room (30 AD)</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #991B1B;">~120 Disciples</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 1:15</span>
+                <span class="demographic-value">~120 Disciples</span>
+                <span class="demographic-stat-ref">Acts 1:15</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #D97706;">
+              <div class="demographic-stat-box stat-pentecost">
                 <span class="demographic-label">Pentecost Ingathering</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #B45309;">+3,000 Souls</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 2:41</span>
+                <span class="demographic-value">+3,000 Souls</span>
+                <span class="demographic-stat-ref">Acts 2:41</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #059669;">
+              <div class="demographic-stat-box stat-early-church">
                 <span class="demographic-label">Early Jerusalem Church</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #047857;">5,000+ Men</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 4:4</span>
+                <span class="demographic-value">5,000+ Men</span>
+                <span class="demographic-stat-ref">Acts 4:4</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #2563EB;">
+              <div class="demographic-stat-box stat-empire-wide">
                 <span class="demographic-label">Empire-Wide (100 AD)</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #1D4ED8;">100,000s of Saints</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Across 40+ Hubs</span>
+                <span class="demographic-value">100,000s of Saints</span>
+                <span class="demographic-stat-ref">Across 40+ Hubs</span>
               </div>
             </div>
 
-            <h4 style="font-family: var(--font-serif-title); font-size: 0.84rem; color: #991B1B; margin: 0 0 0.4rem 0;">
+            <h4 class="growth-waves-title">
               Four Waves of Apostolic Expansion
             </h4>
-            <ul class="feature-steps" style="font-size: 0.78rem; line-height: 1.45;">
+            <ul class="feature-steps growth-waves-list">
               <li><strong>Wave 1 — Pentecost & Judea (30–34 AD):</strong> Endowed with the Holy Ghost, apostles bore eyewitness testimony of Christ's resurrection.</li>
               <li><strong>Wave 2 — Samaria & Syrian Antioch (34–44 AD):</strong> Scattered by persecution, disciples shared the Word beyond Jewish borders; Gentiles poured in at Antioch.</li>
               <li><strong>Wave 3 — Paul's Missionary Journeys (47–62 AD):</strong> Crossing 10,000+ miles via Roman roads and seas, Paul planted assemblies in Galatia, Macedonia, Greece, and Asia.</li>
@@ -314,34 +391,52 @@
           </div>
 
           <div class="curated-shortcut-grid">
-            <h4>Quick Focus Tours</h4>
+            <div class="tours-section-header">
+              <span class="tours-header-icon">✦</span>
+              <h4 class="tours-header-title">Guided Tours of Jesus' Life</h4>
+            </div>
+            <p class="tours-section-sub">Walk where the Savior was born, taught, healed, suffered for us, and rose again triumphant.</p>
             <div class="tour-mini-cards">
+              <div class="tour-mini-card tour-card-featured" data-tour-id="start-here-jesus">
+                <div class="tour-icon">🕊️</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Start Here: Where Jesus Walked</span>
+                  <span class="tour-era">Simple & Welcoming for All Ages • 6 Sacred Stops</span>
+                </div>
+              </div>
               <div class="tour-mini-card" data-tour-id="savior-life">
                 <div class="tour-icon">🌟</div>
                 <div class="tour-meta">
-                  <span class="tour-name">Life & Ministry of Jesus</span>
-                  <span class="tour-era">6 BC – 30 AD • 14 Stops</span>
+                  <span class="tour-name">Walk with the Savior (Core Ministry)</span>
+                  <span class="tour-era">6 BC – 30 AD • 12 Sacred Stops</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="passion-week">
                 <div class="tour-icon">✝️</div>
                 <div class="tour-meta">
                   <span class="tour-name">Passion Week in Jerusalem</span>
-                  <span class="tour-era">Spring 30 AD • 9 Stations</span>
+                  <span class="tour-era">Spring 30 AD • 8 Sacred Stations</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="living-christ">
+                <div class="tour-icon">👑</div>
+                <div class="tour-meta">
+                  <span class="tour-name">The Living Christ (Key Testimony Sites)</span>
+                  <span class="tour-era">Heavenly Witnesses • 7 Sacred Locations</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="acts-early-church">
                 <div class="tour-icon">🔥</div>
                 <div class="tour-meta">
                   <span class="tour-name">Pentecost & Church Birth</span>
-                  <span class="tour-era">30 AD – 47 AD • 10 Sites</span>
+                  <span class="tour-era">30 AD – 47 AD • 6 Crucial Steps</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="paul-journeys">
                 <div class="tour-icon">⛵</div>
                 <div class="tour-meta">
                   <span class="tour-name">Paul's Missionary Journeys</span>
-                  <span class="tour-era">47 AD – 62 AD • 4 Voyages</span>
+                  <span class="tour-era">47 AD – 62 AD • 8 Key Portals</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="revelation-churches">
@@ -351,6 +446,32 @@
                   <span class="tour-era">95 AD • Patmos & Asia</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Permanent Scriptural Atlases Companion Card -->
+          <div class="feature-card scriptural-atlases-card">
+            <div class="atlas-card-header">
+              <span class="atlas-card-icon">📖</span>
+              <h4 class="atlas-card-title">Companion Scriptural Atlases</h4>
+            </div>
+            <p class="atlas-card-sub">Explore the sacred geography of all the standard works of scripture:</p>
+            <div class="atlas-links-grid">
+              <a href="https://www.interactivebibleatlas.xyz/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas">
+                <span class="atlas-nav-badge">📜 Old Testament</span>
+                <span class="atlas-nav-name">Old Testament Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
+              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas">
+                <span class="atlas-nav-badge">✝️ New Testament</span>
+                <span class="atlas-nav-name">New Testament Atlas (Current)</span>
+                <span class="atlas-nav-arrow">✓</span>
+              </a>
+              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas">
+                <span class="atlas-nav-badge">🪙 Book of Mormon</span>
+                <span class="atlas-nav-name">Book of Mormon Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
             </div>
           </div>
         </div>
@@ -368,7 +489,7 @@
         </button>
         <button id="playPauseBtn" class="btn-ctrl btn-play glow-gold" title="Play / Pause Timeline (Spacebar)" aria-label="Play timeline">
           <svg id="playIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          <svg id="pauseIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
         </button>
         <button id="stepForwardBtn" class="btn-ctrl" title="Step Forward 1 Year (Right Arrow)" aria-label="Step forward">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
@@ -418,7 +539,7 @@
   </footer>
 
   <!-- Modal for Guided Story Tour -->
-  <div class="modal-backdrop" id="tourModal" style="display: none;">
+  <div class="modal-backdrop" id="tourModal">
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="tourModalTitle">Select a Curated Scripture Journey</h3>
@@ -431,7 +552,7 @@
   </div>
 
   <!-- Tour Step-By-Step Player Bar (Displays when a tour is active) -->
-  <div class="tour-stepper-bar" id="tourStepperBar" style="display: none;">
+  <div class="tour-stepper-bar" id="tourStepperBar">
     <div class="stepper-meta">
       <span class="stepper-tour-label" id="stepperTourName">Life of Jesus Christ</span>
       <span class="stepper-step-indicator" id="stepperStepCount">Stop 1 of 12</span>
@@ -443,29 +564,146 @@
     </div>
   </div>
 
+  <!-- Modal for Travel & Distance Calculator (Tailored to New Testament World) -->
+  <div class="modal-backdrop" id="distanceModal">
+    <div class="modal-card distance-modal-card">
+      <div class="modal-header">
+        <div class="modal-header-title-wrap">
+          <span class="modal-eyebrow">1ST-CENTURY TRAVEL & GEOGRAPHIC MEASUREMENT</span>
+          <h3 class="modal-title">Biblical Distances & Travel Calculator</h3>
+        </div>
+        <button class="close-btn" id="closeDistanceModalBtn">&times;</button>
+      </div>
+      <div class="modal-body distance-modal-body">
+        <p class="distance-intro">
+          Measure straight-line and Roman road distances across the biblical world, with realistic travel times based on 1st-century foot travel, Roman courier networks, and Mediterranean shipping.
+        </p>
+
+        <!-- Curated 1-Click Journeys Grid -->
+        <div class="curated-journeys-wrap">
+          <span class="df-section-title">Curated Biblical Journeys:</span>
+          <div class="preset-journeys-grid">
+            <button class="preset-journey-btn" data-origin="nazareth" data-dest="bethlehem">
+              <span class="preset-icon">🌟</span>
+              <span class="preset-text">Nazareth ➔ Bethlehem (Nativity)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="jerusalem" data-dest="jericho">
+              <span class="preset-icon">🕊️</span>
+              <span class="preset-text">Jerusalem ➔ Jericho (Good Samaritan)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="capernaum" data-dest="caesarea-philippi">
+              <span class="preset-icon">⛰️</span>
+              <span class="preset-text">Capernaum ➔ Caesarea Philippi</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="jerusalem" data-dest="damascus">
+              <span class="preset-icon">⚡</span>
+              <span class="preset-text">Jerusalem ➔ Damascus (Paul's Road)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="antioch" data-dest="ephesus">
+              <span class="preset-icon">⛵</span>
+              <span class="preset-text">Antioch ➔ Ephesus (Apostolic Route)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="troas" data-dest="philippi">
+              <span class="preset-icon">🚢</span>
+              <span class="preset-text">Troas ➔ Philippi (Macedonian Call)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="caesarea" data-dest="rome">
+              <span class="preset-icon">🦅</span>
+              <span class="preset-text">Caesarea ➔ Rome (Paul's Voyage)</span>
+            </button>
+            <button class="preset-journey-btn" data-origin="jerusalem" data-dest="emmaus">
+              <span class="preset-icon">🌅</span>
+              <span class="preset-text">Jerusalem ➔ Emmaus (Walk with Christ)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Location Selectors -->
+        <div class="distance-selectors-grid">
+          <div class="distance-selector-box">
+            <label for="distOriginSelect">Point of Origin:</label>
+            <select id="distOriginSelect" class="form-select"></select>
+          </div>
+          <div class="distance-swap-wrap">
+            <button id="distSwapBtn" class="dist-swap-btn" title="Swap Origin & Destination">⇄</button>
+          </div>
+          <div class="distance-selector-box">
+            <label for="distDestSelect">Destination:</label>
+            <select id="distDestSelect" class="form-select"></select>
+          </div>
+        </div>
+
+        <!-- Calculation Results Card -->
+        <div id="distanceResultsCard" class="distance-results-card">
+          <div class="dist-stat-grid">
+            <div class="dist-stat-card">
+              <span class="dist-stat-label">Straight-Line</span>
+              <span class="dist-stat-value" id="distAirMiles">0 mi</span>
+              <span class="dist-stat-sub" id="distAirKm">0 km</span>
+            </div>
+            <div class="dist-stat-card">
+              <span class="dist-stat-label">Roman Road Est.</span>
+              <span class="dist-stat-value" id="distRoadMiles">0 mi</span>
+              <span class="dist-stat-sub" id="distRomanPassuum">0 Roman miles</span>
+            </div>
+            <div class="dist-stat-card">
+              <span class="dist-stat-label">Foot Travel</span>
+              <span class="dist-stat-value highlight-crimson" id="distWalkingTime">0 days</span>
+              <span class="dist-stat-sub">~18–22 mi / day</span>
+            </div>
+            <div class="dist-stat-card">
+              <span class="dist-stat-label">Imperial Courier</span>
+              <span class="dist-stat-value highlight-gold" id="distCourierTime">0 days</span>
+              <span class="dist-stat-sub">Cursus publicus (~50 mi/day)</span>
+            </div>
+          </div>
+
+          <div id="distSeaVoyageBox" class="dist-sea-box">
+            <span class="dist-sea-icon">⛵</span>
+            <div class="dist-sea-info">
+              <span class="dist-sea-title">Mediterranean Maritime Passage</span>
+              <span class="dist-sea-desc" id="distSeaVoyageDesc">Estimated sailing time with favorable seasonal winds.</span>
+            </div>
+          </div>
+
+          <div class="dist-historical-context" id="distHistoricalContext">
+            Select two biblical sites above or click a curated journey to calculate distances and realistic 1st-century travel conditions.
+          </div>
+
+          <div class="dist-card-actions">
+            <button id="viewDistanceOnMapBtn" class="btn btn-primary glow-gold">
+              <span>🗺️ Show Route on Map</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=3.5"></script>
-  <script src="js/data/regions.js?v=3.5"></script>
-  <script src="js/data/cities.js?v=3.5"></script>
-  <script src="js/data/jerusalemSites.js?v=3.5"></script>
-  <script src="js/data/jerusalemGeography.js?v=3.5"></script>
-  <script src="js/data/saviorEvents.js?v=3.5"></script>
-  <script src="js/data/missionaryJourneys.js?v=3.5"></script>
-  <script src="js/data/communities.js?v=3.5"></script>
-  <script src="js/data/placeDossiers.js?v=3.5"></script>
-  <script src="js/data/scriptureTranslations.js?v=3.5"></script>
-  <script src="js/data/churchVideos.js?v=3.5"></script>
-  <script src="js/data/timelineEvents.js?v=3.5"></script>
-  <script src="js/data/tours.js?v=3.5"></script>
+  <script src="js/data/hydrography.js?v=3.7"></script>
+  <script src="js/data/regions.js?v=3.7"></script>
+  <script src="js/data/cities.js?v=3.7"></script>
+  <script src="js/data/jerusalemSites.js?v=3.7"></script>
+  <script src="js/data/jerusalemGeography.js?v=3.7"></script>
+  <script src="js/data/saviorEvents.js?v=3.7"></script>
+  <script src="js/data/missionaryJourneys.js?v=3.7"></script>
+  <script src="js/data/communities.js?v=3.7"></script>
+  <script src="js/data/placeDossiers.js?v=3.7"></script>
+  <script src="js/data/scriptureTranslations.js?v=3.7"></script>
+  <script src="js/data/churchVideos.js?v=3.7"></script>
+  <script src="js/data/timelineEvents.js?v=3.7"></script>
+  <script src="js/data/tours.js?v=3.7"></script>
+  <script src="js/data/archaeologyData.js?v=3.7"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=3.5"></script>
-  <script src="js/timelineController.js?v=3.5"></script>
-  <script src="js/uiController.js?v=3.5"></script>
-  <script src="js/satelliteExplorer.js?v=3.5"></script>
-  <script src="js/app.js?v=3.5"></script>
+  <script src="js/mapController.js?v=3.7"></script>
+  <script src="js/timelineController.js?v=3.7"></script>
+  <script src="js/uiController.js?v=3.7"></script>
+  <script src="js/satelliteExplorer.js?v=3.7"></script>
+  <script src="js/app.js?v=3.7"></script>
 </body>
 </html>

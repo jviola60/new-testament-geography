@@ -40,6 +40,13 @@ class UIController {
 
     this.bindEvents();
     this.setupTours();
+    this.setupDistanceTool();
+    this.updateActiveFiltersBadge();
+
+    // Mobile map-first experience: keep map visible on initial load
+    if (typeof window !== "undefined" && window.innerWidth <= 900) {
+      this.closeSidebar();
+    }
   }
 
   bindEvents() {
@@ -54,6 +61,11 @@ class UIController {
       toggleBtn.addEventListener("click", () => this.toggleSidebar());
     }
 
+    const edgeToggleBtn = document.getElementById("sidebarEdgeToggleBtn");
+    if (edgeToggleBtn) {
+      edgeToggleBtn.addEventListener("click", () => this.toggleSidebar());
+    }
+
     // Sidebar Tab Switching
     this.tabButtons.forEach(tab => {
       tab.addEventListener("click", () => {
@@ -64,72 +76,49 @@ class UIController {
       });
     });
 
-    // Map Style Mode Dropdown (Parchment / Satellite / Modern Streets)
-    const mapStyleBtn = document.getElementById("mapStyleToggle");
-    const mapStyleDropdown = document.getElementById("mapStyleDropdown");
-    const mapStyleIcon = document.getElementById("mapStyleIcon");
-    const mapStyleText = document.getElementById("mapStyleText");
-
-    if (mapStyleBtn && mapStyleDropdown) {
-      mapStyleBtn.addEventListener("click", (e) => {
+    // Consolidated Atlas Tools Dropdown (Matching Book of Mormon Atlas)
+    const toolsBtn = document.getElementById("toolsDropdownBtn");
+    const toolsMenu = document.getElementById("toolsDropdownMenu");
+    if (toolsBtn && toolsMenu) {
+      toolsBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        mapStyleDropdown.classList.toggle("open");
+        const isOpen = toolsMenu.classList.contains("open");
+        toolsMenu.classList.toggle("open", !isOpen);
+        toolsBtn.setAttribute("aria-expanded", String(!isOpen));
       });
 
-      document.addEventListener("click", () => {
-        mapStyleDropdown.classList.remove("open");
+      document.addEventListener("click", (e) => {
+        const container = document.getElementById("toolsDropdownContainer");
+        if (!container || !container.contains(e.target)) {
+          toolsMenu.classList.remove("open");
+          toolsBtn.setAttribute("aria-expanded", "false");
+        }
       });
 
-      mapStyleDropdown.querySelectorAll(".dropdown-item").forEach(item => {
+      // Map style items inside tools menu
+      toolsMenu.querySelectorAll(".map-style-item").forEach(item => {
         item.addEventListener("click", () => {
           const style = item.dataset.style;
-
           if (style === "first-century-satellite") {
-            // 1st-Century Satellite Explorer (Archaeological orbital reconstructions)
             if (window.app && window.app.satelliteExplorer) {
               window.app.satelliteExplorer.open("holy-land");
             }
           } else if (style === "modern-satellite" || style === "satellite") {
-            // Satellite Earth Terrain (Continuous global satellite imagery across whole world)
             window.app.map.setMapStyle("satellite");
-            if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
-            if (mapStyleText) mapStyleText.textContent = "Satellite Earth";
           } else if (style === "modern") {
-            // Modern Streets & Infrastructure
             window.app.map.setMapStyle("modern");
-            if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
-            if (mapStyleText) mapStyleText.textContent = "Modern Streets";
           } else {
-            // Ancient Shaded Relief (Biblical Terrain)
             window.app.map.setMapStyle("parchment");
-            if (mapStyleIcon) mapStyleIcon.textContent = "📜";
-            if (mapStyleText) mapStyleText.textContent = "Ancient Relief";
           }
-          mapStyleDropdown.classList.remove("open");
+          toolsMenu.querySelectorAll(".map-style-item").forEach(i => i.classList.remove("active-style"));
+          item.classList.add("active-style");
+          toolsMenu.classList.remove("open");
+          toolsBtn.setAttribute("aria-expanded", "false");
         });
       });
-    }
 
-    // Ambient Audio Button
-    const audioBtn = document.getElementById("ambientAudioBtn");
-    if (audioBtn) {
-      audioBtn.addEventListener("click", () => this.toggleAmbientAudio());
-    }
-
-    // Quick Regions Dropdown
-    const regionBtn = document.getElementById("regionSelectBtn");
-    const regionDropdown = document.getElementById("regionDropdown");
-    if (regionBtn && regionDropdown) {
-      regionBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        regionDropdown.classList.toggle("open");
-      });
-
-      document.addEventListener("click", () => {
-        regionDropdown.classList.remove("open");
-      });
-
-      regionDropdown.querySelectorAll(".dropdown-item").forEach(item => {
+      // Region focus items inside tools menu
+      toolsMenu.querySelectorAll(".region-item").forEach(item => {
         item.addEventListener("click", () => {
           const regionKey = item.dataset.region;
           if (regionKey === "satellite-explorer") {
@@ -151,13 +140,86 @@ class UIController {
             if (regionId && typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions) {
               const region = REGIONS_DATA.regions.find(r => r.id === regionId);
               if (region && window.app.ui) {
-                if (regionKey === "jerusalem") {
-                  // keep existing Jerusalem site opener in focusRegion
-                } else {
+                if (regionKey !== "jerusalem") {
                   window.app.ui.showRegionDetail(region);
                 }
               }
             }
+          }
+          toolsMenu.classList.remove("open");
+          toolsBtn.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+
+    // Ambient Audio Button
+    const audioBtn = document.getElementById("ambientAudioBtn");
+    if (audioBtn) {
+      audioBtn.addEventListener("click", () => this.toggleAmbientAudio());
+    }
+
+    // Backward-compatible individual dropdowns if present
+    const mapStyleBtn = document.getElementById("mapStyleToggle");
+    const mapStyleDropdown = document.getElementById("mapStyleDropdown");
+    const mapStyleIcon = document.getElementById("mapStyleIcon");
+    const mapStyleText = document.getElementById("mapStyleText");
+
+    if (mapStyleBtn && mapStyleDropdown) {
+      mapStyleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        mapStyleDropdown.classList.toggle("open");
+      });
+
+      document.addEventListener("click", () => {
+        mapStyleDropdown.classList.remove("open");
+      });
+
+      mapStyleDropdown.querySelectorAll(".dropdown-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const style = item.dataset.style;
+          if (style === "first-century-satellite") {
+            if (window.app && window.app.satelliteExplorer) {
+              window.app.satelliteExplorer.open("holy-land");
+            }
+          } else if (style === "modern-satellite" || style === "satellite") {
+            window.app.map.setMapStyle("satellite");
+            if (mapStyleIcon) mapStyleIcon.textContent = "🛰️";
+            if (mapStyleText) mapStyleText.textContent = "Satellite Earth";
+          } else if (style === "modern") {
+            window.app.map.setMapStyle("modern");
+            if (mapStyleIcon) mapStyleIcon.textContent = "🗺️";
+            if (mapStyleText) mapStyleText.textContent = "Modern Streets";
+          } else {
+            window.app.map.setMapStyle("parchment");
+            if (mapStyleIcon) mapStyleIcon.textContent = "📜";
+            if (mapStyleText) mapStyleText.textContent = "Ancient Relief";
+          }
+          mapStyleDropdown.classList.remove("open");
+        });
+      });
+    }
+
+    const regionBtn = document.getElementById("regionSelectBtn");
+    const regionDropdown = document.getElementById("regionDropdown");
+    if (regionBtn && regionDropdown) {
+      regionBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        regionDropdown.classList.toggle("open");
+      });
+
+      document.addEventListener("click", () => {
+        regionDropdown.classList.remove("open");
+      });
+
+      regionDropdown.querySelectorAll(".dropdown-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const regionKey = item.dataset.region;
+          if (regionKey === "satellite-explorer") {
+            if (window.app && window.app.satelliteExplorer) {
+              window.app.satelliteExplorer.open("holy-land");
+            }
+          } else {
+            window.app.map.focusRegion(regionKey);
           }
           regionDropdown.classList.remove("open");
         });
@@ -183,12 +245,100 @@ class UIController {
       jerusalemBtn.addEventListener("click", () => window.app.map.focusRegion("jerusalem"));
     }
 
-    // Filter Chips
-    document.querySelectorAll(".filter-chip").forEach(chip => {
+    // Permanent Scriptural Atlases Dropdown Toggle
+    const atlasesBtn = document.getElementById("atlasesDropdownBtn");
+    const atlasesDropdown = document.getElementById("atlasesDropdown");
+    if (atlasesBtn && atlasesDropdown) {
+      atlasesBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        atlasesDropdown.classList.toggle("open");
+      });
+      document.addEventListener("click", () => {
+        atlasesDropdown.classList.remove("open");
+      });
+    }
+
+    // More Layers Dropdown Toggle (Secondary Layers)
+    const moreLayersBtn = document.getElementById("moreLayersBtn");
+    const moreLayersDropdown = document.getElementById("moreLayersDropdown");
+    if (moreLayersBtn && moreLayersDropdown) {
+      moreLayersBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        moreLayersDropdown.classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".more-layers-container")) {
+          moreLayersDropdown.classList.remove("open");
+        }
+      });
+    }
+
+    // Expandable Desktop Filters Panel Toggle
+    const togglePanelBtn = document.getElementById("toggleFiltersPanelBtn");
+    const desktopPanel = document.getElementById("desktopFiltersPanel");
+    if (togglePanelBtn && desktopPanel) {
+      togglePanelBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        desktopPanel.classList.toggle("open");
+        const isOpen = desktopPanel.classList.contains("open");
+        togglePanelBtn.setAttribute("aria-expanded", isOpen);
+      });
+
+      // Close when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#desktopFiltersPanel") && !e.target.closest("#toggleFiltersPanelBtn")) {
+          desktopPanel.classList.remove("open");
+          togglePanelBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    const closePanelBtn = document.getElementById("closeFiltersPanelBtn");
+    if (closePanelBtn && desktopPanel) {
+      closePanelBtn.addEventListener("click", () => {
+        desktopPanel.classList.remove("open");
+        if (togglePanelBtn) togglePanelBtn.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    const clearFiltersBtn = document.getElementById("clearAllFiltersBtn");
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-chip[data-filter]").forEach(c => {
+          c.classList.remove("active");
+        });
+        if (window.app && window.app.map) {
+          const allKeys = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "all"];
+          allKeys.forEach(k => window.app.map.setLayerFilter(k, false));
+        }
+        this.updateActiveFiltersBadge();
+      });
+    }
+
+    // Filter Chips (Both primary toolbar chips and expandable filters panel chips)
+    document.querySelectorAll(".filter-chip[data-filter]").forEach(chip => {
       chip.addEventListener("click", () => {
         const filterKey = chip.dataset.filter;
-        const isActive = chip.classList.toggle("active");
-        window.app.map.setLayerFilter(filterKey, isActive);
+        if (!filterKey) return;
+        const willBeActive = !chip.classList.contains("active");
+
+        // Synchronize all chips sharing this filterKey across toolbar and flyout panel
+        document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`).forEach(c => {
+          c.classList.toggle("active", willBeActive);
+        });
+
+        // Special handling for 'All Visible'
+        if (filterKey === "all") {
+          const foundational = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces"];
+          foundational.forEach(fk => {
+            document.querySelectorAll(`.filter-chip[data-filter="${fk}"]`).forEach(c => {
+              c.classList.toggle("active", willBeActive);
+            });
+          });
+        }
+
+        window.app.map.setLayerFilter(filterKey, willBeActive);
+        this.updateActiveFiltersBadge();
       });
     });
 
@@ -296,6 +446,33 @@ class UIController {
 
     // Populate and bind Quick Jump Location Dropdown (All Cities, Holy Sites, Quarters & Landmarks)
     this.initQuickJumpDropdown();
+  }
+
+  // Synchronize numeric badge on Filters button and any legacy badge
+  updateActiveFiltersBadge() {
+    const badge = document.getElementById("activeFiltersBadge");
+    const foundational = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces"];
+    let count = 0;
+    foundational.forEach(key => {
+      if (document.querySelector(`.filter-chip[data-filter="${key}"].active`)) {
+        count++;
+      }
+    });
+
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? "inline-flex" : "none";
+    }
+
+    const legacyBadge = document.getElementById("moreLayersActiveBadge");
+    if (legacyBadge) {
+      legacyBadge.textContent = count;
+      legacyBadge.style.display = count > 0 ? "inline-flex" : "none";
+    }
+  }
+
+  updateMoreLayersBadge() {
+    this.updateActiveFiltersBadge();
   }
 
   // Quick Jump Dropdown for All Biblical Locations & Holy Sites
@@ -453,18 +630,32 @@ class UIController {
   openSidebar() {
     if (this.sidebar) {
       this.sidebar.classList.remove("closed");
+      const edgeBtn = document.getElementById("sidebarEdgeToggleBtn");
+      if (edgeBtn) {
+        const icon = edgeBtn.querySelector(".edge-toggle-icon");
+        if (icon) icon.textContent = "▶";
+      }
     }
   }
 
   closeSidebar() {
     if (this.sidebar) {
       this.sidebar.classList.add("closed");
+      const edgeBtn = document.getElementById("sidebarEdgeToggleBtn");
+      if (edgeBtn) {
+        const icon = edgeBtn.querySelector(".edge-toggle-icon");
+        if (icon) icon.textContent = "◀";
+      }
     }
   }
 
   toggleSidebar() {
     if (this.sidebar) {
-      this.sidebar.classList.toggle("closed");
+      if (this.sidebar.classList.contains("closed")) {
+        this.openSidebar();
+      } else {
+        this.closeSidebar();
+      }
     }
   }
 
@@ -1701,7 +1892,8 @@ class UIController {
   // Render Tabs Content for Default "Welcome to the New Testament Atlas" Flyout
   renderWelcomeTabs() {
     let eyebrow = "SELECTION DETAILS";
-    if (this.currentTab === "scripture") eyebrow = "FOUNDATIONAL SCRIPTURES • KJV & MULTI-VERSION";
+    if (this.currentTab === "archaeology") eyebrow = "1ST-CENTURY ARCHAEOLOGY & MATERIAL REMAINS";
+    else if (this.currentTab === "scripture") eyebrow = "FOUNDATIONAL SCRIPTURES • KJV & MULTI-VERSION";
     else if (this.currentTab === "teachings") eyebrow = "NEW TESTAMENT DOCTRINE & CONTEXT";
     else if (this.currentTab === "people") eyebrow = "APOSTOLIC WITNESSES & EARLY CHURCH";
     else if (this.currentTab === "political") eyebrow = "1ST-CENTURY GEOPOLITICS & PAX ROMANA";
@@ -1724,59 +1916,59 @@ class UIController {
             <h3>How to Explore</h3>
             <ul class="feature-steps">
               <li><strong>Scrub the Timeline</strong> at the bottom from <strong>6 BC to 100 AD</strong> to witness history unfold.</li>
-              <li><strong>Click Any Pin, City or Region</strong> to reveal ancient geography, demographics, and biblical references.</li>
+              <li><strong>Click Any Pin or City</strong> to reveal ancient geography, demographics, and biblical references.</li>
               <li><strong>Switch Map Modes</strong> via the top bar to compare Ancient Biblical Parchment with High-Res Satellite Terrain.</li>
               <li><strong>Start a Guided Tour</strong> to journey through Jesus's Ministry, Passion Week, or Paul's Travels.</li>
             </ul>
           </div>
 
           <!-- Growth of Christianity Showcase Card -->
-          <div class="feature-card christian-growth-showcase" style="border-left: 4px solid #DC2626; background: linear-gradient(180deg, #FFFDF9 0%, #FEF2F2 100%);">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;">
-              <span style="font-size: 1.25rem;">🔥</span>
-              <h3 style="margin: 0; color: #991B1B; font-family: var(--font-serif-title); font-size: 0.98rem;">The Exponential Growth of Christianity (~30–100 AD)</h3>
+          <div class="feature-card christian-growth-showcase">
+            <div class="growth-showcase-header">
+              <span class="growth-showcase-icon">🔥</span>
+              <h3 class="growth-showcase-title">The Exponential Growth of Christianity (~30–100 AD)</h3>
             </div>
             
-            <p style="font-size: 0.82rem; line-height: 1.55; color: var(--text-primary); margin-bottom: 0.75rem;">
+            <p class="growth-showcase-intro">
               The New Testament records one of the most astonishing transformations in human history: the exponential multiplication of a humble gathering in Roman Judea into a vibrant spiritual movement spanning the entire Mediterranean world within a single generation.
             </p>
 
-            <div style="background: rgba(220,38,38,0.06); border: 1px dashed rgba(220,38,38,0.3); border-radius: 6px; padding: 0.65rem 0.8rem; margin-bottom: 0.75rem;">
-              <div style="display:flex; align-items:center; gap:6px; font-weight:700; color:#B91C1C; font-size:0.8rem; margin-bottom:3px;">
+            <div class="growth-heatmap-callout">
+              <div class="growth-callout-header">
                 <span>🔴 Interactive Growth Heatmap</span>
               </div>
-              <p style="font-size:0.77rem; line-height:1.4; color:#7F1D1D; margin:0;">
+              <p class="growth-callout-text">
                 Click <strong>Growth Heatmap</strong> in the top layers bar and scrub the timeline. Radiant diffusion halos emerge at Pentecost (~30 AD) and swell across the Mediterranean as churches multiply from Jerusalem to Rome.
               </p>
             </div>
 
-            <div class="demographic-stats-grid" style="margin-bottom: 0.75rem;">
-              <div class="demographic-stat-box" style="border-left: 2px solid #DC2626;">
+            <div class="demographic-stats-grid">
+              <div class="demographic-stat-box stat-upper-room">
                 <span class="demographic-label">Upper Room (30 AD)</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #991B1B;">~120 Disciples</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 1:15</span>
+                <span class="demographic-value">~120 Disciples</span>
+                <span class="demographic-stat-ref">Acts 1:15</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #D97706;">
+              <div class="demographic-stat-box stat-pentecost">
                 <span class="demographic-label">Pentecost Ingathering</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #B45309;">+3,000 Souls</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 2:41</span>
+                <span class="demographic-value">+3,000 Souls</span>
+                <span class="demographic-stat-ref">Acts 2:41</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #059669;">
+              <div class="demographic-stat-box stat-early-church">
                 <span class="demographic-label">Early Jerusalem Church</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #047857;">5,000+ Men</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Acts 4:4</span>
+                <span class="demographic-value">5,000+ Men</span>
+                <span class="demographic-stat-ref">Acts 4:4</span>
               </div>
-              <div class="demographic-stat-box" style="border-left: 2px solid #2563EB;">
+              <div class="demographic-stat-box stat-empire-wide">
                 <span class="demographic-label">Empire-Wide (100 AD)</span>
-                <span class="demographic-value" style="font-size: 0.95rem; color: #1D4ED8;">100,000s of Saints</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted);">Across 40+ Hubs</span>
+                <span class="demographic-value">100,000s of Saints</span>
+                <span class="demographic-stat-ref">Across 40+ Hubs</span>
               </div>
             </div>
 
-            <h4 style="font-family: var(--font-serif-title); font-size: 0.84rem; color: #991B1B; margin: 0 0 0.4rem 0;">
+            <h4 class="growth-waves-title">
               Four Waves of Apostolic Expansion
             </h4>
-            <ul class="feature-steps" style="font-size: 0.78rem; line-height: 1.45;">
+            <ul class="feature-steps growth-waves-list">
               <li><strong>Wave 1 — Pentecost & Judea (30–34 AD):</strong> Endowed with the Holy Ghost, apostles bore eyewitness testimony of Christ's resurrection.</li>
               <li><strong>Wave 2 — Samaria & Syrian Antioch (34–44 AD):</strong> Scattered by persecution, disciples shared the Word beyond Jewish borders; Gentiles poured in at Antioch.</li>
               <li><strong>Wave 3 — Paul's Missionary Journeys (47–62 AD):</strong> Crossing 10,000+ miles via Roman roads and seas, Paul planted assemblies in Galatia, Macedonia, Greece, and Asia.</li>
@@ -1785,34 +1977,52 @@ class UIController {
           </div>
 
           <div class="curated-shortcut-grid">
-            <h4>Quick Focus Tours</h4>
+            <div class="tours-section-header">
+              <span class="tours-header-icon">✦</span>
+              <h4 style="margin:0;">Guided Tours of Jesus' Life</h4>
+            </div>
+            <p class="tours-section-sub">Walk where the Savior was born, taught, healed, suffered for us, and rose again triumphant.</p>
             <div class="tour-mini-cards">
+              <div class="tour-mini-card tour-card-featured" data-tour-id="start-here-jesus">
+                <div class="tour-icon">🕊️</div>
+                <div class="tour-meta">
+                  <span class="tour-name">Start Here: Where Jesus Walked</span>
+                  <span class="tour-era">Simple & Welcoming for All Ages • 6 Sacred Stops</span>
+                </div>
+              </div>
               <div class="tour-mini-card" data-tour-id="savior-life">
                 <div class="tour-icon">🌟</div>
                 <div class="tour-meta">
-                  <span class="tour-name">Life & Ministry of Jesus</span>
-                  <span class="tour-era">6 BC – 30 AD • 14 Stops</span>
+                  <span class="tour-name">Walk with the Savior (Core Ministry)</span>
+                  <span class="tour-era">6 BC – 30 AD • 12 Sacred Stops</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="passion-week">
                 <div class="tour-icon">✝️</div>
                 <div class="tour-meta">
                   <span class="tour-name">Passion Week in Jerusalem</span>
-                  <span class="tour-era">Spring 30 AD • 9 Stations</span>
+                  <span class="tour-era">Spring 30 AD • 8 Sacred Stations</span>
+                </div>
+              </div>
+              <div class="tour-mini-card" data-tour-id="living-christ">
+                <div class="tour-icon">👑</div>
+                <div class="tour-meta">
+                  <span class="tour-name">The Living Christ (Key Testimony Sites)</span>
+                  <span class="tour-era">Heavenly Witnesses • 7 Sacred Locations</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="acts-early-church">
                 <div class="tour-icon">🔥</div>
                 <div class="tour-meta">
                   <span class="tour-name">Pentecost & Church Birth</span>
-                  <span class="tour-era">30 AD – 47 AD • 10 Sites</span>
+                  <span class="tour-era">30 AD – 47 AD • 6 Crucial Steps</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="paul-journeys">
                 <div class="tour-icon">⛵</div>
                 <div class="tour-meta">
                   <span class="tour-name">Paul's Missionary Journeys</span>
-                  <span class="tour-era">47 AD – 62 AD • 4 Voyages</span>
+                  <span class="tour-era">47 AD – 62 AD • 8 Key Portals</span>
                 </div>
               </div>
               <div class="tour-mini-card" data-tour-id="revelation-churches">
@@ -1824,6 +2034,90 @@ class UIController {
               </div>
             </div>
           </div>
+
+          <!-- Cross-Atlas Discovery Card -->
+          <div class="feature-card cross-atlas-card">
+            <div class="atlas-card-header">
+              <span class="atlas-card-icon">📖</span>
+              <h4 class="atlas-card-title">Companion Scriptural Atlases</h4>
+            </div>
+            <p class="atlas-card-sub">Explore the sacred geography of all the standard works of scripture:</p>
+            <div class="atlas-links-grid">
+              <a href="https://www.interactivebibleatlas.xyz/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas">
+                <span class="atlas-nav-badge">📜 Old Testament</span>
+                <span class="atlas-nav-name">Old Testament Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
+              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas">
+                <span class="atlas-nav-badge">✝️ New Testament</span>
+                <span class="atlas-nav-name">New Testament Atlas (Current)</span>
+                <span class="atlas-nav-arrow">✓</span>
+              </a>
+              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas">
+                <span class="atlas-nav-badge">🪙 Book of Mormon</span>
+                <span class="atlas-nav-name">Book of Mormon Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (this.currentTab === "archaeology") {
+      html = `
+        <div class="archaeology-header-card">
+          <div class="archaeology-header-top">
+            <span class="arch-badge-tag">1ST-CENTURY BIBLICAL ARCHAEOLOGY</span>
+            <div class="location-confidence-badge confidence-well-attested">
+              <span>✓</span>
+              <span>Material Attestation Overview</span>
+            </div>
+          </div>
+          <p class="arch-confidence-desc">
+            Archaeological discoveries across the Holy Land and Greco-Roman Mediterranean have repeatedly validated the historical and cultural setting of the New Testament Gospels and Acts.
+          </p>
+        </div>
+
+        <div class="arch-section-card">
+          <div class="arch-card-header">
+            <span class="arch-card-icon">🏛️</span>
+            <h4 class="arch-card-title">Monumental Herodian & Roman Architecture</h4>
+          </div>
+          <p class="arch-card-body">
+            Excavations at the Western Wall, Robinson's Arch, Southern Steps of the Temple Mount, and the Roman theatre and aqueduct at Caesarea Maritima display colossal ashlar masonry matching the descriptions in Josephus and the Gospels.
+          </p>
+        </div>
+
+        <div class="arch-section-card">
+          <div class="arch-card-header">
+            <span class="arch-card-icon">🌊</span>
+            <h4 class="arch-card-title">Stepped Pilgrim Pools & Healing Waters</h4>
+          </div>
+          <p class="arch-card-body">
+            The 2004 discovery of the monumental <strong>Pool of Siloam</strong> with its tiered stone steps and 1st-century coins, alongside the twin reservoirs and five colonnaded porches of the <strong>Pool of Bethesda</strong>, confirm the precise topographical details recorded in John 5 and John 9.
+          </p>
+        </div>
+
+        <div class="arch-section-card">
+          <div class="arch-card-header">
+            <span class="arch-card-icon">📜</span>
+            <h4 class="arch-card-title">Epigraphy & Historical Inscriptions</h4>
+          </div>
+          <p class="arch-card-body">
+            The <strong>Pilate Stone</strong> discovered at Caesarea Maritima ('Pontius Pilatus, Prefect of Judea'), the <strong>Caiaphas Family Ossuary</strong> uncovered in Jerusalem, the <strong>Gallio Inscription</strong> at Delphi dating Paul's trial in Corinth (Acts 18), and the <strong>Politarch Inscription</strong> at Thessalonica directly confirm the historical figures named in the New Testament.
+          </p>
+        </div>
+
+        <div class="arch-section-card">
+          <div class="arch-card-header">
+            <span class="arch-card-icon">⚖️</span>
+            <h4 class="arch-card-title">3-Level Scholarly Confidence Rating System</h4>
+          </div>
+          <p class="arch-card-body">
+            This atlas classifies biblical sites into three honest scholarly tiers:
+            <br>• <strong style="color:#065F46;">Well-attested:</strong> Undisputed identification supported by inscriptions and extensive stratigraphy (e.g. Jerusalem, Capernaum, Caesarea, Rome).
+            <br>• <strong style="color:#92400E;">Strong traditional identification:</strong> Ancient, venerable tradition dating to apostolic or Byzantine eras matching classical topography (e.g. Gethsemane, Bethany, Nazareth).
+            <br>• <strong style="color:#0369A1;">Scholarly discussion / alternative proposals:</strong> Multiple candidate sites exist (e.g. Emmaus, Cana, Mount of Transfiguration).
+          </p>
         </div>
       `;
     } else if (this.currentTab === "scripture") {
@@ -2088,6 +2382,363 @@ class UIController {
     this.sidebarContent.innerHTML = html;
   }
 
+  // Retrieve lead scripture and Christ-centered takeaway for biblical sites, cities, events, and features
+  getChristCenteredTakeaway(entity, type) {
+    if (!entity) return null;
+    const id = (entity.id || "").toLowerCase();
+    const name = (entity.name || entity.title || "").toLowerCase();
+
+    // 1. Jerusalem Sacred Sites & Landmarks
+    if (id.includes("temple") || name.includes("temple") || id === "second-temple" || id === "temple-mount") {
+      return {
+        leadScripture: {
+          ref: "John 2:16 • Matthew 21:14",
+          verse: "Make not my Father's house an house of merchandise... And the blind and the lame came to him in the temple; and he healed them.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/21?lang=eng&id=p14#p14"
+        },
+        takeaway: "Jesus reclaimed the temple as His Father's holy house of prayer, refuge, and mercy, teaching that divine sanctuaries exist to draw us into God's healing presence.",
+        invitation: "How can you make your worship and personal life a holy sanctuary of communion with God?"
+      };
+    }
+    if (id.includes("gethsemane") || name.includes("gethsemane")) {
+      return {
+        leadScripture: {
+          ref: "Luke 22:42, 44",
+          verse: "Father, if thou be willing, remove this cup from me: nevertheless not my will, but thine, be done... and his sweat was as it were great drops of blood falling down to the ground.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/22?lang=eng&id=p42,p44#p42"
+        },
+        takeaway: "In this olive orchard, the Savior bore the infinite weight of all our sins, griefs, and pains out of boundless love, submitting His will completely to the Father.",
+        invitation: "What burden can you lay at the Savior's feet today, trusting fully in His atoning grace?"
+      };
+    }
+    if (id.includes("golgotha") || name.includes("golgotha") || id.includes("calvary") || name.includes("calvary") || id.includes("crucifixion")) {
+      return {
+        leadScripture: {
+          ref: "Luke 23:34, 46 • John 19:30",
+          verse: "Father, forgive them; for they know not what they do... Father, into thy hands I commend my spirit... It is finished.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/23?lang=eng&id=p34,p46#p34"
+        },
+        takeaway: "Upon the cross at Calvary, the Lamb of God gave His life to ransom all humanity, exemplifying unconditional mercy by pleading forgiveness for those who crucified Him.",
+        invitation: "How does the Savior's forgiving love inspire you to extend grace and reconciliation to others?"
+      };
+    }
+    if (id.includes("tomb") || name.includes("tomb") || id.includes("sepulchre") || id.includes("resurrection")) {
+      return {
+        leadScripture: {
+          ref: "Luke 24:5–6 • 1 Corinthians 15:20",
+          verse: "Why seek ye the living among the dead? He is not here, but is risen... But now is Christ risen from the dead, and become the firstfruits of them that slept.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/24?lang=eng&id=p5-p6#p5"
+        },
+        takeaway: "The empty garden tomb stands as the eternal witness that Jesus Christ conquered death, ensuring that every son and daughter of God will live again in resurrected glory.",
+        invitation: "How does the reality of Christ's resurrection bring you peace, hope, and courage in times of loss?"
+      };
+    }
+    if (id.includes("upper-room") || name.includes("upper room") || id.includes("cenacle") || id.includes("last-supper")) {
+      return {
+        leadScripture: {
+          ref: "John 13:34–35 • Luke 22:19",
+          verse: "A new commandment I give unto you, That ye love one another; as I have loved you... this do in remembrance of me.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/13?lang=eng&id=p34-p35#p34"
+        },
+        takeaway: "Here Christ instituted the holy sacrament and washed His disciples' feet, demonstrating that true discipleship and leadership are rooted in humble, loving service to others.",
+        invitation: "In what practical way can you 'wash the feet' of someone in need around you this week?"
+      };
+    }
+    if (id.includes("olives") || name.includes("olives") || id.includes("ascension")) {
+      return {
+        leadScripture: {
+          ref: "Acts 1:11 • Matthew 24:3",
+          verse: "This same Jesus, which is taken up from you into heaven, shall so come in like manner as ye have seen him go into heaven.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/1?lang=eng&id=p11#p11"
+        },
+        takeaway: "From this sacred ridge Jesus taught His disciples of the last days and ascended into heaven, leaving the sure apostolic promise of His glorious Second Coming.",
+        invitation: "How can you live each day more intentionally prepared to welcome the Lord?"
+      };
+    }
+    if (id.includes("bethesda") || name.includes("bethesda")) {
+      return {
+        leadScripture: {
+          ref: "John 5:8–9",
+          verse: "Jesus saith unto him, Rise, take up thy bed, and walk. And immediately the man was made whole, and took up his bed, and walked.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/5?lang=eng&id=p8-p9#p8"
+        },
+        takeaway: "Jesus noticed and healed a man who had suffered for thirty-eight years without a helper, proving that the Savior's compassion reaches directly to those who feel forgotten.",
+        invitation: "Who in your life might feel overlooked or alone that you can reach out to in Christ's name?"
+      };
+    }
+    if (id.includes("siloam") || name.includes("siloam")) {
+      return {
+        leadScripture: {
+          ref: "John 9:7, 25",
+          verse: "Go, wash in the pool of Siloam... He went his way therefore, and washed, and came seeing... One thing I know, that, whereas I was blind, now I see.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/9?lang=eng&id=p7,p25#p7"
+        },
+        takeaway: "Through obedient action at the pool of Siloam, a blind man received sight, revealing that Jesus is the Light of the World who dispels all darkness and doubt.",
+        invitation: "What step of faithful obedience is the Lord inviting you to take so your spiritual vision may be renewed?"
+      };
+    }
+    if (id.includes("antonia") || name.includes("antonia") || id.includes("praetorium") || name.includes("praetorium") || id.includes("trial")) {
+      return {
+        leadScripture: {
+          ref: "John 18:36–37 • Isaiah 53:5",
+          verse: "My kingdom is not of this world... To this end was I born, and for this cause came I into the world, that I should bear witness unto the truth.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/18?lang=eng&id=p36-p37#p36"
+        },
+        takeaway: "Before the authority of imperial Rome, the Savior stood with divine majesty and meekness, bearing our scourging and reproach so we could be redeemed.",
+        invitation: "How can the Savior's meek courage help you stand true to your faith when misunderstood?"
+      };
+    }
+
+    // 2. Major Biblical Cities Connected to Jesus' Ministry
+    if (id === "bethlehem" || name === "bethlehem") {
+      return {
+        leadScripture: {
+          ref: "Luke 2:10–11",
+          verse: "Fear not: for, behold, I bring you good tidings of great joy, which shall be to all people. For unto you is born this day in the city of David a Saviour, which is Christ the Lord.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/2?lang=eng&id=p10-p11#p10"
+        },
+        takeaway: "In this humble village, God fulfilled ancient prophecy by sending His Only Begotten Son to dwell among mortals and redeem all who come unto Him.",
+        invitation: "How can you make room in your heart and home for the Savior's peace this day?"
+      };
+    }
+    if (id === "nazareth" || name === "nazareth") {
+      return {
+        leadScripture: {
+          ref: "Luke 4:18 • Luke 2:52",
+          verse: "The Spirit of the Lord is upon me, because he hath anointed me to preach the gospel to the poor; he hath sent me to heal the brokenhearted, to preach deliverance to the captives.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/4?lang=eng&id=p18#p18"
+        },
+        takeaway: "In the quiet hills of Nazareth, Jesus grew in wisdom and grace, showing that daily faithfulness, work, and devotion prepare us for sacred callings.",
+        invitation: "In what quiet, unseen ways can you grow closer to the Father in your daily routines?"
+      };
+    }
+    if (id === "capernaum" || name === "capernaum") {
+      return {
+        leadScripture: {
+          ref: "Matthew 4:23 • Mark 2:10–11",
+          verse: "And Jesus went about all Galilee, teaching in their synagogues, and preaching the gospel of the kingdom, and healing all manner of sickness and all manner of disease.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/4?lang=eng&id=p23#p23"
+        },
+        takeaway: "As the center of Jesus' Galilean ministry, Capernaum witnessed His boundless mercy in forgiving sins, restoring health, and calling disciples to follow Him.",
+        invitation: "Where do you need the Savior's forgiving and healing touch in your life right now?"
+      };
+    }
+    if (id === "jerusalem" || name === "jerusalem") {
+      return {
+        leadScripture: {
+          ref: "John 3:16–17 • Luke 19:41–42",
+          verse: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/3?lang=eng&id=p16-p17#p16"
+        },
+        takeaway: "In Jerusalem the Savior accomplished the greatest act of love in all eternity—suffering in Gethsemane, dying on Calvary, and rising triumphant from the tomb.",
+        invitation: "How does the Savior's infinite sacrifice for you personally deepen your gratitude and love for Him?"
+      };
+    }
+    if (id === "bethany" || name === "bethany") {
+      return {
+        leadScripture: {
+          ref: "John 11:25–26",
+          verse: "Jesus said unto her, I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live: And whosoever liveth and believeth in me shall never die.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/11?lang=eng&id=p25-p26#p25"
+        },
+        takeaway: "Jesus found friendship and refuge in the home of Mary, Martha, and Lazarus, revealing His tender empathy for the grieving and His supreme victory over the grave.",
+        invitation: "How can you turn your home into a sanctuary of peace where the Savior's Spirit loves to abide?"
+      };
+    }
+    if (id === "emmaus" || name === "emmaus") {
+      return {
+        leadScripture: {
+          ref: "Luke 24:32",
+          verse: "And they said one to another, Did not our heart burn within us, while he talked with us by the way, and while he opened to us the scriptures?",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/24?lang=eng&id=p32#p32"
+        },
+        takeaway: "The resurrected Lord drew near to two sorrowing disciples, opening the scriptures until their hearts burned with spiritual clarity, comfort, and peace.",
+        invitation: "When have you felt your heart burn with the quiet confirmation of the Holy Ghost as you read the scriptures?"
+      };
+    }
+    if (id === "cana" || name === "cana") {
+      return {
+        leadScripture: {
+          ref: "John 2:11",
+          verse: "This beginning of miracles did Jesus in Cana of Galilee, and manifested forth his glory; and his disciples believed on him.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/2?lang=eng&id=p11#p11"
+        },
+        takeaway: "By turning water into wine at a wedding, Jesus blessed marriage and family joy, illustrating how His grace transforms the ordinary elements of life into the extraordinary.",
+        invitation: "What ordinary aspect of your life are you willing to place into the Savior's hands to be sanctified?"
+      };
+    }
+    if (id === "jericho" || name === "jericho") {
+      return {
+        leadScripture: {
+          ref: "Luke 19:10 • Mark 10:52",
+          verse: "For the Son of man is come to seek and to save that which was lost... Jesus said unto him, Go thy way; thy faith hath made thee whole.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/19?lang=eng&id=p10#p10"
+        },
+        takeaway: "In Jericho, Jesus sought out Zacchaeus in the sycamore tree and restored sight to blind Bartimaeus, demonstrating that no soul is beyond the reach of His love.",
+        invitation: "Who around you might feel lost or unworthy of Christ's mercy that you can invite back with warmth?"
+      };
+    }
+    if (id === "sychar" || name === "sychar" || id.includes("jacob-well") || name.includes("jacob's well")) {
+      return {
+        leadScripture: {
+          ref: "John 4:14",
+          verse: "Whosoever drinketh of the water that I shall give him shall never thirst; but the water that I shall give him shall be in him a well of water springing up into everlasting life.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/4?lang=eng&id=p14#p14"
+        },
+        takeaway: "Overcoming ancient cultural divisions, Jesus offered living water to the Samaritan woman at the well, teaching that only His gospel can truly satisfy the human soul.",
+        invitation: "In what ways do earthly pursuits leave you thirsty, and how does coming unto Christ fill you with lasting joy?"
+      };
+    }
+    if (id.includes("caesarea-philippi") || name.includes("caesarea philippi")) {
+      return {
+        leadScripture: {
+          ref: "Matthew 16:16, 18",
+          verse: "Simon Peter answered and said, Thou art the Christ, the Son of the living God... and upon this rock I will build my church.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/16?lang=eng&id=p16,p18#p16"
+        },
+        takeaway: "Against the backdrop of pagan shrines at Caesarea Philippi, Peter bore testimony through personal revelation that Jesus is the Son of the Living God, the rock of our faith.",
+        invitation: "How did you gain your personal testimony of Jesus Christ, and how can you nourish it today?"
+      };
+    }
+    if (id === "bethsaida" || name === "bethsaida") {
+      return {
+        leadScripture: {
+          ref: "Mark 8:23–25 • Luke 9:16–17",
+          verse: "He took the five loaves and the two fishes, and looking up to heaven, he blessed them, and brake... and they did eat, and were all filled.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/9?lang=eng&id=p16-p17#p16"
+        },
+        takeaway: "Near Bethsaida, Jesus fed the five thousand and healed a blind man stage-by-stage, revealing that His grace nourishes us and clarifies our spiritual vision step by step.",
+        invitation: "How has the Lord multiplied your small offerings when you have trusted Him in faith?"
+      };
+    }
+    if (id === "nain" || name === "nain") {
+      return {
+        leadScripture: {
+          ref: "Luke 7:13–14",
+          verse: "And when the Lord saw her, he had compassion on her, and said unto her, Weep not. And he came and touched the bier... Young man, I say unto thee, Arise.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/7?lang=eng&id=p13-p14#p13"
+        },
+        takeaway: "Moved with tender compassion for a grieving widow, Jesus halted the funeral procession and restored her son to life, proving His power over sorrow and death.",
+        invitation: "When have you felt the Savior's tender compassion during times of personal grief or distress?"
+      };
+    }
+    if (id === "magdala" || name === "magdala") {
+      return {
+        leadScripture: {
+          ref: "Luke 8:2 • John 20:17–18",
+          verse: "Mary called Magdalene, out of whom went seven devils... Mary Magdalene came and told the disciples that she had seen the Lord.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/20?lang=eng&id=p18#p18"
+        },
+        takeaway: "Healed by the Savior from affliction, Mary Magdalene became a devoted disciple and was chosen as the first eyewitness to declare the Risen Lord.",
+        invitation: "How has the Savior transformed your life, and how can you share your witness of Him with others?"
+      };
+    }
+    if (id === "tiberias" || name === "tiberias") {
+      return {
+        leadScripture: {
+          ref: "John 21:15–17",
+          verse: "Jesus saith to Simon Peter, Simon, son of Jonas, lovest thou me more than these? He saith unto him, Yea, Lord; thou knowest that I love thee. He saith unto him, Feed my lambs.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/john/21?lang=eng&id=p15-p17#p15"
+        },
+        takeaway: "On the shore of the Sea of Tiberias, the resurrected Savior prepared breakfast for His disciples and gently commissioned Peter to show his love by nourishing His sheep.",
+        invitation: "How can you express your love for Jesus by caring for and lifting His disciples today?"
+      };
+    }
+
+    // 3. Landscape & Sacred Waters
+    if (id.includes("galilee") || name.includes("sea of galilee")) {
+      return {
+        leadScripture: {
+          ref: "Mark 4:39 • Matthew 14:27",
+          verse: "And he arose, and rebuked the wind, and said unto the sea, Peace, be still... Be of good cheer; it is I; be not afraid.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/mark/4?lang=eng&id=p39#p39"
+        },
+        takeaway: "Upon these waters Jesus walked and commanded the raging storm to be still, reminding us that no tempest in our life is beyond His calming peace.",
+        invitation: "What wind or wave in your life can you place in the Savior's hands, trusting in His words: 'Peace, be still'?"
+      };
+    }
+    if (id.includes("jordan") || name.includes("jordan")) {
+      return {
+        leadScripture: {
+          ref: "Matthew 3:16–17",
+          verse: "And lo a voice from heaven, saying, This is my beloved Son, in whom I am well pleased.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/3?lang=eng&id=p16-p17#p16"
+        },
+        takeaway: "In the waters of the Jordan River, Jesus fulfilled all righteousness by being baptized, establishing the covenant gate through which all disciples enter His kingdom.",
+        invitation: "How does remembering your baptismal covenants help you follow the Savior with a willing heart?"
+      };
+    }
+    if (id.includes("transfiguration") || name.includes("transfiguration") || id.includes("hermon") || id.includes("tabor")) {
+      return {
+        leadScripture: {
+          ref: "Matthew 17:5",
+          verse: "Behold, a bright cloud overshadowed them: and behold a voice out of the cloud, which said, This is my beloved Son, in whom I am well pleased; hear ye him.",
+          churchLink: "https://www.churchofjesuschrist.org/study/scriptures/nt/matt/17?lang=eng&id=p5#p5"
+        },
+        takeaway: "On the Mount of Transfiguration, the Father's voice bore heavenly witness of His Son, inviting all mankind to heed His divine counsel: 'Hear ye Him.'",
+        invitation: "How do you quiet the noise around you each day in order to hear the voice of the Lord?"
+      };
+    }
+
+    // 4. Timeline Events connected to Jesus
+    if (type === "event" && (entity.category === "savior" || id.startsWith("savior-"))) {
+      const scriptRef = entity.scripture || "New Testament Gospels";
+      return {
+        leadScripture: {
+          ref: scriptRef,
+          verse: entity.description || "Learn of me, and listen to my words; walk in the meekness of my Spirit, and you shall have peace in me.",
+          churchLink: this.getChurchScriptureLink(scriptRef)
+        },
+        takeaway: `During this sacred event, the Savior revealed His divine power and love, inviting all who follow Him to have faith and walk in His light.`,
+        invitation: "How does this sacred event strengthen your trust in Jesus Christ as your personal Redeemer?"
+      };
+    }
+
+    // 5. Default for other Biblical Sites / Apostolic Hubs
+    const scriptures = (entity.scriptures && entity.scriptures.length) ? entity.scriptures[0] : null;
+    const leadRef = (scriptures && (scriptures.ref || scriptures)) || "Acts 1:8";
+    return {
+      leadScripture: {
+        ref: leadRef,
+        verse: "Ye shall be witnesses unto me both in Jerusalem, and in all Judea, and in Samaria, and unto the uttermost part of the earth.",
+        churchLink: this.getChurchScriptureLink(leadRef)
+      },
+      takeaway: `Through the power of the Holy Ghost, the early disciples proclaimed Jesus Christ and Him crucified, testifying that He lives and saves all who turn to Him.`,
+      invitation: "How can you be a faithful witness of Jesus Christ in your circles of influence today?"
+    };
+  }
+
+  // Render the Christ-Centered Takeaway card at the top of place dossiers
+  renderChristTakeawayCard(entity, type) {
+    const takeawayData = this.getChristCenteredTakeaway(entity, type);
+    if (!takeawayData) return "";
+
+    const { leadScripture, takeaway, invitation } = takeawayData;
+    const churchLink = leadScripture.churchLink || this.getChurchScriptureLink(leadScripture.ref);
+
+    return `
+      <div class="christ-takeaway-card">
+        <div class="takeaway-header">
+          <span class="takeaway-icon">🕊️</span>
+          <span class="takeaway-lead-title">Come Unto Christ • Sacred Witness</span>
+        </div>
+        <div class="takeaway-lead-scripture">
+          <div class="scripture-lead-ref">
+            <span class="scripture-badge">Lead Scripture</span>
+            <a href="${churchLink}" target="_blank" rel="noopener" class="lead-ref-link" title="Study on ChurchofJesusChrist.org">
+              📖 ${leadScripture.ref} ↗
+            </a>
+          </div>
+          <blockquote class="lead-scripture-quote">"${leadScripture.verse}"</blockquote>
+        </div>
+        <div class="takeaway-invitation-box">
+          <p class="takeaway-text"><strong>Christ-Centered Takeaway:</strong> ${takeaway}</p>
+          ${invitation ? `<p class="takeaway-invitation">💡 <em>Spiritual Reflection:</em> ${invitation}</p>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
   // Render Tabs Content based on Active Item and Selected Tab
   renderActiveItemTabs() {
     if (!this.currentActiveItem) {
@@ -2103,6 +2754,15 @@ class UIController {
     if (this.currentTab === "teachings") {
       const dossier = this.normalizeDossier(type, data);
       this.sidebarContent.innerHTML = this.renderTeachingsTab(dossier, type);
+      return;
+    }
+
+    // -------------------------------------------------------------------------
+    // ARCHAEOLOGY TAB (ALL ENTITY TYPES: SITES, CITIES, REGIONS, WATERS)
+    // -------------------------------------------------------------------------
+    if (this.currentTab === "archaeology") {
+      const dossier = this.normalizeDossier(type, data);
+      this.sidebarContent.innerHTML = this.renderArchaeologyTab(dossier, type, data);
       return;
     }
 
@@ -2124,7 +2784,10 @@ class UIController {
             <span class="city-badge badge-jerusalem-area">${data.area}</span>
             <span class="city-badge badge-category-${data.category}">${data.category.toUpperCase()}</span>
             <span class="city-badge badge-province">1st-Century Judea</span>
+            ${this.renderConfidenceBadge(data, "jerusalemSite")}
           </div>
+
+          ${this.renderChristTakeawayCard(data, "jerusalemSite")}
 
           <div class="hero-quote" style="margin-bottom:1rem;">
             <div class="quote-text" style="font-size:0.96rem; font-style:normal; font-family:var(--font-serif);">
@@ -2236,7 +2899,10 @@ class UIController {
             <span class="city-badge badge-jerusalem-area">${data.category.toUpperCase()}</span>
             <span class="city-badge badge-elevation">Elevation: ${data.elevation}</span>
             <span class="city-badge badge-province">1st-Century Jerusalem</span>
+            ${this.renderConfidenceBadge(data, "jerusalemQuarter")}
           </div>
+
+          ${this.renderChristTakeawayCard(data, "jerusalemQuarter")}
 
           <div class="hero-quote" style="margin-bottom:1rem;">
             <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif);">
@@ -2354,7 +3020,10 @@ class UIController {
             <span class="city-badge badge-province">${data.region || "New Testament World"}</span>
             ${data.hasSynagogue ? '<span class="city-badge badge-synagogue">Synagogue</span>' : ''}
             ${data.hasChurch ? '<span class="city-badge badge-church">Christian Church</span>' : ''}
+            ${this.renderConfidenceBadge(data, "city")}
           </div>
+
+          ${this.renderChristTakeawayCard(data, "city")}
 
           <div class="hero-quote" style="margin-bottom:1rem;">
             <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif); color:#451A03;">
@@ -2502,6 +3171,8 @@ class UIController {
             ${data.elevation ? `<span class="city-badge badge-elevation">${data.elevation}</span>` : ""}
             <span class="city-badge badge-jerusalem-area">${data.region || "Holy Land"}</span>
           </div>
+
+          ${this.renderChristTakeawayCard(data, "geo")}
           <div class="hero-quote" style="margin-bottom:1rem;">
             <div class="quote-text" style="font-size:0.95rem; font-style:normal; font-family:var(--font-serif);">${dossier.summary}</div>
             <span class="quote-ref">${data.ancientName || data.name}</span>
@@ -2526,6 +3197,8 @@ class UIController {
       const region = this.getRelatedRegion({ region: data.locationName, name: data.locationName });
       if (this.currentTab === "overview") {
         html = `
+          ${this.renderChristTakeawayCard(data, "event")}
+
           <div class="history-block" style="margin-bottom:1rem;">
             <h4>Event Overview</h4>
             <p>${data.description}</p>
@@ -3027,20 +3700,56 @@ class UIController {
 
     if (toursBtn && tourModal) {
       toursBtn.addEventListener("click", () => {
-        // Populate modal with tours
+        // Populate modal with categorized tours
         if (tourModalBody) {
-          tourModalBody.innerHTML = TOURS_DATA.map(tour => `
-            <div class="tour-select-card" data-tour-id="${tour.id}">
-              <div class="tour-card-icon">${tour.icon}</div>
-              <div class="tour-card-body">
-                <span class="tour-card-title">${tour.title}</span>
-                <span class="tour-card-desc">${tour.description}</span>
-                <div class="tour-card-footer">
-                  <span>${tour.eraText}</span> • <span>Click to Begin</span>
-                </div>
+          const saviorTours = TOURS_DATA.filter(t => ["start-here-jesus", "savior-life", "passion-week", "living-christ"].includes(t.id));
+          const apostolicTours = TOURS_DATA.filter(t => !["start-here-jesus", "savior-life", "passion-week", "living-christ"].includes(t.id));
+
+          tourModalBody.innerHTML = `
+            <div class="tour-modal-group">
+              <div class="tour-group-header">
+                <span class="tour-group-icon">✦</span>
+                <span class="tour-group-title">Guided Tours of Jesus' Life & Ministry</span>
+              </div>
+              <p class="tour-group-sub">Walk where the Savior was born, taught, healed, suffered for us, and rose again in victory.</p>
+              <div class="tour-cards-grid">
+                ${saviorTours.map(tour => `
+                  <div class="tour-select-card ${tour.id === 'start-here-jesus' ? 'tour-card-featured' : ''}" data-tour-id="${tour.id}">
+                    <div class="tour-card-icon">${tour.icon}</div>
+                    <div class="tour-card-body">
+                      <span class="tour-card-title">${tour.title}</span>
+                      <span class="tour-card-desc">${tour.description}</span>
+                      <div class="tour-card-footer">
+                        <span>${tour.eraText}</span> • <span>Click to Begin</span>
+                      </div>
+                    </div>
+                  </div>
+                `).join("")}
               </div>
             </div>
-          `).join("");
+
+            <div class="tour-modal-group" style="margin-top: 1.25rem;">
+              <div class="tour-group-header">
+                <span class="tour-group-icon">⛵</span>
+                <span class="tour-group-title">Apostolic Missions & Early Church</span>
+              </div>
+              <p class="tour-group-sub">Follow the Apostles bearing witness of the Risen Christ across the Mediterranean world.</p>
+              <div class="tour-cards-grid">
+                ${apostolicTours.map(tour => `
+                  <div class="tour-select-card" data-tour-id="${tour.id}">
+                    <div class="tour-card-icon">${tour.icon}</div>
+                    <div class="tour-card-body">
+                      <span class="tour-card-title">${tour.title}</span>
+                      <span class="tour-card-desc">${tour.description}</span>
+                      <div class="tour-card-footer">
+                        <span>${tour.eraText}</span> • <span>Click to Begin</span>
+                      </div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
 
           tourModalBody.querySelectorAll(".tour-select-card").forEach(c => {
             c.addEventListener("click", () => {
@@ -3051,6 +3760,13 @@ class UIController {
           });
         }
         tourModal.style.display = "flex";
+      });
+
+      // Click outside modal card to close
+      tourModal.addEventListener("click", (e) => {
+        if (e.target === tourModal) {
+          tourModal.style.display = "none";
+        }
       });
     }
 
@@ -3114,18 +3830,35 @@ class UIController {
     }
 
     // Sync timeline year
-    if (stop.year !== undefined) {
+    if (stop.year !== undefined && window.app && window.app.timeline) {
       window.app.timeline.setYear(stop.year);
     }
 
     // Fly camera
-    window.app.map.flyToLocation(stop.lat, stop.lng, stop.zoom || 12);
+    if (window.app && window.app.map) {
+      window.app.map.flyToLocation(stop.lat, stop.lng, stop.zoom || 12);
+    }
 
-    // If linked to an event, open in sidebar
-    if (stop.eventId) {
+    // Open detail in sidebar (Event, Jerusalem Site, or City)
+    if (stop.eventId && typeof TIMELINE_EVENTS !== "undefined") {
       const event = TIMELINE_EVENTS.find(e => e.id === stop.eventId);
       if (event) {
         this.showEventDetail(event);
+        return;
+      }
+    }
+    if (stop.siteId && typeof JERUSALEM_SITES !== "undefined") {
+      const site = JERUSALEM_SITES.find(s => s.id === stop.siteId);
+      if (site) {
+        this.showJerusalemSiteDetail(site);
+        return;
+      }
+    }
+    if (stop.cityId) {
+      const city = this.findCityByName(stop.cityId);
+      if (city) {
+        this.showCityDetail(city);
+        return;
       }
     }
   }
@@ -3217,6 +3950,368 @@ class UIController {
     if (this.audioTimer) {
       clearTimeout(this.audioTimer);
       this.audioTimer = null;
+    }
+  }
+
+  // =========================================================================
+  // LOCATION CONFIDENCE BADGES & ARCHAEOLOGY TAB
+  // =========================================================================
+
+  renderConfidenceBadge(entity, type) {
+    if (typeof getArchaeologyForEntity !== "function") return "";
+    const arch = getArchaeologyForEntity(entity, type);
+    if (!arch || !arch.confidence) return "";
+
+    let badgeClass = "confidence-well-attested";
+    let icon = "✓";
+    if (arch.confidence === "Strong traditional identification") {
+      badgeClass = "confidence-traditional";
+      icon = "🏛️";
+    } else if (arch.confidence === "Scholarly discussion / alternative proposals exist") {
+      badgeClass = "confidence-discussion";
+      icon = "⚖️";
+    }
+
+    return `
+      <span class="location-confidence-badge ${badgeClass}" title="${arch.confidenceDesc}">
+        <span>${icon}</span>
+        <span>${arch.confidence}</span>
+      </span>
+    `;
+  }
+
+  renderArchaeologyTab(dossier, type, entity) {
+    const arch = (typeof getArchaeologyForEntity === "function")
+      ? getArchaeologyForEntity(entity || dossier, type)
+      : null;
+
+    if (!arch) {
+      return `
+        <div class="feature-card">
+          <h3>1st-Century Archaeological Overview</h3>
+          <p>${dossier.overview || "Continuous excavations across the Mediterranean and Levant reveal rich 1st-century Roman and Second Temple Jewish material remains."}</p>
+        </div>
+      `;
+    }
+
+    let badgeClass = "confidence-well-attested";
+    let badgeIcon = "✓";
+    if (arch.confidence === "Strong traditional identification") {
+      badgeClass = "confidence-traditional";
+      badgeIcon = "🏛️";
+    } else if (arch.confidence === "Scholarly discussion / alternative proposals exist") {
+      badgeClass = "confidence-discussion";
+      badgeIcon = "⚖️";
+    }
+
+    return `
+      <div class="archaeology-header-card">
+        <div class="archaeology-header-top">
+          <span class="arch-badge-tag">1ST-CENTURY MATERIAL EVIDENCE</span>
+          <div class="location-confidence-badge ${badgeClass}">
+            <span>${badgeIcon}</span>
+            <span>${arch.confidence}</span>
+          </div>
+        </div>
+        <p class="arch-confidence-desc">${arch.confidenceDesc}</p>
+      </div>
+
+      <div class="arch-section-card">
+        <div class="arch-card-header">
+          <span class="arch-card-icon">⛏️</span>
+          <h4 class="arch-card-title">Physical Findings & Excavations</h4>
+        </div>
+        <p class="arch-card-body">${arch.findings}</p>
+      </div>
+
+      <div class="arch-section-card">
+        <div class="arch-card-header">
+          <span class="arch-card-icon">⏳</span>
+          <h4 class="arch-card-title">1st-Century Chronological Consistency</h4>
+        </div>
+        <p class="arch-card-body">${arch.periodConsistency}</p>
+      </div>
+
+      <div class="arch-section-card">
+        <div class="arch-card-header">
+          <span class="arch-card-icon">📜</span>
+          <h4 class="arch-card-title">Scholarly Consensus & Classical Records</h4>
+        </div>
+        <p class="arch-card-body">${arch.scholarlyConsensus}</p>
+      </div>
+    `;
+  }
+
+  // =========================================================================
+  // TRAVEL & DISTANCE CALCULATOR TOOL (Matching Book of Mormon Atlas)
+  // =========================================================================
+
+  setupDistanceTool() {
+    const modal = document.getElementById("distanceModal");
+    const toolBtn = document.getElementById("distanceToolBtn");
+    const closeBtn = document.getElementById("closeDistanceModalBtn");
+    const originSelect = document.getElementById("distOriginSelect");
+    const destSelect = document.getElementById("distDestSelect");
+    const swapBtn = document.getElementById("distSwapBtn");
+    const viewMapBtn = document.getElementById("viewDistanceOnMapBtn");
+
+    if (!modal) return;
+
+    if (toolBtn) {
+      toolBtn.addEventListener("click", () => {
+        modal.classList.add("show");
+        const toolsMenu = document.getElementById("toolsDropdownMenu");
+        if (toolsMenu) toolsMenu.classList.remove("open");
+        if (originSelect && (!originSelect.value || !destSelect.value)) {
+          // Default selection: Nazareth to Bethlehem
+          originSelect.value = "city:nazareth";
+          destSelect.value = "city:bethlehem";
+          this.updateDistanceCalculation();
+        }
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        modal.classList.remove("show");
+      });
+    }
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.remove("show");
+      }
+    });
+
+    // Populate dropdowns with cities and sacred sites
+    if (originSelect && destSelect && originSelect.options.length === 0) {
+      const populate = (sel) => {
+        sel.innerHTML = "";
+        
+        // Holy Land Cities
+        const hlCities = this.citiesList()
+          .filter(c => ["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        const grpHoly = document.createElement("optgroup");
+        grpHoly.label = "📍 Holy Land (Galilee, Judea, Samaria)";
+        hlCities.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = `city:${c.id}`;
+          opt.textContent = `${c.name} (${c.region})`;
+          grpHoly.appendChild(opt);
+        });
+        sel.appendChild(grpHoly);
+
+        // Jerusalem Sites
+        if (typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.length) {
+          const grpJer = document.createElement("optgroup");
+          grpJer.label = "🏛️ Jerusalem Sacred Sites";
+          JERUSALEM_SITES.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = `site:${s.id}`;
+            opt.textContent = `${s.name} (Jerusalem)`;
+            grpJer.appendChild(opt);
+          });
+          sel.appendChild(grpJer);
+        }
+
+        // Mediterranean & Roman Empire Cities
+        const medCities = this.citiesList()
+          .filter(c => !["Galilee", "Judea", "Samaria", "Decapolis", "Perea"].includes(c.region))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        const grpMed = document.createElement("optgroup");
+        grpMed.label = "🌍 Mediterranean & Apostolic Hubs";
+        medCities.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = `city:${c.id}`;
+          opt.textContent = `${c.name} (${c.region})`;
+          grpMed.appendChild(opt);
+        });
+        sel.appendChild(grpMed);
+      };
+
+      populate(originSelect);
+      populate(destSelect);
+
+      originSelect.value = "city:nazareth";
+      destSelect.value = "city:bethlehem";
+    }
+
+    if (originSelect && destSelect) {
+      originSelect.addEventListener("change", () => this.updateDistanceCalculation());
+      destSelect.addEventListener("change", () => this.updateDistanceCalculation());
+    }
+
+    if (swapBtn) {
+      swapBtn.addEventListener("click", () => {
+        const temp = originSelect.value;
+        originSelect.value = destSelect.value;
+        destSelect.value = temp;
+        this.updateDistanceCalculation();
+      });
+    }
+
+    // Curated Journey Preset Buttons
+    document.querySelectorAll(".preset-journey-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const originKey = btn.dataset.origin;
+        const destKey = btn.dataset.dest;
+
+        const findVal = (key) => {
+          const opt = Array.from(originSelect.options).find(o => o.value.endsWith(`:${key}`) || o.value.toLowerCase().includes(key));
+          return opt ? opt.value : null;
+        };
+
+        const oVal = findVal(originKey);
+        const dVal = findVal(destKey);
+        if (oVal) originSelect.value = oVal;
+        if (dVal) destSelect.value = dVal;
+        this.updateDistanceCalculation();
+      });
+    });
+
+    // Show Route on Map Button
+    if (viewMapBtn) {
+      viewMapBtn.addEventListener("click", () => {
+        const originCoords = this.getCoordsForSelector(originSelect.value);
+        const destCoords = this.getCoordsForSelector(destSelect.value);
+        if (!originCoords || !destCoords) return;
+
+        modal.classList.remove("show");
+
+        const oName = originSelect.options[originSelect.selectedIndex].textContent.split(" (")[0];
+        const dName = destSelect.options[destSelect.selectedIndex].textContent.split(" (")[0];
+
+        const airMiles = this.getHaversineDistanceMiles(originCoords.lat, originCoords.lng, destCoords.lat, destCoords.lng);
+        const roadMiles = Math.round(airMiles * 1.25);
+        const daysWalk = Math.max(1, Math.round(roadMiles / 20));
+
+        const text = `Distance: ~${roadMiles} road miles (${Math.round(roadMiles * 1.609)} km) • ~${daysWalk} ${daysWalk === 1 ? "day" : "days"} ancient foot travel.`;
+
+        if (window.app && window.app.map) {
+          window.app.map.showDistanceRoute(
+            originCoords.lat, originCoords.lng,
+            destCoords.lat, destCoords.lng,
+            `${oName} ➔ ${dName}`,
+            text
+          );
+        }
+      });
+    }
+
+    this.updateDistanceCalculation();
+  }
+
+  getCoordsForSelector(val) {
+    if (!val) return null;
+    const [type, id] = val.split(":");
+    if (type === "city") {
+      const city = this.citiesList().find(c => c.id === id);
+      if (city) return { lat: city.lat, lng: city.lng, name: city.name };
+    } else if (type === "site") {
+      const site = typeof JERUSALEM_SITES !== "undefined" && JERUSALEM_SITES.find(s => s.id === id);
+      if (site) return { lat: site.lat, lng: site.lng, name: site.name };
+    }
+    return null;
+  }
+
+  getHaversineDistanceMiles(lat1, lon1, lat2, lon2) {
+    const R = 3958.8; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  updateDistanceCalculation() {
+    const originSelect = document.getElementById("distOriginSelect");
+    const destSelect = document.getElementById("distDestSelect");
+    if (!originSelect || !destSelect) return;
+
+    const oVal = originSelect.value;
+    const dVal = destSelect.value;
+    const originCoords = this.getCoordsForSelector(oVal);
+    const destCoords = this.getCoordsForSelector(dVal);
+
+    if (!originCoords || !destCoords) return;
+
+    const airMiles = this.getHaversineDistanceMiles(originCoords.lat, originCoords.lng, destCoords.lat, destCoords.lng);
+    const airKm = Math.round(airMiles * 1.60934);
+    const roadMiles = Math.round(airMiles * 1.25);
+    const romanMiles = Math.round(roadMiles / 0.92);
+
+    let daysWalking = Math.max(1, Math.round(roadMiles / 20));
+    let daysCourier = Math.max(1, Math.round(roadMiles / 52));
+
+    const airMilesEl = document.getElementById("distAirMiles");
+    const airKmEl = document.getElementById("distAirKm");
+    const roadMilesEl = document.getElementById("distRoadMiles");
+    const romanPassuumEl = document.getElementById("distRomanPassuum");
+    const walkingTimeEl = document.getElementById("distWalkingTime");
+    const courierTimeEl = document.getElementById("distCourierTime");
+    const seaBox = document.getElementById("distSeaVoyageBox");
+    const seaDesc = document.getElementById("distSeaVoyageDesc");
+    const contextEl = document.getElementById("distHistoricalContext");
+
+    if (airMilesEl) airMilesEl.textContent = `${Math.round(airMiles)} mi`;
+    if (airKmEl) airKmEl.textContent = `${airKm} km`;
+    if (roadMilesEl) roadMilesEl.textContent = `~${roadMiles} mi`;
+    if (romanPassuumEl) romanPassuumEl.textContent = `~${romanMiles} Roman miles (mille passus)`;
+    
+    if (walkingTimeEl) {
+      if (roadMiles <= 5) {
+        walkingTimeEl.textContent = "< 2 hours";
+      } else if (roadMiles <= 15) {
+        walkingTimeEl.textContent = "1/2 to 1 day";
+      } else {
+        walkingTimeEl.textContent = `~${daysWalking} ${daysWalking === 1 ? "day" : "days"}`;
+      }
+    }
+
+    if (courierTimeEl) {
+      if (roadMiles <= 25) {
+        courierTimeEl.textContent = "Same day";
+      } else {
+        courierTimeEl.textContent = `~${daysCourier} ${daysCourier === 1 ? "day" : "days"}`;
+      }
+    }
+
+    // Detect if this journey typically crossed the Mediterranean Sea
+    const seaKeywords = ["rome", "corinth", "athens", "philippi", "thessalonica", "ephesus", "alexandria", "cyprus", "patmos", "crete", "malta"];
+    const isSeaJourney = airMiles > 120 && (
+      seaKeywords.some(k => oVal.includes(k)) || 
+      seaKeywords.some(k => dVal.includes(k))
+    );
+
+    if (seaBox && seaDesc) {
+      if (isSeaJourney) {
+        seaBox.style.display = "flex";
+        const sailingDays = Math.max(2, Math.round(airMiles / 75));
+        seaDesc.textContent = `Maritime crossing: ~${sailingDays}–${Math.round(sailingDays * 1.5)} days under favorable wind (~4–6 knots), avoiding hazardous winter storms (Acts 27).`;
+      } else {
+        seaBox.style.display = "none";
+      }
+    }
+
+    if (contextEl) {
+      const oName = originCoords.name;
+      const dName = destCoords.name;
+      let note = `Traveling from ${oName} to ${dName} covers approximately ${roadMiles} road miles along 1st-century Roman and regional tracks.`;
+
+      if ((oName.includes("Jerusalem") && dName.includes("Jericho")) || (oName.includes("Jericho") && dName.includes("Jerusalem"))) {
+        note = `The Jerusalem–Jericho road plunges 3,300 feet over just 18 miles through the barren Judean desert. Renowned in antiquity for steep switchbacks, blinding heat, and predatory bandits, this is the historic setting of the Parable of the Good Samaritan (Luke 10:30).`;
+      } else if ((oName.includes("Nazareth") && dName.includes("Bethlehem")) || (oName.includes("Bethlehem") && dName.includes("Nazareth"))) {
+        note = `Joseph and Mary's journey for the Roman census required traversing ~85–90 miles, likely following the Jordan River valley route around Samaria to avoid steep central ridges, enduring 4 to 5 arduous days on foot with pack animals (Luke 2:4).`;
+      } else if (oName.includes("Rome") || dName.includes("Rome")) {
+        note = `Voyages to the imperial capital of Rome typically combined Mediterranean grain freighters and the paved Via Appia. Because ancient ships could not easily sail into contrary prevailing westerlies, sea journeys took weeks and were suspended during stormy winter months (mare clausum, Nov–Feb; Acts 28:11).`;
+      } else if ((oName.includes("Capernaum") && dName.includes("Caesarea Philippi")) || (oName.includes("Caesarea Philippi") && dName.includes("Capernaum"))) {
+        note = `Jesus and the disciples ascended ~30 miles north along the upper Jordan into the foothills of Mount Hermon, a rigorous 1.5-to-2-day hike to the pagan grottoes of Pan where Peter bore his testimony: 'Thou art the Christ' (Matthew 16:16).`;
+      }
+      contextEl.innerHTML = `<p style="margin: 0; line-height: 1.45;">💡 <strong>1st-Century Context:</strong> ${note}</p>`;
     }
   }
 }

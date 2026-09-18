@@ -171,6 +171,22 @@ const SAVIOR_EVENTS = [
     description: "In His hometown synagogue, Jesus reads Isaiah 61 and proclaims its fulfillment. The townsfolk, offended, attempt to cast Him down the brow of the hill, but He passes safely through their midst."
   },
   {
+    id: "savior-call-disciples",
+    title: "Calling the First Apostles by the Sea of Galilee ('Fishers of Men')",
+    year: 28,
+    season: "Spring 28 AD",
+    era: "Galilean Ministry",
+    lat: 32.8735,
+    lng: 35.5700,
+    locationName: "Cove of the Sower / Shore of Galilee (near Capernaum)",
+    category: "ministry",
+    scriptures: [
+      { ref: "Matthew 4:18-22", text: "And Jesus, walking by the sea of Galilee, saw two brethren, Simon called Peter, and Andrew his brother, casting a net into the sea: for they were fishers. And he saith unto them, Follow me, and I will make you fishers of men. And they straightway left their nets, and followed him." },
+      { ref: "Luke 5:4-11", text: "Launch out into the deep, and let down your nets for a draught... And when they had this done, they inclosed a great multitude of fishes: and their net brake... Fear not; from henceforth thou shalt catch men. And when they had brought their ships to land, they forsook all, and followed him." }
+    ],
+    description: "Walking along the shore of the Sea of Galilee near Capernaum, Jesus calls Peter, Andrew, James, and John. Teaching the multitudes from Simon's boat and commanding the miraculous draught of fishes, Jesus issues the divine call: 'Follow me, and I will make you fishers of men.' Leaving their nets, ships, and livelihoods, they forsake all to follow the Master."
+  },
+  {
     id: "savior-base-capernaum",
     title: "Ministry Headquarters in Capernaum",
     year: 28,
@@ -397,6 +413,38 @@ const SAVIOR_EVENTS = [
       { ref: "Luke 24:30-32", text: "And it came to pass, as he sat at meat with them, he took bread, and blessed it, and brake, and gave to them. And their eyes were opened, and they knew him... Did not our heart burn within us, while he talked with us by the way?" }
     ],
     description: "The resurrected Christ joins Cleopas and another disciple walking toward Emmaus, expounding all scriptures concerning Himself, and is recognized in the breaking of bread."
+  },
+  {
+    id: "savior-lovest-thou-me",
+    title: "The Risen Lord at the Sea of Galilee: 'Lovest Thou Me?' (Feed My Sheep)",
+    year: 30,
+    season: "Spring 30 AD (Post-Resurrection)",
+    era: "Resurrection",
+    lat: 32.8722,
+    lng: 35.5492,
+    locationName: "Tabgha / Shore of Tiberias (Sea of Galilee)",
+    category: "resurrection",
+    scriptures: [
+      { ref: "John 21:4-6, 11", text: "When the morning was now come, Jesus stood on the shore: but the disciples knew not that it was Jesus... Cast the net on the right side of the ship, and ye shall find... Simon Peter went up, and drew the net to land full of great fishes, an hundred and fifty and three: and for all there were so many, yet was not the net broken." },
+      { ref: "John 21:15-17", text: "Jesus saith to Simon Peter, Simon, son of Jonas, lovest thou me more than these? He saith unto him, Yea, Lord; thou knowest that I love thee. He saith unto him, Feed my lambs... Feed my sheep... Lord, thou knowest all things; thou knowest that I love thee. Jesus saith unto him, Feed my sheep." }
+    ],
+    description: "At dawn on the quiet northern shore of the Sea of Galilee (traditional Tabgha / Mensa Christi), the risen Lord appears to Peter, John, and five other disciples after a night of fruitless fishing. Directing them to cast on the right side, they haul in 153 great fishes. Beside a fire of coals with bread and fish, Jesus gently asks Peter three times—comforting and healing his three denials—'Lovest thou me more than these?', charging him: 'Feed my lambs... Feed my sheep... Follow me.'"
+  },
+  {
+    id: "savior-great-commission-500",
+    title: "The Great Commission & Appearance to Above 500 Brethren in Galilee",
+    year: 30,
+    season: "Spring 30 AD (Post-Resurrection)",
+    era: "Resurrection",
+    lat: 32.8242,
+    lng: 35.4986,
+    locationName: "Appointed Mountain in Galilee (Mount Arbel Overlook)",
+    category: "resurrection",
+    scriptures: [
+      { ref: "Matthew 28:16-20", text: "Then the eleven disciples went away into Galilee, into a mountain where Jesus had appointed them... And Jesus came and spake unto them, saying, All power is given unto me in heaven and in earth. Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost... and, lo, I am with you alway, even unto the end of the world." },
+      { ref: "1 Corinthians 15:6", text: "After that, he was seen of above five hundred brethren at once; of whom the greater part remain unto this present, but some are fallen asleep." }
+    ],
+    description: "In fulfillment of His pre- and post-resurrection promise, Jesus meets His disciples upon the appointed high mountain in Galilee (traditionally Mount Arbel, commanding panoramic views of the Sea of Galilee and the towns where He ministered). Before the assembled Apostles and more than five hundred brethren at once, the resurrected Lord proclaims universal authority and issues the Great Commission to preach, baptize, and teach all nations with the abiding promise: 'Lo, I am with you alway, even unto the end of the world.'"
   },
   {
     id: "savior-ascension",

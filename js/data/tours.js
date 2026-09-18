@@ -2,14 +2,80 @@
  * Curated Guided Narrative Tours
  * Allows the user to step through historic journeys with auto-camera pans,
  * highlighted routes, and synced scripture readings.
+ * 
+ * CORE EMPHASIS: Guided Tours of the Savior's Life and Ministry
+ * are elevated as the primary spiritual feature of the atlas.
  */
 const TOURS_DATA = [
   {
+    id: "start-here-jesus",
+    title: "Start Here: Where Jesus Walked",
+    icon: "🕊️",
+    eraText: "Welcoming Tour for All Ages • 6 Sacred Stops",
+    description: "A gentle, welcoming journey through the most sacred moments of the Savior's life—from His birth in Bethlehem to His glorious resurrection in Jerusalem.",
+    stops: [
+      {
+        title: "Where Baby Jesus Was Born (Bethlehem)",
+        lat: 31.7054,
+        lng: 35.2024,
+        zoom: 13,
+        eventId: "savior-birth",
+        year: -5,
+        summary: "Luke 2:11 • 'For unto you is born this day in the city of David a Saviour, which is Christ the Lord.' In this quiet village, God gave His Son to bring peace and light to all the world."
+      },
+      {
+        title: "Growing Up in Kindness & Love (Nazareth)",
+        lat: 32.7019,
+        lng: 35.2979,
+        zoom: 13,
+        eventId: "savior-return-nazareth",
+        year: -3,
+        summary: "Luke 2:52 • 'And Jesus increased in wisdom and stature, and in favour with God and man.' In the hills of Galilee, Jesus lived in quiet devotion, teaching us how to love God and one another."
+      },
+      {
+        title: "The Loving Teacher & Healer (Capernaum & Sea of Galilee)",
+        lat: 32.8808,
+        lng: 35.5750,
+        zoom: 13,
+        eventId: "savior-base-capernaum",
+        year: 28,
+        summary: "Matthew 4:23 • 'And Jesus went about all Galilee, teaching... and healing all manner of sickness.' By this freshwater sea, Jesus invited fishermen to follow Him and healed all who came to Him in faith."
+      },
+      {
+        title: "Teaching Compassion at the Temple (Jerusalem)",
+        lat: 31.7780,
+        lng: 35.2354,
+        zoom: 15,
+        eventId: "savior-cleansing-temple",
+        year: 30,
+        summary: "Matthew 21:14 • 'And the blind and the lame came to him in the temple; and he healed them.' Jesus taught that God's house is a holy place of prayer, refuge, and mercy for all people."
+      },
+      {
+        title: "Jesus Prays for Us in Love (Garden of Gethsemane)",
+        lat: 31.7794,
+        lng: 35.2397,
+        zoom: 15,
+        eventId: "savior-gethsemane",
+        year: 30,
+        summary: "Luke 22:42 • 'Father, if thou be willing, remove this cup from me: nevertheless not my will, but thine, be done.' In this olive orchard, Jesus took upon Himself our pains, griefs, and sins out of infinite love."
+      },
+      {
+        title: "He Is Risen! (The Empty Garden Tomb)",
+        lat: 31.7836,
+        lng: 35.2300,
+        zoom: 16,
+        eventId: "savior-resurrection",
+        year: 30,
+        summary: "Matthew 28:6 • 'He is not here: for he is risen, as he said.' Because Jesus lives, death is overcome and every child of God is invited to live forever in His joyous presence."
+      }
+    ]
+  },
+  {
     id: "savior-life",
-    title: "Life & Ministry of Jesus Christ",
+    title: "Walk with the Savior (Core Ministry Events)",
     icon: "🌟",
-    eraText: "6 BC – 30 AD • 14 Milestones",
-    description: "Follow the footsteps of the Savior from the Annunciation in Nazareth, His birth in Bethlehem, baptism in the Jordan, great miracles in Galilee, through His final ascent to Jerusalem.",
+    eraText: "6 BC – 30 AD • 13 Sacred Milestones",
+    description: "Follow the footsteps of Jesus Christ through His baptism, the Sermon on the Mount, wondrous miracles across Galilee, and His ministry of mercy.",
     stops: [
       {
         title: "The Annunciation in Nazareth",
@@ -18,7 +84,7 @@ const TOURS_DATA = [
         zoom: 12,
         eventId: "savior-annunciation",
         year: -6,
-        summary: "The angel Gabriel brings tidings of great joy to Mary in Nazareth."
+        summary: "The angel Gabriel brings tidings of great joy to Mary in Nazareth: 'Hail, thou that art highly favoured, the Lord is with thee.'"
       },
       {
         title: "Birth of Jesus in Bethlehem",
@@ -27,25 +93,7 @@ const TOURS_DATA = [
         zoom: 13,
         eventId: "savior-birth",
         year: -5,
-        summary: "The Savior is born in a manger in the City of David amidst angelic praise."
-      },
-      {
-        title: "Flight into Egypt",
-        lat: 31.2001,
-        lng: 29.9187,
-        zoom: 9,
-        eventId: "savior-flight-egypt",
-        year: -4,
-        summary: "Joseph and Mary escape Herod's wrath, finding refuge in Alexandria and the Nile Delta."
-      },
-      {
-        title: "Growing up in Nazareth",
-        lat: 32.7019,
-        lng: 35.2979,
-        zoom: 12,
-        eventId: "savior-return-nazareth",
-        year: -3,
-        summary: "Jesus waxes strong in spirit, filled with wisdom in Nazareth."
+        summary: "The Savior is born in a manger in the City of David amidst angelic heralds proclaiming peace on earth."
       },
       {
         title: "Baptism in the Jordan River",
@@ -54,7 +102,7 @@ const TOURS_DATA = [
         zoom: 12,
         eventId: "savior-baptism",
         year: 26,
-        summary: "John baptizes Jesus in the Jordan River; the Holy Ghost descends like a dove."
+        summary: "John baptizes Jesus in the Jordan River to fulfill all righteousness; the Father declares, 'This is my beloved Son.'"
       },
       {
         title: "First Miracle at Cana",
@@ -63,25 +111,34 @@ const TOURS_DATA = [
         zoom: 12,
         eventId: "savior-wedding-cana",
         year: 27,
-        summary: "At a wedding in Cana, Jesus manifests His glory by turning water into wine."
+        summary: "At a marriage in Cana of Galilee, Jesus manifests His glory by turning water into wine, blessing a humble family celebration."
       },
       {
-        title: "Living Water in Samaria",
+        title: "Living Water at Jacob's Well (Samaria)",
         lat: 32.2133,
         lng: 35.2817,
         zoom: 12,
         eventId: "savior-woman-samaria",
         year: 27,
-        summary: "At Jacob's Well near Sychar, Jesus speaks with the Samaritan woman."
+        summary: "At Jacob's Well near Sychar, Jesus offers living water to the Samaritan woman: 'Whosoever drinketh of the water that I shall give him shall never thirst.'"
       },
       {
-        title: "Headquarters in Capernaum",
+        title: "Calling the First Apostles ('Fishers of Men')",
+        lat: 32.8735,
+        lng: 35.5700,
+        zoom: 13,
+        eventId: "savior-call-disciples",
+        year: 28,
+        summary: "Matthew 4:19 • 'Follow me, and I will make you fishers of men.' Walking by the Sea of Galilee, Jesus calls Simon Peter, Andrew, James, and John into discipleship."
+      },
+      {
+        title: "Ministry Headquarters in Capernaum",
         lat: 32.8808,
         lng: 35.5750,
         zoom: 13,
         eventId: "savior-base-capernaum",
         year: 28,
-        summary: "Jesus establishes His ministry headquarters in Peter's seaside city."
+        summary: "Jesus makes Capernaum His seaside home, casting out demons, healing the paralytic let down through the roof, and welcoming the outcast."
       },
       {
         title: "The Sermon on the Mount",
@@ -90,34 +147,34 @@ const TOURS_DATA = [
         zoom: 14,
         eventId: "savior-sermon-mount",
         year: 28,
-        summary: "On the mount overlooking the Sea of Galilee, Jesus teaches the Beatitudes."
+        summary: "On the hillside overlooking the Sea of Galilee, Jesus proclaims the Beatitudes: 'Blessed are the peacemakers: for they shall be called the children of God.'"
       },
       {
-        title: "Calming the Tempest",
+        title: "Calming the Tempest on Galilee",
         lat: 32.8300,
         lng: 35.5800,
         zoom: 12,
         eventId: "savior-calms-storm",
         year: 28,
-        summary: "Jesus commands the winds and sea: 'Peace, be still.'"
+        summary: "Arising in the storm-tossed boat, Jesus commands the raging winds and sea: 'Peace, be still.' And there was a great calm."
       },
       {
-        title: "Feeding the 5,000",
+        title: "Feeding the 5,000 at Bethsaida",
         lat: 32.9090,
         lng: 35.6310,
         zoom: 13,
         eventId: "savior-feeding-5000",
         year: 29,
-        summary: "Five loaves and two fishes feed the multitude on the plain of Bethsaida."
+        summary: "With five loaves and two fishes, Jesus feeds five thousand men plus women and children, testifying 'I am the bread of life.'"
       },
       {
-        title: "Peter's Confession at Caesarea Philippi",
+        title: "Peter's Testimony at Caesarea Philippi",
         lat: 33.2483,
         lng: 35.6933,
         zoom: 12,
         eventId: "savior-peter-confession",
         year: 29,
-        summary: "'Thou art the Christ, the Son of the living God.'"
+        summary: "At the foot of Mount Hermon, Peter declares by revelation: 'Thou art the Christ, the Son of the living God.'"
       },
       {
         title: "The Transfiguration",
@@ -126,34 +183,34 @@ const TOURS_DATA = [
         zoom: 11,
         eventId: "savior-transfiguration",
         year: 29,
-        summary: "Moses and Elijah appear in glory atop the high mountain."
+        summary: "Moses and Elijah confer priesthood keys upon Peter, James, and John as the Savior's face shines as the sun."
       },
       {
-        title: "Raising Lazarus at Bethany",
+        title: "Raising Lazarus from Death in Bethany",
         lat: 31.7719,
         lng: 35.2617,
         zoom: 13,
         eventId: "savior-raising-lazarus",
         year: 30,
-        summary: "Christ calls Lazarus from the tomb, declaring 'I am the resurrection and the life.'"
+        summary: "Standing before the rock tomb, Jesus weeps with Mary and Martha, commanding: 'Lazarus, come forth!' declaring 'I am the resurrection and the life.'"
       }
     ]
   },
   {
     id: "passion-week",
-    title: "Passion Week in Jerusalem",
+    title: "Passion Week: The Final Journey in Jerusalem",
     icon: "✝️",
-    eraText: "Spring 30 AD • 9 Stations",
-    description: "Experience the decisive week of human history in holy Jerusalem: the Triumphal Entry, Cleansing the Temple, Gethsemane, Golgotha, the Garden Tomb, and the Ascension.",
+    eraText: "Spring 30 AD • 8 Sacred Stations",
+    description: "Walk with the Savior through the decisive week of divine love: the Triumphal Entry, the Last Supper, Gethsemane, Golgotha, and the triumph of the Resurrection.",
     stops: [
       {
-        title: "Triumphal Entry (Palm Sunday)",
+        title: "Triumphal Entry on the Mount of Olives",
         lat: 31.7781,
         lng: 35.2450,
         zoom: 14,
         eventId: "savior-triumphal-entry",
         year: 30,
-        summary: "Jesus rides down the Mount of Olives amidst waving palm branches."
+        summary: "Jesus rides a colt down the Mount of Olives amidst branches of palm: 'Hosanna to the son of David: Blessed is he that cometh in the name of the Lord.'"
       },
       {
         title: "Cleansing the Temple Courts",
@@ -162,7 +219,7 @@ const TOURS_DATA = [
         zoom: 15,
         eventId: "savior-cleansing-temple",
         year: 30,
-        summary: "Jesus overturns the money changers' tables: 'My house shall be called a house of prayer.'"
+        summary: "Jesus casts out moneychangers from the court of the Gentiles: 'My house shall be called the house of prayer.'"
       },
       {
         title: "The Last Supper in the Upper Room",
@@ -171,25 +228,25 @@ const TOURS_DATA = [
         zoom: 16,
         eventId: "savior-last-supper",
         year: 30,
-        summary: "Jesus washes feet and institutes the Holy Sacrament on Mount Zion."
+        summary: "Jesus washes the disciples' feet, institutes the holy Sacrament, and gives the new commandment: 'Love one another; as I have loved you.'"
       },
       {
-        title: "The Agony in Gethsemane",
+        title: "The Agony in the Garden of Gethsemane",
         lat: 31.7794,
         lng: 35.2397,
         zoom: 15,
         eventId: "savior-gethsemane",
         year: 30,
-        summary: "The Savior takes upon Himself the sins of the world, sweating great drops of blood."
+        summary: "The Savior suffers the infinite agony of the Atonement for all humankind, sweating blood from every pore in willing obedience to the Father."
       },
       {
-        title: "Crucifixion on Golgotha",
+        title: "Crucifixion on Golgotha (Calvary)",
         lat: 31.7785,
         lng: 35.2298,
         zoom: 15,
         eventId: "savior-crucifixion",
         year: 30,
-        summary: "The Lamb of God completes the eternal Atonement on Calvary: 'It is finished.'"
+        summary: "The Lamb of God offers His life upon the cross for our sins: 'Father, forgive them; for they know not what they do' and 'It is finished.'"
       },
       {
         title: "The Empty Garden Tomb (Resurrection)",
@@ -198,25 +255,106 @@ const TOURS_DATA = [
         zoom: 16,
         eventId: "savior-resurrection",
         year: 30,
-        summary: "Christ triumphs over death: 'He is not here: for he is risen.'"
+        summary: "Angels greet the weeping Mary Magdalene with joyous tidings: 'Why seek ye the living among the dead? He is not here, but is risen!'"
       },
       {
-        title: "Appearance on Road to Emmaus",
+        title: "Hearts Burning on the Road to Emmaus",
         lat: 31.8394,
         lng: 34.9886,
         zoom: 12,
         eventId: "savior-emmaus",
         year: 30,
-        summary: "Disciples' hearts burn as the risen Lord opens the scriptures."
+        summary: "The resurrected Lord walks with two disciples, opening the scriptures concerning Himself until their hearts burn within them."
       },
       {
-        title: "Ascension from Mount of Olives",
+        title: "The Ascension from the Mount of Olives",
         lat: 31.7781,
         lng: 35.2450,
         zoom: 14,
         eventId: "savior-ascension",
         year: 30,
-        summary: "Jesus ascends to the right hand of the Father, promising to return in like manner."
+        summary: "Jesus blesses the Apostles and ascends into the clouds of heaven with the promise: 'This same Jesus... shall so come in like manner.'"
+      }
+    ]
+  },
+  {
+    id: "living-christ",
+    title: "The Living Christ: Key Testimony Locations",
+    icon: "👑",
+    eraText: "Sacred Witness of the Son of God • 8 Stops",
+    description: "Stand where heaven bore witness of Jesus Christ: the Father's voice at Jordan, divine glory on the Mount of Transfiguration, the Atonement, the Empty Tomb, and His appearances across Galilee.",
+    stops: [
+      {
+        title: "The Word Made Flesh in Bethlehem",
+        lat: 31.7054,
+        lng: 35.2024,
+        zoom: 13,
+        eventId: "savior-birth",
+        year: -5,
+        summary: "John 1:14 • 'And the Word was made flesh, and dwelt among us, (and we beheld his glory...)' The great Creator entered mortality to be our Savior."
+      },
+      {
+        title: "The Father's Voice at the Jordan River",
+        lat: 31.8385,
+        lng: 35.5478,
+        zoom: 12,
+        eventId: "savior-baptism",
+        year: 26,
+        summary: "Matthew 3:17 • 'And lo a voice from heaven, saying, This is my beloved Son, in whom I am well pleased.' God the Father testifies of His Beloved Son."
+      },
+      {
+        title: "Divine Glory on the Mount of Transfiguration",
+        lat: 33.4167,
+        lng: 35.8500,
+        zoom: 11,
+        eventId: "savior-transfiguration",
+        year: 29,
+        summary: "Matthew 17:5 • 'Behold a voice out of the cloud, which said, This is my beloved Son, in whom I am well pleased; hear ye him.'"
+      },
+      {
+        title: "The Infinite Atoning Sacrifice in Gethsemane",
+        lat: 31.7794,
+        lng: 35.2397,
+        zoom: 15,
+        eventId: "savior-gethsemane",
+        year: 30,
+        summary: "Luke 22:44 • 'And being in an agony he prayed more earnestly: and his sweat was as it were great drops of blood.' He bore our sorrows that we might be healed."
+      },
+      {
+        title: "The Lamb of God on Calvary",
+        lat: 31.7785,
+        lng: 35.2298,
+        zoom: 15,
+        eventId: "savior-crucifixion",
+        year: 30,
+        summary: "John 1:29 • 'Behold the Lamb of God, which taketh away the sin of the world.' The supreme gift of divine grace and redemption."
+      },
+      {
+        title: "Triumph Over Death at the Garden Tomb",
+        lat: 31.7836,
+        lng: 35.2300,
+        zoom: 16,
+        eventId: "savior-resurrection",
+        year: 30,
+        summary: "1 Corinthians 15:20 • 'Now is Christ risen from the dead, and become the firstfruits of them that slept.' Physical death is permanently conquered."
+      },
+      {
+        title: "The Risen Lord by the Sea of Galilee ('Lovest Thou Me?')",
+        lat: 32.8722,
+        lng: 35.5492,
+        zoom: 14,
+        eventId: "savior-lovest-thou-me",
+        year: 30,
+        summary: "John 21:17 • 'Lord, thou knowest all things; thou knowest that I love thee. Jesus saith unto him, Feed my sheep.' The living Savior commissions His Apostles in unending love."
+      },
+      {
+        title: "The Great Commission & 500 Brethren in Galilee",
+        lat: 32.8242,
+        lng: 35.4986,
+        zoom: 13,
+        eventId: "savior-great-commission-500",
+        year: 30,
+        summary: "Matthew 28:18-20; 1 Cor 15:6 • 'All power is given unto me in heaven and in earth. Go ye therefore, and teach all nations... and lo, I am with you alway.' The risen Redeemer appears to more than 500 brethren at once."
       }
     ]
   },

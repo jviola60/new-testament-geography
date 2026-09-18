@@ -636,5 +636,21 @@ const CITIES_DATA = [
     christianChurchInfo: "Cyrenian believers were among the first to preach to the Greeks in Antioch (Acts 11:20).",
     epistles: [],
     significance: "Hometown of Simon of Cyrene who carried Jesus's cross (Luke 23:26), and Lucius of Cyrene (Acts 13:1)."
+  },
+  {
+    id: "troas",
+    name: "Troas",
+    ancientName: "Alexandria Troas",
+    region: "Asia Minor",
+    lat: 39.7525,
+    lng: 26.1603,
+    isMajor: true,
+    hasSynagogue: true,
+    hasChurch: true,
+    population: "~30,000",
+    jewishDiasporaInfo: "Active mercantile port community on the Aegean connecting Asia Minor with Europe.",
+    christianChurchInfo: "Vital apostolic congregation where Eutychus was raised from the dead by Paul (Acts 20:6-12) and where Paul left his cloak and parchments with Carpus (2 Tim 4:13).",
+    epistles: [],
+    significance: "Port of the Aegean 'Macedonian Call' ('Come over into Macedonia and help us', Acts 16:8-11), initiating the spread of Christianity into Europe."
   }
 ];

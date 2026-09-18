@@ -10,8 +10,8 @@
   bottom: 0;
   width: var(--sidebar-width);
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-left: 2px solid var(--border-parchment-dark);
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
   z-index: 900;
@@ -25,15 +25,78 @@
   transform: translateX(100%);
 }
 
+@media (min-width: 769px) {
+  .detail-sidebar.closed {
+    transform: translateX(calc(100% - 32px));
+    box-shadow: none;
+  }
+}
+
+/* Sidebar Edge Toggle Tab (Floating on left border of sidebar, matching Book of Mormon Atlas) */
+.sidebar-edge-toggle {
+  position: absolute;
+  top: 50%;
+  left: -32px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 86px;
+  background: #FFFDF9;
+  border: 2px solid var(--color-gold);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  color: var(--color-crimson);
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  padding: 6px 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sidebar-edge-toggle:hover {
+  background: #FAF5EB;
+  color: var(--color-gold-dark);
+  box-shadow: -6px 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.edge-toggle-icon {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.edge-toggle-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-serif-title);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-edge-toggle {
+    display: none;
+  }
+}
+
 /* Header */
 .sidebar-header {
-  padding: 1.1rem 1.25rem;
+  padding: 1.1rem 1.25rem 0.85rem;
   background: #EBE0CC;
   border-bottom: 1px solid var(--border-parchment-dark);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .sidebar-title-wrap {
@@ -74,44 +137,45 @@
   color: var(--color-crimson);
 }
 
-/* Tabs - Multi-row Flex Grid (Row 1: 4 tabs, Row 2: 3 tabs) */
+/* Navigation Tabs - Multi-Row Flex Grid (Double Row: 4 tabs on Row 1, 4 tabs on Row 2) */
 .sidebar-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 4px;
   background: #E0D3BC;
   border-bottom: 1px solid var(--border-parchment-dark);
-  padding: 0.4rem 0.5rem;
+  padding: 0.45rem 0.5rem;
+  flex-shrink: 0;
 }
 
+.sidebar-tab-row {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+}
+
+.sidebar-tab-row .tab-btn,
 .tab-btn {
-  padding: 0.5rem 0.25rem;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(139, 94, 60, 0.2);
+  flex: 1 1 25%;
+  min-width: 0;
+  padding: 0.52rem 0.2rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(139, 94, 60, 0.25);
   border-radius: 4px;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
   text-align: center;
   line-height: 1.25;
-}
-
-/* Row 1: 4 tabs (Overview, Scriptures, Teachings, Videos) */
-.tab-btn:nth-child(-n+4) {
-  flex: 1 1 calc(25% - 4px);
-}
-
-/* Row 2: 3 tabs (People, Political, Era Events) */
-.tab-btn:nth-child(n+5) {
-  flex: 1 1 calc(33.333% - 4px);
+  transition: all 0.2s;
+  white-space: normal;
 }
 
 .tab-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   border-color: var(--color-gold);
 }
 
@@ -119,7 +183,7 @@
   color: #FFF;
   border-color: var(--color-crimson);
   background: var(--color-crimson);
-  box-shadow: 0 1px 3px rgba(136, 26, 26, 0.3);
+  box-shadow: 0 1px 4px rgba(136, 26, 26, 0.35);
   font-weight: 700;
 }
 
@@ -127,10 +191,22 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem;
+  overflow-x: hidden;
+  padding: 1.15rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.15rem;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.sidebar-content button,
+.sidebar-content .btn,
+.sidebar-content a.btn {
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Welcome Intro & Quote */
@@ -181,6 +257,119 @@
   font-size: 0.95rem;
   color: var(--color-crimson);
   margin-bottom: 0.6rem;
+}
+
+/* Christian Growth Showcase Card */
+.feature-card.christian-growth-showcase {
+  border-left: 4px solid #DC2626;
+  background: linear-gradient(180deg, #FFFDF9 0%, #FEF2F2 100%);
+}
+
+.growth-showcase-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.growth-showcase-icon {
+  font-size: 1.25rem;
+}
+
+.growth-showcase-title {
+  margin: 0;
+  color: #991B1B;
+  font-family: var(--font-serif-title);
+  font-size: 0.98rem;
+}
+
+.growth-showcase-intro {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.growth-heatmap-callout {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px dashed rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  padding: 0.65rem 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.growth-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #B91C1C;
+  font-size: 0.8rem;
+  margin-bottom: 3px;
+}
+
+.growth-callout-text {
+  font-size: 0.77rem;
+  line-height: 1.4;
+  color: #7F1D1D;
+  margin: 0;
+}
+
+.christian-growth-showcase .demographic-stats-grid {
+  margin-bottom: 0.75rem;
+}
+
+.demographic-stat-box.stat-upper-room {
+  border-left: 2px solid #DC2626;
+}
+
+.demographic-stat-box.stat-upper-room .demographic-value {
+  font-size: 0.95rem;
+  color: #991B1B;
+}
+
+.demographic-stat-box.stat-pentecost {
+  border-left: 2px solid #D97706;
+}
+
+.demographic-stat-box.stat-pentecost .demographic-value {
+  font-size: 0.95rem;
+  color: #B45309;
+}
+
+.demographic-stat-box.stat-early-church {
+  border-left: 2px solid #059669;
+}
+
+.demographic-stat-box.stat-early-church .demographic-value {
+  font-size: 0.95rem;
+  color: #047857;
+}
+
+.demographic-stat-box.stat-empire-wide {
+  border-left: 2px solid #2563EB;
+}
+
+.demographic-stat-box.stat-empire-wide .demographic-value {
+  font-size: 0.95rem;
+  color: #1D4ED8;
+}
+
+.demographic-stat-ref {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.growth-waves-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.84rem;
+  color: #991B1B;
+  margin: 0 0 0.4rem 0;
+}
+
+.growth-waves-list {
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .feature-steps {
@@ -906,3 +1095,400 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
 }
+
+/* ==========================================================================
+   CHRIST-CENTERED TAKEAWAY CARD & SACRED WITNESS
+   Leads place dossiers with primary scripture and 1-2 sentence takeaway
+   ========================================================================== */
+.christ-takeaway-card {
+  background: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1.5px solid #F59E0B;
+  border-left: 5px solid #D97706;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.15rem;
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.12);
+}
+
+.takeaway-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.6rem;
+}
+
+.takeaway-icon {
+  font-size: 1.1rem;
+}
+
+.takeaway-lead-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #92400E;
+}
+
+.takeaway-lead-scripture {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  border-radius: 7px;
+  padding: 0.65rem 0.85rem;
+}
+
+.scripture-lead-ref {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.scripture-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #D97706;
+  color: #FFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.lead-ref-link {
+  font-family: var(--font-serif-title);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #B45309;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.lead-ref-link:hover {
+  color: #78350F;
+  text-decoration: underline;
+}
+
+.lead-scripture-quote {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.48;
+  font-style: italic;
+  color: #451A03;
+  margin: 0;
+  padding: 0;
+}
+
+.takeaway-invitation-box {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed rgba(217, 119, 6, 0.3);
+}
+
+.takeaway-text {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #78350F;
+  margin: 0;
+}
+
+.takeaway-invitation {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #92400E;
+  font-style: italic;
+  margin-top: 0.4rem;
+}
+
+/* ==========================================================================
+   COMPANION SCRIPTURAL ATLASES CARD
+   ========================================================================== */
+.scriptural-atlases-card {
+  background: linear-gradient(180deg, #FFFDF9 0%, #FDF8ED 100%);
+  border: 1px solid #D1BE9C;
+  border-left: 4px solid #B45309;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.25rem;
+}
+
+.atlas-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.atlas-card-icon {
+  font-size: 1.2rem;
+}
+
+.atlas-card-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #78350F;
+  margin: 0;
+}
+
+.atlas-card-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.atlas-links-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.atlas-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem;
+  background: #FFF;
+  border: 1px solid #E2D7C3;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  transition: all 0.15s ease;
+}
+
+.atlas-nav-link:hover {
+  background: #FFFBEB;
+  border-color: #D97706;
+  transform: translateX(2px);
+}
+
+.atlas-nav-badge {
+  font-weight: 700;
+  color: #78350F;
+}
+
+.atlas-nav-name {
+  font-family: var(--font-serif-title);
+  color: var(--text-primary);
+}
+
+.atlas-nav-arrow {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.atlas-nav-link.active-atlas-link {
+  background: #FEF3C7;
+  border-color: #FCD34D;
+  border-left: 3px solid #D97706;
+}
+
+.atlas-nav-link.active-atlas-link .atlas-nav-name {
+  font-weight: 700;
+  color: #92400E;
+}
+
+.atlas-nav-link.active-atlas-link .atlas-nav-arrow {
+  color: #D97706;
+}
+
+/* Tours Section Header in Sidebar */
+.tours-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.tours-header-icon {
+  color: #D97706;
+  font-size: 0.95rem;
+}
+
+.tours-section-header h4,
+.tours-header-title {
+  margin: 0;
+  font-family: var(--font-serif-title);
+  font-size: 0.95rem;
+  color: var(--color-crimson);
+}
+
+.tours-section-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.tour-card-featured {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1.5px solid #F59E0B !important;
+}
+
+.tour-card-featured .tour-name {
+  color: #92400E;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   MOBILE BOTTOM SHEET LAYOUT (Keeps Map Visible on Mobile)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .detail-sidebar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 52vh;
+    border-left: none;
+    border-top: 3px solid var(--color-gold);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.35);
+    transform: translateY(0);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .detail-sidebar.closed {
+    transform: translateY(100%);
+  }
+
+  .sidebar-header {
+    padding: 0.8rem 1rem;
+    border-radius: 16px 16px 0 0;
+    position: relative;
+  }
+
+  .sidebar-header::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(120, 53, 15, 0.3);
+    border-radius: 999px;
+  }
+
+  .sidebar-tabs .tab-btn {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.72rem;
+    min-height: 44px;
+  }
+
+  .church-scripture-btn,
+  .tour-mini-card,
+  .atlas-nav-link {
+    min-height: 44px;
+  }
+}
+
+/* ==========================================================================
+   LOCATION CONFIDENCE BADGES & ARCHAEOLOGY TAB STYLING
+   Non-intrusive 3-level scholarly confidence system
+   ========================================================================== */
+.location-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.confidence-well-attested {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.confidence-traditional {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+
+.confidence-discussion {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  color: #0369A1;
+}
+
+.archaeology-header-card {
+  background: #FAF6ED;
+  border: 1px solid var(--border-parchment);
+  border-left: 4px solid var(--color-gold);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.archaeology-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.arch-badge-tag {
+  font-family: var(--font-serif-title);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+}
+
+.arch-confidence-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.arch-section-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  background: #FFFDF9;
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 6px;
+}
+
+.arch-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.arch-card-icon {
+  font-size: 0.95rem;
+}
+
+.arch-card-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-crimson);
+  margin: 0;
+}
+
+.arch-card-body {
+  font-size: 0.79rem;
+  line-height: 1.48;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+

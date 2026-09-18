@@ -22,7 +22,8 @@ class MapController {
       modernOverlay: L.layerGroup(),
       jerusalemSites: L.layerGroup(),
       jerusalemGeography: L.layerGroup(),
-      firstCenturySatellite: L.layerGroup()
+      firstCenturySatellite: L.layerGroup(),
+      distanceRoute: L.layerGroup()
     };
 
     // Tile layers
@@ -75,6 +76,7 @@ class MapController {
     // All thematic overlays remain unmounted until user activates their layer chip.
     this.layers.hydrography.addTo(this.map);
     this.layers.cities.addTo(this.map);
+    this.layers.distanceRoute.addTo(this.map);
 
     // Draw Static & Foundational Geographic Layers into their respective layer groups
     this.drawHydrography();
@@ -1146,6 +1148,73 @@ class MapController {
           }
         }, 750);
       }
+    }
+  }
+
+  // Distance & Travel Route Visualization
+  showDistanceRoute(lat1, lng1, lat2, lng2, title = "Biblical Journey", text = "") {
+    this.clearDistanceRoute();
+
+    // 1. Dotted route line with glowing underlay
+    const glowLine = L.polyline([[lat1, lng1], [lat2, lng2]], {
+      color: "#F59E0B",
+      weight: 7,
+      opacity: 0.45,
+      lineCap: "round"
+    });
+
+    const routeLine = L.polyline([[lat1, lng1], [lat2, lng2]], {
+      color: "#991B1B",
+      weight: 3.5,
+      dashArray: "7, 9",
+      opacity: 0.95,
+      lineCap: "round"
+    });
+
+    // 2. Custom origin and destination endpoints
+    const originMarker = L.circleMarker([lat1, lng1], {
+      radius: 7,
+      fillColor: "#10B981",
+      color: "#FFF",
+      weight: 2.5,
+      fillOpacity: 1
+    });
+
+    const destMarker = L.circleMarker([lat2, lng2], {
+      radius: 8,
+      fillColor: "#DC2626",
+      color: "#FFF",
+      weight: 2.5,
+      fillOpacity: 1
+    });
+
+    // 3. Informative popup at midpoint
+    const midLat = (lat1 + lat2) / 2;
+    const midLng = (lng1 + lng2) / 2;
+    const popupContent = `
+      <div style="font-family: var(--font-sans); padding: 2px;">
+        <h4 style="margin: 0 0 4px 0; font-family: var(--font-serif-title); color: #991B1B; font-size: 0.88rem;">${title}</h4>
+        <p style="margin: 0; font-size: 0.78rem; color: #444; line-height: 1.4;">${text}</p>
+      </div>
+    `;
+
+    routeLine.bindPopup(popupContent).openPopup([midLat, midLng]);
+
+    this.layers.distanceRoute.addLayer(glowLine);
+    this.layers.distanceRoute.addLayer(routeLine);
+    this.layers.distanceRoute.addLayer(originMarker);
+    this.layers.distanceRoute.addLayer(destMarker);
+
+    // Zoom and pan to encompass both points with padding
+    this.map.fitBounds([[lat1, lng1], [lat2, lng2]], {
+      padding: [70, 70],
+      maxZoom: 14
+    });
+  }
+
+  clearDistanceRoute() {
+    if (this.layers.distanceRoute) {
+      this.layers.distanceRoute.clearLayers();
     }
   }
 

@@ -86,7 +86,7 @@
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.45);
 }
 
-/* Modal Dialog */
+/* Modal Dialog (Matching Book of Mormon Modal System) */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -94,13 +94,23 @@
   right: 0;
   bottom: 0;
   background: var(--bg-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 2000;
-  display: flex;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  z-index: 2500;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.show,
+.modal-backdrop.open {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .modal-card {
@@ -152,6 +162,44 @@
   gap: 1rem;
 }
 
+/* Tour Modal Categorized Groups */
+.tour-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tour-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tour-group-icon {
+  color: #D97706;
+  font-size: 1.1rem;
+}
+
+.tour-group-title {
+  font-family: var(--font-serif-title);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #78350F;
+}
+
+.tour-group-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.35rem 0;
+  line-height: 1.4;
+}
+
+.tour-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 /* Guided Tour Card in Modal */
 .tour-select-card {
   display: flex;
@@ -162,6 +210,16 @@
   padding: 1rem 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.tour-select-card.tour-card-featured {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 2px solid #F59E0B;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.tour-select-card.tour-card-featured .tour-card-title {
+  color: #92400E;
 }
 
 .tour-select-card:hover {
@@ -214,18 +272,18 @@
 
 /* Tour Stepper Bar (Active During Curated Story Run) */
 .tour-stepper-bar {
+  display: none;
   position: absolute;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1100;
   background: rgba(36, 26, 19, 0.94);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 2px solid var(--color-gold);
   border-radius: 30px;
   padding: 0.5rem 1.25rem;
-  display: flex;
   align-items: center;
   gap: 1.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -317,6 +375,7 @@
 .header-quick-jump-container .quick-jump-icon {
   font-size: 0.95rem;
   line-height: 1;
+  -webkit-user-select: none;
   user-select: none;
   flex-shrink: 0;
 }
@@ -360,5 +419,231 @@
     font-size: 0.74rem;
   }
 }
+
+/* ==========================================================================
+   TRAVEL & DISTANCE CALCULATOR MODAL
+   ========================================================================== */
+.distance-modal-card {
+  max-width: 760px;
+}
+
+.modal-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-eyebrow {
+  font-family: var(--font-serif-title);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+}
+
+.distance-intro {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.curated-journeys-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preset-journeys-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.preset-journey-btn {
+  background: #FAF6ED;
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.preset-journey-btn:hover {
+  background: #FFF;
+  border-color: var(--color-gold);
+  color: var(--color-crimson);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.distance-selectors-grid {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #F4EDE0;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-parchment);
+}
+
+.distance-selector-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.distance-selector-box label {
+  font-family: var(--font-serif-title);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.distance-selector-box select {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  background: #FFF;
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.dist-swap-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-parchment-dark);
+  background: #FFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--color-gold-dark);
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.dist-swap-btn:hover {
+  background: var(--color-gold-light);
+  color: var(--text-primary);
+  transform: rotate(180deg);
+}
+
+.distance-results-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dist-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+
+@media (max-width: 640px) {
+  .dist-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dist-stat-card {
+  background: #FAF6ED;
+  border: 1px solid var(--border-parchment);
+  border-radius: 8px;
+  padding: 0.75rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.dist-stat-label {
+  font-family: var(--font-serif-title);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.dist-stat-value {
+  font-family: var(--font-serif-title);
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.dist-stat-value.highlight-crimson {
+  color: var(--color-crimson);
+}
+
+.dist-stat-value.highlight-gold {
+  color: var(--color-gold-dark);
+}
+
+.dist-stat-sub {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+.dist-sea-box {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dist-sea-icon {
+  font-size: 1.35rem;
+}
+
+.dist-sea-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1E40AF;
+  display: block;
+}
+
+.dist-sea-desc {
+  font-size: 0.75rem;
+  color: #3B82F6;
+}
+
+.dist-historical-context {
+  background: #FFFDF9;
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 6px 6px 0;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.dist-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 
 

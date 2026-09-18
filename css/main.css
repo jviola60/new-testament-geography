@@ -49,11 +49,11 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', sans-serif;
 
-  /* Header & Footer Dimensions */
-  --header-height: 64px;
-  --filterbar-height: 44px;
+  /* Layout Dimensions (Matching Book of Mormon Geography Atlas) */
+  --header-height: 56px;
+  --filterbar-height: 38px;
   --footer-height: 118px;
-  --sidebar-width: 440px;
+  --sidebar-width: 310px;
 }
 
 /* Base Reset */
@@ -73,6 +73,98 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   CROSS-ATLAS TRILOGY NAVIGATION BAR (26px Subdued)
+   Matching Book of Mormon Geography Trilogy Navigation
+   ========================================================================== */
+.cross-atlas-bar {
+  height: 26px;
+  background: #1C1510;
+  border-bottom: 1px solid rgba(212, 160, 23, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 1010;
+  font-size: 0.72rem;
+  color: #CFC5B8;
+  flex-shrink: 0;
+}
+
+.cross-atlas-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+}
+
+.cross-atlas-label {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: #9C8E7C;
+  font-size: 0.68rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.cross-atlas-links {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+}
+
+.atlas-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #D6CCBE;
+  font-weight: 500;
+  font-size: 0.7rem;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.atlas-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFF;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.atlas-link.active {
+  background: rgba(197, 160, 89, 0.18);
+  border-color: rgba(197, 160, 89, 0.4);
+  color: #F8EDD3;
+  font-weight: 600;
+}
+
+.atlas-current-badge {
+  font-size: 0.54rem;
+  text-transform: uppercase;
+  background: rgba(197, 160, 89, 0.35);
+  color: #F8EDD3;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-left: 2px;
+}
+
+.atlas-ext-arrow {
+  font-size: 0.66rem;
+  opacity: 0.65;
 }
 
 /* App Header */
@@ -121,19 +213,23 @@ html, body {
 
 .brand-title {
   font-family: var(--font-serif-title);
-  font-size: 1.22rem;
+  font-size: 1.12rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #FFF8EB;
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   white-space: nowrap;
+  line-height: 1.15;
 }
 
 .brand-subtitle {
-  font-size: 0.72rem;
+  font-family: var(--font-scripture);
+  font-size: 0.82rem;
+  font-style: italic;
   color: #C8B79B;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   font-weight: 400;
+  line-height: 1.1;
 }
 
 /* Header Search */
@@ -182,6 +278,7 @@ html, body {
 }
 
 .clear-search-btn {
+  display: none;
   background: none;
   border: none;
   color: #D1BE9C;
@@ -193,6 +290,7 @@ html, body {
 
 /* Search Dropdown */
 .search-results-dropdown {
+  display: none;
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -306,6 +404,338 @@ html, body {
   color: var(--color-crimson);
 }
 
+.dropdown-section-title,
+.dropdown-heading {
+  font-family: var(--font-serif-title);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+  padding: 0.45rem 1rem 0.25rem 1rem;
+}
+
+.dropdown-menu-wide {
+  min-width: 280px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-parchment);
+  margin: 0.35rem 0;
+}
+
+.dropdown-item.active-style {
+  background: rgba(197, 160, 89, 0.15);
+  color: var(--color-crimson);
+  font-weight: 700;
+}
+
+.btn-atlases {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-serif-title);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.btn-atlases:hover {
+  background: #FFFDF9;
+  border-color: #D97706;
+  color: #B45309;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+}
+
+.atlases-menu {
+  min-width: 290px;
+  left: 0;
+  right: auto;
+}
+
+.atlas-link-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.9rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.atlas-link-item:hover {
+  background: var(--bg-parchment-deep);
+}
+
+.atlas-item-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.atlas-item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+}
+
+.atlas-item-name {
+  font-family: var(--font-serif-title);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.atlas-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.external-icon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.atlas-link-item.active-atlas {
+  background: #FEF3C7;
+  border-left: 3px solid #D97706;
+}
+
+.atlas-link-item.active-atlas .atlas-item-name {
+  color: #92400E;
+}
+
+.current-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #D97706;
+  color: #FFF;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.btn-tours-elevated {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #F59E0B 100%);
+  color: #FFF;
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-serif-title);
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-tours-elevated:hover {
+  background: linear-gradient(135deg, #92400E 0%, #B45309 50%, #D97706 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.45);
+}
+
+.btn-sparkle {
+  color: #FEF3C7;
+  font-size: 0.85rem;
+}
+
+/* More Layers Dropdown */
+.more-layers-container {
+  position: relative;
+  display: inline-flex;
+}
+
+.btn-more-layers {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-parchment-dark);
+  border-radius: 9999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-more-layers:hover {
+  background: #FFFDF9;
+  border-color: #B45309;
+  color: #B45309;
+}
+
+.more-layers-badge {
+  background: #DC2626;
+  color: #FFF;
+  font-size: 0.68rem;
+  font-weight: 800;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.more-layers-menu {
+  min-width: 210px;
+  left: 0;
+  right: auto;
+  padding: 0.5rem;
+  gap: 0.35rem;
+}
+
+.dropdown-filter-chip {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+}
+
+.filter-chip-savior {
+  border-color: #D97706;
+  background: #FEF3C7;
+  color: #92400E;
+  font-weight: 700;
+}
+
+.filter-chip-savior.active {
+  background: #D97706;
+  color: #FFF;
+  border-color: #B45309;
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+}
+
+/* ==========================================================================
+   DESKTOP FILTERS PANEL (Expandable Layer Control Drawer)
+   Matching Book of Mormon Geography Layer Command Pattern
+   ========================================================================== */
+.desktop-filters-panel {
+  display: none;
+  background: #FFFDF9;
+  border-bottom: 2px solid var(--border-parchment-dark);
+  box-shadow: 0 12px 32px rgba(34, 27, 19, 0.18);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  animation: slideDownPanel 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.desktop-filters-panel.open {
+  display: block;
+}
+
+@keyframes slideDownPanel {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.desktop-filters-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.df-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.df-section-title {
+  font-family: var(--font-serif-title);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-crimson);
+  text-transform: uppercase;
+}
+
+.df-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.df-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-parchment);
+}
+
+.filter-chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(197, 160, 89, 0.15);
+  border: 1px solid var(--color-gold);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.filter-chip-toggle:hover {
+  background: rgba(197, 160, 89, 0.3);
+  border-color: var(--color-gold-dark);
+}
+
+.active-filters-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-crimson);
+  color: #FFF;
+  font-size: 0.65rem;
+  font-weight: 700;
+  width: 17px;
+  height: 17px;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.holy-land-btn-label {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.jerusalem-btn-icon {
+  font-size: 14px;
+}
+
 /* Layer Filter Bar */
 .layer-filter-bar {
   position: relative;
@@ -326,7 +756,13 @@ html, body {
   width: 100%;
   gap: 1rem;
   overflow-x: auto;
-  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+@supports (scrollbar-width: none) {
+  .filter-scroll-track {
+    scrollbar-width: none;
+  }
 }
 
 .filter-scroll-track::-webkit-scrollbar {
@@ -442,9 +878,9 @@ html, body {
 }
 
 /* Responsive adjustments */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   :root {
-    --sidebar-width: 100%;
+    --sidebar-width: 100vw;
   }
   
   .brand-subtitle {
@@ -452,11 +888,25 @@ html, body {
   }
   
   .header-center {
-    max-width: 220px;
-    margin: 0 0.5rem;
+    max-width: 175px;
+    margin: 0 0.25rem;
   }
   
   .stat-pill {
     display: none;
   }
+
+  .btn-text {
+    display: none;
+  }
+
+  /* Touch-friendly target sizing */
+  .filter-chip,
+  .btn-ctrl,
+  .floating-btn,
+  .header-quick-jump-select {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
+

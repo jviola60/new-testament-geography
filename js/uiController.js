@@ -359,15 +359,73 @@ class UIController {
       });
     });
 
-    // Legend Collapsible
+    // Legend Collapsible & Menu Toggle
     const legendHeader = document.getElementById("legendToggleHeader");
     const legendBody = document.getElementById("legendBody");
     const legendCollapseBtn = document.getElementById("legendCollapseBtn");
-    if (legendHeader && legendBody) {
+    const legendBox = document.getElementById("mapLegend");
+    const chipLegendToggle = document.getElementById("chipLegendToggle");
+    const legendToolMenuItem = document.getElementById("legendToolMenuItem");
+
+    const toggleLegend = () => {
+      if (!legendBox) return;
+      const isHidden = legendBox.style.display === "none" || !legendBox.style.display;
+      if (isHidden) {
+        legendBox.style.display = "block";
+        legendBox.classList.remove("is-minimized");
+        if (legendBody) legendBody.style.display = "flex";
+        if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+      } else if (legendBox.classList.contains("is-minimized")) {
+        legendBox.classList.remove("is-minimized");
+        if (legendBody) legendBody.style.display = "flex";
+        if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+      } else {
+        legendBox.style.display = "none";
+      }
+      if (chipLegendToggle) chipLegendToggle.classList.toggle("active", legendBox.style.display !== "none");
+    };
+
+    if (chipLegendToggle) chipLegendToggle.addEventListener("click", toggleLegend);
+    if (legendToolMenuItem) {
+      legendToolMenuItem.addEventListener("click", () => {
+        toggleLegend();
+        const toolsMenu = document.getElementById("toolsDropdownMenu");
+        if (toolsMenu) toolsMenu.classList.remove("show");
+      });
+    }
+
+    if (legendCollapseBtn && legendBox) {
+      legendCollapseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        legendBox.classList.toggle("is-minimized");
+      });
+    }
+
+    if (legendHeader && legendBox) {
       legendHeader.addEventListener("click", () => {
-        const isHidden = legendBody.style.display === "none";
-        legendBody.style.display = isHidden ? "flex" : "none";
-        legendCollapseBtn.textContent = isHidden ? "−" : "+";
+        if (legendBox.classList.contains("is-minimized")) {
+          legendBox.classList.remove("is-minimized");
+          if (legendBody) legendBody.style.display = "flex";
+        } else if (legendBody) {
+          const isHidden = legendBody.style.display === "none";
+          legendBody.style.display = isHidden ? "flex" : "none";
+          if (legendCollapseBtn) legendCollapseBtn.textContent = isHidden ? "−" : "+";
+        }
+      });
+    }
+
+    // Mobile Leaflet Attribution Collapsible Badge (Tap to expand, outside click to collapse)
+    const attrControl = document.querySelector(".leaflet-control-attribution");
+    if (attrControl) {
+      attrControl.addEventListener("click", (e) => {
+        if (window.innerWidth <= 768) {
+          attrControl.classList.toggle("is-expanded");
+        }
+      });
+      document.addEventListener("click", (e) => {
+        if (window.innerWidth <= 768 && !attrControl.contains(e.target)) {
+          attrControl.classList.remove("is-expanded");
+        }
       });
     }
 

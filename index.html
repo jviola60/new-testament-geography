@@ -25,11 +25,11 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=3.8">
-  <link rel="stylesheet" href="css/map.css?v=3.8">
-  <link rel="stylesheet" href="css/timeline.css?v=3.8">
-  <link rel="stylesheet" href="css/sidebar.css?v=3.8">
-  <link rel="stylesheet" href="css/components.css?v=3.8">
+  <link rel="stylesheet" href="css/main.css?v=4.0">
+  <link rel="stylesheet" href="css/map.css?v=4.0">
+  <link rel="stylesheet" href="css/timeline.css?v=4.0">
+  <link rel="stylesheet" href="css/sidebar.css?v=4.0">
+  <link rel="stylesheet" href="css/components.css?v=4.0">
 </head>
 <body class="parchment-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
@@ -114,6 +114,11 @@
             <span>📏</span> Biblical Distances & Travel Calculator
           </button>
           <div class="dropdown-divider"></div>
+          <div class="dropdown-heading">Map Features</div>
+          <button id="legendToolMenuItem" class="dropdown-item">
+            <span>🗺️</span> Atlas Map Legend
+          </button>
+          <div class="dropdown-divider"></div>
           <div class="dropdown-heading">Map Base Style</div>
           <button data-style="parchment" class="dropdown-item map-style-item active-style">📜 Ancient Shaded Relief (Biblical)</button>
           <button data-style="satellite" class="dropdown-item map-style-item">🛰️ Satellite Earth Terrain</button>
@@ -156,6 +161,9 @@
         </button>
         <button class="filter-chip" data-filter="heatmaps" id="chipHeatmaps" title="Radiant Christian Growth Heatmap">
           <span class="chip-dot dot-heatmap"></span>Growth Heatmap
+        </button>
+        <button class="filter-chip filter-chip-legend" id="chipLegendToggle" title="Show / hide the Atlas Map Legend">
+          <span>🗺️ Legend</span>
         </button>
         <button class="filter-chip filter-chip-toggle" id="toggleFiltersPanelBtn" title="Open full atlas layers & filters drawer" aria-expanded="false">
           <span>⚙️ Filters</span>
@@ -687,26 +695,26 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=3.8"></script>
-  <script src="js/data/regions.js?v=3.8"></script>
-  <script src="js/data/cities.js?v=3.8"></script>
-  <script src="js/data/jerusalemSites.js?v=3.8"></script>
-  <script src="js/data/jerusalemGeography.js?v=3.8"></script>
-  <script src="js/data/saviorEvents.js?v=3.8"></script>
-  <script src="js/data/missionaryJourneys.js?v=3.8"></script>
-  <script src="js/data/communities.js?v=3.8"></script>
-  <script src="js/data/placeDossiers.js?v=3.8"></script>
-  <script src="js/data/scriptureTranslations.js?v=3.8"></script>
-  <script src="js/data/churchVideos.js?v=3.8"></script>
-  <script src="js/data/timelineEvents.js?v=3.8"></script>
-  <script src="js/data/tours.js?v=3.8"></script>
-  <script src="js/data/archaeologyData.js?v=3.8"></script>
+  <script src="js/data/hydrography.js?v=4.0"></script>
+  <script src="js/data/regions.js?v=4.0"></script>
+  <script src="js/data/cities.js?v=4.0"></script>
+  <script src="js/data/jerusalemSites.js?v=4.0"></script>
+  <script src="js/data/jerusalemGeography.js?v=4.0"></script>
+  <script src="js/data/saviorEvents.js?v=4.0"></script>
+  <script src="js/data/missionaryJourneys.js?v=4.0"></script>
+  <script src="js/data/communities.js?v=4.0"></script>
+  <script src="js/data/placeDossiers.js?v=4.0"></script>
+  <script src="js/data/scriptureTranslations.js?v=4.0"></script>
+  <script src="js/data/churchVideos.js?v=4.0"></script>
+  <script src="js/data/timelineEvents.js?v=4.0"></script>
+  <script src="js/data/tours.js?v=4.0"></script>
+  <script src="js/data/archaeologyData.js?v=4.0"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=3.8"></script>
-  <script src="js/timelineController.js?v=3.8"></script>
-  <script src="js/uiController.js?v=3.8"></script>
-  <script src="js/satelliteExplorer.js?v=3.8"></script>
-  <script src="js/app.js?v=3.8"></script>
+  <script src="js/mapController.js?v=4.0"></script>
+  <script src="js/timelineController.js?v=4.0"></script>
+  <script src="js/uiController.js?v=4.0"></script>
+  <script src="js/satelliteExplorer.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
 </body>
 </html>

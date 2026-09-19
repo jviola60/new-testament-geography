@@ -1151,11 +1151,19 @@ class MapController {
 
     if (!hasActiveLayers) {
       legendEl.style.display = "none";
+      const chip = document.getElementById("chipLegendToggle");
+      if (chip) chip.classList.remove("active");
       return;
     }
 
     // Show the legend container
     legendEl.style.display = "block";
+    // On mobile screens, default to minimized pill so it doesn't cover up the map
+    if (window.innerWidth <= 768) {
+      legendEl.classList.add("is-minimized");
+    }
+    const chip = document.getElementById("chipLegendToggle");
+    if (chip) chip.classList.add("active");
 
     // Show only the legend items matching the active layer(s)
     const items = legendEl.querySelectorAll(".legend-item[data-layer]");

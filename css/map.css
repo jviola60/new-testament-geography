@@ -183,6 +183,40 @@
   transition: all 0.25s ease;
 }
 
+
+/* Minimized / Pill Map Legend */
+.map-legend-box.is-minimized {
+  max-height: 32px;
+  max-width: 105px;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  border-color: var(--color-gold);
+}
+
+.map-legend-box.is-minimized .legend-header {
+  padding: 4px 10px;
+  background: rgba(247, 243, 233, 0.98);
+  border-bottom: none;
+}
+
+.map-legend-box.is-minimized .legend-title {
+  font-size: 0.72rem;
+}
+
+.map-legend-box.is-minimized .legend-title::before {
+  content: "🗺️ ";
+}
+
+.map-legend-box.is-minimized .legend-collapse-btn {
+  display: none;
+}
+
+.map-legend-box.is-minimized .legend-body {
+  display: none !important;
+}
+
 .legend-header {
   display: flex;
   align-items: center;
@@ -1266,13 +1300,53 @@
     border-bottom: 1.5px solid rgba(197, 160, 89, 0.8);
   }
 
-  /* Attribution Bar: Never Obscure Map */
+  /* Attribution Bar: Unobtrusive Collapsible Badge on Mobile */
+  .leaflet-bottom.leaflet-right {
+    bottom: 6px !important;
+    right: 6px !important;
+    left: auto !important;
+    z-index: 750 !important;
+  }
+
   .leaflet-control-attribution {
     font-size: 8px !important;
-    max-width: 240px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    background: rgba(247, 243, 233, 0.88) !important;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(180, 83, 9, 0.3) !important;
+    border-radius: 12px !important;
+    padding: 2px 8px !important;
+    max-width: 32px !important;
+    max-height: 20px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
+    user-select: none;
+  }
+
+  .leaflet-control-attribution::before {
+    content: "ℹ️";
+    font-size: 9px;
+    margin-right: 4px;
+  }
+
+  .leaflet-control-attribution.is-expanded {
+    max-width: calc(100vw - 24px) !important;
+    max-height: 90px !important;
+    white-space: normal !important;
+    border-radius: 6px !important;
+    padding: 5px 9px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Compact Legend on Mobile */
+  .map-legend-box {
+    bottom: 12px !important;
+    left: 12px !important;
+    max-width: calc(100vw - 60px);
   }
 }
 

@@ -636,11 +636,20 @@
     border-color: var(--color-gold) !important;
   }
 
+  .mobile-base-text {
+    flex: 1;
+  }
+
   .base-check-mark {
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--color-crimson);
     margin-left: 0.5rem;
+    display: none;
+  }
+
+  .mobile-base-item.active .base-check-mark {
+    display: inline-block;
   }
 
   .mob-era-chip {

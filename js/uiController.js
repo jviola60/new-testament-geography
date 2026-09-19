@@ -713,13 +713,6 @@ class UIController {
 
     // Map Base Style Switcher with checkmarks
     const updateBaseStyleChecks = (activeStyle) => {
-      const checkRelief = document.getElementById("checkRelief");
-      const checkSatellite = document.getElementById("checkSatellite");
-      const checkModern = document.getElementById("checkModern");
-      if (checkRelief) checkRelief.style.display = activeStyle === "parchment" ? "inline-block" : "none";
-      if (checkSatellite) checkSatellite.style.display = (activeStyle === "satellite" || activeStyle === "modern-satellite") ? "inline-block" : "none";
-      if (checkModern) checkModern.style.display = activeStyle === "modern" ? "inline-block" : "none";
-
       document.querySelectorAll(".mobile-base-item").forEach(item => {
         item.classList.toggle("active", item.dataset.style === activeStyle);
       });

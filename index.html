@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.1">
   <link rel="stylesheet" href="css/sidebar.css?v=4.1">
   <link rel="stylesheet" href="css/components.css?v=4.1">
+  <link rel="stylesheet" href="css/mobile.css?v=4.2">
 </head>
 <body class="parchment-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
@@ -56,6 +57,15 @@
   <!-- Top Navigation Bar -->
   <header class="app-header" id="appHeader">
     <div class="header-left">
+      <!-- Mobile Menu Toggle Button (Hamburger) -->
+      <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" title="Open Atlas Navigation Menu" aria-label="Open Atlas Menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
       <div class="app-branding" id="brandLogoBtn" title="Reset view & return to Atlas Overview">
         <div class="brand-symbol">
           <svg viewBox="0 0 40 40" class="menorah-cross-icon" aria-hidden="true">
@@ -141,6 +151,16 @@
       <button id="sidebarToggleBtn" class="btn btn-outline" title="Toggle Information Panel" aria-label="Toggle drawer">
         <span id="sidebarToggleIcon">📖</span>
         <span class="btn-text" id="sidebarToggleText">Details</span>
+      </button>
+    </div>
+
+    <!-- Mobile Header Quick Actions -->
+    <div class="mobile-header-actions" id="mobileHeaderActions">
+      <button id="mobileSearchToggleBtn" class="mobile-icon-btn" title="Search places & scriptures" aria-label="Search">
+        🔍
+      </button>
+      <button id="mobileCodexToggleBtn" class="mobile-icon-btn" title="Open Scriptural Codex & Dossier" aria-label="Codex">
+        📜
       </button>
     </div>
   </header>
@@ -688,6 +708,142 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile Sheet Backdrop -->
+  <div class="mobile-sheet-backdrop" id="mobileSheetBackdrop"></div>
+
+  <!-- Mobile Navigation Drawer (Left Slide-out, matching Book of Mormon Atlas) -->
+  <aside class="mobile-nav-sheet" id="mobileNavSheet" aria-label="Mobile Navigation Menu">
+    <div class="mobile-nav-header">
+      <h3 class="mobile-nav-title">New Testament Atlas</h3>
+      <button class="mobile-nav-close" id="closeMobileNavBtn" aria-label="Close menu">&times;</button>
+    </div>
+
+    <!-- Quick Search & Landmark Access -->
+    <div class="mobile-nav-section mobile-nav-search-section">
+      <div class="mobile-nav-heading">Search &amp; Landmark Access</div>
+      <button class="mobile-menu-item mobile-menu-item-highlight" id="mobNavSearchBtn">
+        <span>🔍</span>
+        <div>
+          <div class="menu-title-bold">Search Places &amp; Scriptures</div>
+          <div class="menu-subtitle-muted">Find any city, miracle, person, scripture, or event</div>
+        </div>
+      </button>
+      <button class="mobile-menu-item" id="mobNavJumpBtn">
+        <span>📍</span>
+        <div>
+          <div class="menu-title-bold">Jump to Biblical Location</div>
+          <div class="menu-subtitle-muted">Directly center and focus any biblical city or holy site</div>
+        </div>
+      </button>
+      <button class="mobile-menu-item" id="mobNavCodexBtn">
+        <span>📜</span>
+        <div>
+          <div class="menu-title-bold">Scriptural Codex &amp; Dossier</div>
+          <div class="menu-subtitle-muted">Open archaeological, scriptural &amp; historical details</div>
+        </div>
+      </button>
+      <button class="mobile-menu-item" id="mobNavToursBtn">
+        <span>🧭</span>
+        <div>
+          <div class="menu-title-bold">Guided Scriptural Tours</div>
+          <div class="menu-subtitle-muted">Explore Savior's ministry &amp; Paul's journeys</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Scriptural Atlases Trilogy -->
+    <div class="mobile-nav-section">
+      <div class="mobile-nav-heading">Scriptural Atlases Trilogy</div>
+      <a href="https://jviola60.github.io/old-testament-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer">
+        <span>📜 Old Testament Atlas (~4000 BC – 400 BC)</span>
+        <span class="ext-link-arrow">↗</span>
+      </a>
+      <div class="mobile-atlas-link active">
+        <span>✝️ New Testament Atlas (~6 BC – 100 AD)</span>
+        <span class="pill-current">Current</span>
+      </div>
+      <a href="https://jviola60.github.io/book-of-mormon-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer">
+        <span>📖 Book of Mormon Atlas (~2200 BC – AD 421)</span>
+        <span class="ext-link-arrow">↗</span>
+      </a>
+    </div>
+
+    <!-- Map Layers & Filters -->
+    <div class="mobile-nav-section" id="mobileNavFiltersSection">
+      <div class="mobile-nav-heading">Map Layers &amp; Visibility</div>
+      <div class="mobile-nav-chips">
+        <button class="filter-chip" data-filter="all"><span class="chip-dot dot-all"></span>All Visible</button>
+        <button class="filter-chip" data-filter="savior"><span class="chip-dot dot-savior"></span>Savior's Ministry</button>
+        <button class="filter-chip" data-filter="journeys"><span class="chip-dot dot-journey"></span>Paul's Journeys</button>
+        <button class="filter-chip" data-filter="heatmaps"><span class="chip-dot dot-heatmap"></span>Growth Heatmap</button>
+        <button class="filter-chip" data-filter="churches"><span class="chip-dot dot-churches"></span>Christian Churches</button>
+        <button class="filter-chip" data-filter="diaspora"><span class="chip-dot dot-diaspora"></span>Jewish Diaspora</button>
+        <button class="filter-chip" data-filter="provinces"><span class="chip-dot dot-provinces"></span>Roman Provinces</button>
+        <button class="filter-chip" data-filter="jerusalemSites"><span class="chip-dot dot-jerusalem"></span>Jerusalem Sites</button>
+        <button class="filter-chip" data-filter="jerusalemGeography"><span class="chip-dot dot-quarters"></span>Quarters &amp; Walls</button>
+        <button class="filter-chip" data-filter="hydrography"><span class="chip-dot dot-hydrography"></span>Waters &amp; Rivers</button>
+        <button class="filter-chip" data-filter="decapolis"><span class="chip-dot dot-decapolis"></span>Decapolis League</button>
+      </div>
+      <div class="mobile-nav-filter-actions">
+        <button class="btn btn-sm btn-outline df-btn" id="mobNavResetFiltersBtn">Reset Layers</button>
+      </div>
+    </div>
+
+    <!-- Geographic Utilities & Atlas Tools -->
+    <div class="mobile-nav-section">
+      <div class="mobile-nav-heading">Geographic Utilities &amp; Styles</div>
+      <button class="mobile-menu-item" id="mobNavDistanceToolBtn">
+        <span>📏</span>
+        <span>Biblical Distances &amp; Travel Calculator</span>
+      </button>
+      <button class="mobile-menu-item" id="mobNavLegendBtn">
+        <span>🗺️</span>
+        <span>Atlas Map Legend</span>
+      </button>
+      <button class="mobile-menu-item" id="mobNavSatelliteBtn">
+        <span>🏛️</span>
+        <span>1st-Century Architectural Satellite</span>
+      </button>
+      <button class="mobile-menu-item" id="mobNavReliefBtn">
+        <span>📜</span>
+        <span>Ancient Shaded Relief Base</span>
+      </button>
+      <button class="mobile-menu-item" id="mobNavModernEarthBtn">
+        <span>🛰️</span>
+        <span>Satellite Earth Terrain</span>
+      </button>
+    </div>
+
+    <!-- Quick Region Focus -->
+    <div class="mobile-nav-section">
+      <div class="mobile-nav-heading">Quick Region Focus</div>
+      <div class="mobile-region-group">
+        <button class="mobile-menu-item mob-region-btn" data-region="holy-land">🗺️ Holy Land (All)</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="galilee">🌊 Galilee &amp; Sea of Galilee</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="jerusalem">🏛️ Jerusalem &amp; Judea</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="mediterranean">⛵ Mediterranean Basin</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="asia-minor">🏛️ Asia Minor &amp; Seven Churches</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="greece">🏛️ Greece &amp; Macedonia</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="rome">🦅 Rome &amp; Italy</button>
+        <button class="mobile-menu-item mob-region-btn" data-region="egypt">🏺 Egypt &amp; Alexandria</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Search & Landmark Picker Sheet (Full Width, never cut off) -->
+  <div class="mobile-picker-sheet" id="mobilePickerSheet" aria-label="Quick Landmark Selector">
+    <div class="mobile-sheet-header">
+      <h3 class="mobile-sheet-title" id="mobilePickerTitle">Search &amp; Jump to Location</h3>
+      <button class="close-btn" id="closeMobilePickerBtn">&times;</button>
+    </div>
+    <div class="mobile-picker-search">
+      <input type="text" id="mobilePickerSearchInput" class="mobile-picker-input" placeholder="Search city, miracle, event, scripture, or person..." autocomplete="off">
+    </div>
+    <div class="mobile-picker-list" id="mobilePickerList">
+      <!-- Injected via JS -->
     </div>
   </div>
 

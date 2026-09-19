@@ -41,6 +41,7 @@ class UIController {
     this.bindEvents();
     this.setupTours();
     this.setupDistanceTool();
+    this.setupMobileInterface();
     this.updateActiveFiltersBadge();
 
     // Mobile map-first experience: keep map visible on initial load
@@ -523,6 +524,412 @@ class UIController {
     this.initQuickJumpDropdown();
   }
 
+  // =========================================================================
+  // DEDICATED MOBILE INTERFACE (HAMBURGER DRAWER & FULL-WIDTH SEARCH SHEET)
+  // Matches Book of Mormon Atlas mobile patterns
+  // =========================================================================
+  closeAllMobileSheets() {
+    document.querySelectorAll(".mobile-nav-sheet, .mobile-picker-sheet").forEach(s => s.classList.remove("open"));
+    const backdrop = document.getElementById("mobileSheetBackdrop");
+    if (backdrop) backdrop.classList.remove("active");
+  }
+
+  openMobileSheet(sheet) {
+    this.closeAllMobileSheets();
+    if (sheet) sheet.classList.add("open");
+    const backdrop = document.getElementById("mobileSheetBackdrop");
+    if (backdrop) backdrop.classList.add("active");
+  }
+
+  setupMobileInterface() {
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileNavSheet = document.getElementById("mobileNavSheet");
+    const closeMobileNavBtn = document.getElementById("closeMobileNavBtn");
+    const mobileSheetBackdrop = document.getElementById("mobileSheetBackdrop");
+
+    const mobileSearchToggleBtn = document.getElementById("mobileSearchToggleBtn");
+    const mobileCodexToggleBtn = document.getElementById("mobileCodexToggleBtn");
+
+    const mobilePickerSheet = document.getElementById("mobilePickerSheet");
+    const closeMobilePickerBtn = document.getElementById("closeMobilePickerBtn");
+    const mobilePickerSearchInput = document.getElementById("mobilePickerSearchInput");
+
+    const mobNavSearchBtn = document.getElementById("mobNavSearchBtn");
+    const mobNavJumpBtn = document.getElementById("mobNavJumpBtn");
+    const mobNavCodexBtn = document.getElementById("mobNavCodexBtn");
+    const mobNavToursBtn = document.getElementById("mobNavToursBtn");
+
+    // Backdrop click dismisses any active sheets
+    if (mobileSheetBackdrop) {
+      mobileSheetBackdrop.addEventListener("click", () => this.closeAllMobileSheets());
+    }
+
+    // Hamburger Menu button
+    if (mobileMenuBtn && mobileNavSheet) {
+      mobileMenuBtn.addEventListener("click", () => this.openMobileSheet(mobileNavSheet));
+    }
+    if (closeMobileNavBtn) {
+      closeMobileNavBtn.addEventListener("click", () => this.closeAllMobileSheets());
+    }
+
+    // Quick open helper for mobile search picker
+    const openSearchPicker = (query = "") => {
+      this.openMobileSheet(mobilePickerSheet);
+      if (mobilePickerSearchInput) {
+        mobilePickerSearchInput.value = query;
+        setTimeout(() => mobilePickerSearchInput.focus(), 150);
+      }
+      this.renderMobilePickerList(query);
+    };
+
+    // Mobile Header Quick Action Buttons
+    if (mobileSearchToggleBtn) {
+      mobileSearchToggleBtn.addEventListener("click", () => openSearchPicker());
+    }
+    if (mobileCodexToggleBtn) {
+      mobileCodexToggleBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        this.toggleSidebar();
+      });
+    }
+
+    // Drawer internal shortcuts
+    if (mobNavSearchBtn) {
+      mobNavSearchBtn.addEventListener("click", () => openSearchPicker());
+    }
+    if (mobNavJumpBtn) {
+      mobNavJumpBtn.addEventListener("click", () => openSearchPicker());
+    }
+    if (mobNavCodexBtn) {
+      mobNavCodexBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        this.openSidebar();
+      });
+    }
+    if (mobNavToursBtn) {
+      mobNavToursBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        const toursBtn = document.getElementById("storyToursBtn");
+        if (toursBtn) toursBtn.click();
+      });
+    }
+
+    // Picker close button & search input
+    if (closeMobilePickerBtn) {
+      closeMobilePickerBtn.addEventListener("click", () => this.closeAllMobileSheets());
+    }
+    if (mobilePickerSearchInput) {
+      mobilePickerSearchInput.addEventListener("input", (e) => {
+        this.renderMobilePickerList(e.target.value);
+      });
+    }
+
+    // Synchronize layer chips inside mobile drawer
+    const drawerChips = document.querySelectorAll("#mobileNavFiltersSection .filter-chip[data-filter]");
+    drawerChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        const filterKey = chip.dataset.filter;
+        if (!filterKey) return;
+        const willBeActive = !chip.classList.contains("active");
+
+        if (filterKey === "all") {
+          const allChips = document.querySelectorAll(".filter-chip[data-filter]");
+          allChips.forEach(c => c.classList.toggle("active", willBeActive));
+          if (window.app && window.app.map) {
+            ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis"].forEach(k => {
+              window.app.map.setLayerFilter(k, willBeActive);
+            });
+          }
+        } else {
+          chip.classList.toggle("active", willBeActive);
+          const desktopChip = document.querySelector(`.layer-filter-bar .filter-chip[data-filter="${filterKey}"]`);
+          if (desktopChip) desktopChip.classList.toggle("active", willBeActive);
+
+          if (window.app && window.app.map) {
+            window.app.map.setLayerFilter(filterKey, willBeActive);
+          }
+        }
+        this.updateActiveFiltersBadge();
+      });
+    });
+
+    const resetBtn = document.getElementById("mobNavResetFiltersBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        const allChips = document.querySelectorAll(".filter-chip[data-filter]");
+        allChips.forEach(c => c.classList.add("active"));
+        if (window.app && window.app.map) {
+          ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis", "all"].forEach(k => {
+            window.app.map.setLayerFilter(k, true);
+          });
+        }
+        this.updateActiveFiltersBadge();
+      });
+    }
+
+    // Secondary tool items in drawer
+    const mobDistanceBtn = document.getElementById("mobNavDistanceToolBtn");
+    if (mobDistanceBtn) {
+      mobDistanceBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        const modal = document.getElementById("distanceCalculatorModal");
+        if (modal) modal.style.display = "flex";
+      });
+    }
+
+    const mobLegendBtn = document.getElementById("mobNavLegendBtn");
+    if (mobLegendBtn) {
+      mobLegendBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        const legendBox = document.getElementById("mapLegendBox");
+        if (legendBox) {
+          const isHidden = legendBox.style.display === "none" || !legendBox.style.display;
+          legendBox.style.display = isHidden ? "block" : "none";
+        }
+      });
+    }
+
+    const mobSatelliteBtn = document.getElementById("mobNavSatelliteBtn");
+    if (mobSatelliteBtn) {
+      mobSatelliteBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.satelliteExplorer) {
+          window.app.satelliteExplorer.open("holy-land");
+        }
+      });
+    }
+
+    const mobReliefBtn = document.getElementById("mobNavReliefBtn");
+    if (mobReliefBtn) {
+      mobReliefBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.map) {
+          window.app.map.setMapStyle("parchment");
+        }
+      });
+    }
+
+    const mobModernEarthBtn = document.getElementById("mobNavModernEarthBtn");
+    if (mobModernEarthBtn) {
+      mobModernEarthBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.map) {
+          window.app.map.setMapStyle("satellite");
+        }
+      });
+    }
+
+    // Region focus items in drawer
+    document.querySelectorAll(".mob-region-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const regionKey = btn.dataset.region;
+        this.closeAllMobileSheets();
+        if (regionKey && window.app && window.app.map) {
+          window.app.map.focusRegion(regionKey);
+        }
+      });
+    });
+  }
+
+  renderMobilePickerList(query = "") {
+    const list = document.getElementById("mobilePickerList");
+    if (!list) return;
+
+    const q = (query || "").trim().toLowerCase();
+    let results = [];
+
+    if (!q) {
+      // Default curated list when opened without a search query:
+      // Show prime New Testament holy sites, cities, and landmarks so the user can immediately jump!
+      const curatedSites = [
+        { type: "jerusalemSite", id: "garden-tomb", title: "✝️ The Garden Tomb (Resurrection)", subtitle: "Jerusalem • Golgotha / Gordon's Calvary", badge: "Tomb" },
+        { type: "jerusalemSite", id: "gethsemane", title: "🌿 Garden of Gethsemane", subtitle: "Jerusalem • Mount of Olives Slope", badge: "Sacred" },
+        { type: "jerusalemSite", id: "temple-mount", title: "🏛️ Herod's Temple (The Sanctuary)", subtitle: "Jerusalem • Mount Moriah", badge: "Temple" },
+        { type: "jerusalemSite", id: "upper-room", title: "🍷 The Upper Room (Cenacle)", subtitle: "Jerusalem • Mount Zion", badge: "Sacred" },
+        { type: "geo", id: "sea-of-galilee", title: "🌊 Sea of Galilee (Lake Kinneret)", subtitle: "Galilee • Calling Apostles & Miracles", badge: "Water" },
+        { type: "city", id: "capernaum", title: "📍 Capernaum", subtitle: "Galilee • Jesus' 'Own City' & Ministry Hub", badge: "City" },
+        { type: "city", id: "nazareth", title: "📍 Nazareth", subtitle: "Galilee • Boyhood Home & Synagogue Rejection", badge: "City" },
+        { type: "city", id: "bethlehem", title: "📍 Bethlehem of Judea", subtitle: "Judea • Birthplace of Jesus Christ", badge: "City" },
+        { type: "city", id: "jericho", title: "📍 Jericho", subtitle: "Jordan Valley • Zacchaeus & Blind Bartimaeus", badge: "City" },
+        { type: "city", id: "antioch-syria", title: "📍 Antioch of Syria", subtitle: "Syria • First Called Christians & Apostolic Base", badge: "Apostolic" },
+        { type: "city", id: "ephesus", title: "📍 Ephesus", subtitle: "Asia Minor • Temple of Diana & Paul's 3-Yr Ministry", badge: "Apostolic" },
+        { type: "city", id: "athens", title: "📍 Athens", subtitle: "Achaia (Greece) • Mars' Hill & The Unknown God", badge: "Apostolic" },
+        { type: "city", id: "rome", title: "📍 Rome", subtitle: "Italia • Imperial Capital & Paul's Martyrdom", badge: "Imperial" },
+        { type: "city", id: "patmos", title: "📜 Isle of Patmos", subtitle: "Aegean Sea • John's Exile & Book of Revelation", badge: "Revelation" },
+        { type: "savior", id: "resurrection-500", title: "✝️ Christ Appears to Over 500 Brethren", subtitle: "AD 33 • Galilee Mountain (1 Cor 15:6)", badge: "Savior" }
+      ];
+
+      results = curatedSites.map(c => {
+        let item = null;
+        if (c.type === "jerusalemSite" && typeof JERUSALEM_SITES !== "undefined") {
+          item = JERUSALEM_SITES.find(s => s.id === c.id);
+        } else if (c.type === "city") {
+          item = this.citiesList().find(s => s.id === c.id);
+        } else if (c.type === "geo") {
+          item = this.findGeoFeature(c.id);
+        } else if (c.type === "savior" && typeof SAVIOR_EVENTS !== "undefined") {
+          item = SAVIOR_EVENTS.find(s => s.id === c.id);
+        }
+        return {
+          type: c.type,
+          item: item || { id: c.id, lat: 31.78, lng: 35.23 },
+          title: c.title,
+          subtitle: c.subtitle,
+          badge: c.badge
+        };
+      });
+    } else {
+      // 1. Roman Provinces
+      if (typeof REGIONS_DATA !== "undefined" && REGIONS_DATA.regions) {
+        REGIONS_DATA.regions.forEach(region => {
+          if (
+            region.name.toLowerCase().includes(q) ||
+            (region.ancientName && region.ancientName.toLowerCase().includes(q)) ||
+            (region.capital && region.capital.toLowerCase().includes(q))
+          ) {
+            results.push({
+              type: "region",
+              item: region,
+              title: `🏛️ ${region.name}`,
+              subtitle: `Roman Province • Capital: ${region.capital}`,
+              badge: "Region"
+            });
+          }
+        });
+      }
+
+      // 2. Jerusalem Sites
+      if (typeof JERUSALEM_SITES !== "undefined") {
+        JERUSALEM_SITES.forEach(site => {
+          if (
+            site.name.toLowerCase().includes(q) ||
+            site.ancientName.toLowerCase().includes(q) ||
+            site.area.toLowerCase().includes(q) ||
+            (site.summary && site.summary.toLowerCase().includes(q)) ||
+            site.scriptures.some(s => s.ref.toLowerCase().includes(q) || s.text.toLowerCase().includes(q))
+          ) {
+            results.push({
+              type: "jerusalemSite",
+              item: site,
+              title: `${site.icon || "🏛️"} ${site.name}`,
+              subtitle: `Jerusalem • ${site.area}`,
+              badge: "Jerusalem"
+            });
+          }
+        });
+      }
+
+      // 3. Jerusalem Quarters
+      if (typeof JERUSALEM_GEOGRAPHY !== "undefined" && JERUSALEM_GEOGRAPHY.quarters) {
+        JERUSALEM_GEOGRAPHY.quarters.forEach(quarter => {
+          if (quarter.name.toLowerCase().includes(q) || quarter.ancientName.toLowerCase().includes(q)) {
+            results.push({
+              type: "jerusalemQuarter",
+              item: quarter,
+              title: `🏔️ ${quarter.name}`,
+              subtitle: `Jerusalem Topography • ${quarter.elevation}`,
+              badge: "Quarter"
+            });
+          }
+        });
+      }
+
+      // 4. Cities
+      this.citiesList().forEach(city => {
+        const isPatmos = (q.includes("pathom") || q.includes("patm")) && city.id === "patmos";
+        if (
+          city.name.toLowerCase().includes(q) ||
+          (city.ancientName && city.ancientName.toLowerCase().includes(q)) ||
+          (city.region && city.region.toLowerCase().includes(q)) ||
+          (city.significance && city.significance.toLowerCase().includes(q)) ||
+          isPatmos
+        ) {
+          const title = city.id === "patmos" ? "📜 Patmos (Isle of Patmos • John's Exile)" : `📍 ${city.name}`;
+          results.push({
+            type: "city",
+            item: city,
+            title: title,
+            subtitle: `${city.region} • ${city.ancientName || ""}`,
+            badge: "City"
+          });
+        }
+      });
+
+      // 5. Geo features
+      const geoList = (typeof GEO_FEATURES !== "undefined" && GEO_FEATURES) || window.GEO_FEATURES || [];
+      geoList.forEach(feature => {
+        if (feature.name.toLowerCase().includes(q) || (feature.ancientName && feature.ancientName.toLowerCase().includes(q))) {
+          results.push({
+            type: "geo",
+            item: feature,
+            title: `🌊 ${feature.name}`,
+            subtitle: `${feature.region || "Holy Land"} • ${feature.category || "Geography"}`,
+            badge: "Water"
+          });
+        }
+      });
+
+      // 6. Savior Events
+      if (typeof SAVIOR_EVENTS !== "undefined") {
+        SAVIOR_EVENTS.forEach(event => {
+          if (
+            event.title.toLowerCase().includes(q) ||
+            event.description.toLowerCase().includes(q) ||
+            event.locationName.toLowerCase().includes(q) ||
+            (event.scriptures && event.scriptures.some(s => s.ref.toLowerCase().includes(q) || s.text.toLowerCase().includes(q)))
+          ) {
+            results.push({
+              type: "savior",
+              item: event,
+              title: `✝️ ${event.title}`,
+              subtitle: `${event.season} • ${event.locationName}`,
+              badge: "Savior"
+            });
+          }
+        });
+      }
+
+      // 7. Missionary Journeys
+      if (typeof MISSIONARY_JOURNEYS !== "undefined") {
+        MISSIONARY_JOURNEYS.forEach(j => {
+          if (j.name.toLowerCase().includes(q) || j.description.toLowerCase().includes(q)) {
+            results.push({
+              type: "journey",
+              item: j,
+              title: `⛵ ${j.name}`,
+              subtitle: `${j.years} • ${j.companions}`,
+              badge: "Journey"
+            });
+          }
+        });
+      }
+    }
+
+    list.innerHTML = "";
+    if (results.length === 0) {
+      list.innerHTML = `<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.88rem;">No biblical locations or events found matching "${query}".</div>`;
+      return;
+    }
+
+    const maxItems = q ? 35 : results.length;
+    results.slice(0, maxItems).forEach(res => {
+      const row = document.createElement("div");
+      row.className = "mobile-picker-item";
+      row.innerHTML = `
+        <div>
+          <div class="mobile-picker-name">${res.title}</div>
+          <div class="mobile-picker-meta">${res.subtitle}</div>
+        </div>
+        <span class="mobile-picker-badge badge-${res.type}">${res.badge}</span>
+      `;
+      row.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        this.executeSearchResult(res);
+      });
+      list.appendChild(row);
+    });
+  }
+
   // Synchronize numeric badge on Filters button and any legacy badge
   updateActiveFiltersBadge() {
     const badge = document.getElementById("activeFiltersBadge");
@@ -901,6 +1308,7 @@ class UIController {
   }
 
   executeSearchResult(res) {
+    this.closeAllMobileSheets();
     if (res.type === "jerusalemSite") {
       window.app.map.flyToLocation(res.item.lat, res.item.lng, 16);
       this.showJerusalemSiteDetail(res.item);

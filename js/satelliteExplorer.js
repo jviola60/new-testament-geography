@@ -474,6 +474,14 @@ class SatelliteExplorer {
         <div class="satellite-modal-backdrop"></div>
         <div class="satellite-modal-window">
           
+          <!-- Mobile Sticky Return Bar -->
+          <div class="satellite-mobile-bar" id="satMobileBar">
+            <button id="satBackToAtlasBtn" class="sat-mobile-back-btn" type="button">
+              <span>← Back to Atlas Map</span>
+            </button>
+            <button id="satMobileCloseBtn" class="sat-mobile-close-btn" type="button" aria-label="Close satellite view">&times;</button>
+          </div>
+
           <!-- Header Bar -->
           <div class="satellite-modal-header">
             <div class="satellite-header-left">
@@ -567,6 +575,16 @@ class SatelliteExplorer {
     const closeBtn = document.getElementById("satCloseBtn");
     if (closeBtn) {
       closeBtn.addEventListener("click", () => this.close());
+    }
+
+    const satBackBtn = document.getElementById("satBackToAtlasBtn");
+    if (satBackBtn) {
+      satBackBtn.addEventListener("click", () => this.close());
+    }
+
+    const satMobCloseBtn = document.getElementById("satMobileCloseBtn");
+    if (satMobCloseBtn) {
+      satMobCloseBtn.addEventListener("click", () => this.close());
     }
 
     const backdrop = this.modal.querySelector(".satellite-modal-backdrop");

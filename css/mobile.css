@@ -511,4 +511,147 @@
     color: #155E75;
     border: 1px solid #22D3EE;
   }
+
+  /* 6. Mobile Map Legend (Positioned safely above timeline footer) */
+  #mapLegend.map-legend-box {
+    position: fixed !important;
+    bottom: calc(var(--footer-height, 98px) + 12px) !important;
+    left: 12px !important;
+    right: auto !important;
+    max-width: min(300px, calc(100vw - 24px)) !important;
+    max-height: 48vh !important;
+    z-index: 1250 !important;
+    background: rgba(253, 250, 243, 0.96) !important;
+    border: 1.5px solid var(--color-gold) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
+    overflow-y: auto !important;
+  }
+
+  /* 7. Mobile Distance Calculator Modal */
+  #distanceModal.modal-backdrop {
+    z-index: 3000 !important;
+    padding: 0.6rem !important;
+    align-items: center !important;
+  }
+
+  #distanceModal .distance-modal-card {
+    max-width: 100% !important;
+    max-height: 86vh !important;
+    border-radius: 12px !important;
+  }
+
+  #distanceModal .preset-journeys-grid {
+    grid-template-columns: 1fr !important;
+    max-height: 25vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* 8. 1st-Century Satellite Explorer on Mobile (Never lose navigation or get trapped) */
+  .satellite-modal {
+    z-index: 99999 !important;
+    padding: 0 !important;
+  }
+
+  .satellite-modal-window {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  .satellite-mobile-bar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #18110B;
+    border-bottom: 2px solid #D97706;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .sat-mobile-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #B45309 0%, #D97706 100%);
+    color: #FFFDF9;
+    border: 1px solid #FDE68A;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: var(--font-serif-title);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .sat-mobile-back-btn:active {
+    transform: scale(0.96);
+  }
+
+  .sat-mobile-close-btn {
+    background: none;
+    border: none;
+    color: #E2D9CC;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .satellite-modal-header {
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+
+  .satellite-modal-title {
+    font-size: 1.05rem !important;
+  }
+
+  .satellite-modal-subtitle {
+    display: none !important;
+  }
+
+  .satellite-view-tabs {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .sat-tab {
+    font-size: 0.76rem !important;
+    padding: 4px 8px !important;
+  }
+
+  /* 9. Map Base Style Items in Drawer */
+  .mobile-base-item {
+    justify-content: space-between !important;
+    border: 1px solid transparent;
+    border-radius: 6px;
+  }
+
+  .mobile-base-item.active {
+    background: rgba(197, 160, 89, 0.22) !important;
+    border-color: var(--color-gold) !important;
+  }
+
+  .base-check-mark {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-crimson);
+    margin-left: 0.5rem;
+  }
+
+  .mob-era-chip {
+    font-size: 0.74rem !important;
+    height: 32px !important;
+    padding: 0 0.65rem !important;
+  }
 }
+
+/* Desktop hide mobile bar */
+.satellite-mobile-bar {
+  display: none;
+}
+

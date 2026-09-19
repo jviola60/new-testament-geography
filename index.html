@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="css/timeline.css?v=4.1">
   <link rel="stylesheet" href="css/sidebar.css?v=4.1">
   <link rel="stylesheet" href="css/components.css?v=4.1">
-  <link rel="stylesheet" href="css/mobile.css?v=4.2">
+  <link rel="stylesheet" href="css/mobile.css?v=4.3">
 </head>
 <body class="parchment-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
@@ -752,6 +752,13 @@
           <div class="menu-subtitle-muted">Explore Savior's ministry &amp; Paul's journeys</div>
         </div>
       </button>
+      <button class="mobile-menu-item" id="mobNavRecenterBtn">
+        <span>🎯</span>
+        <div>
+          <div class="menu-title-bold">Recenter &amp; Reset View</div>
+          <div class="menu-subtitle-muted">Return map to full Holy Land overview</div>
+        </div>
+      </button>
     </div>
 
     <!-- Scriptural Atlases Trilogy -->
@@ -771,7 +778,7 @@
       </a>
     </div>
 
-    <!-- Map Layers & Filters -->
+    <!-- Map Layers & Visibility -->
     <div class="mobile-nav-section" id="mobileNavFiltersSection">
       <div class="mobile-nav-heading">Map Layers &amp; Visibility</div>
       <div class="mobile-nav-chips">
@@ -792,29 +799,72 @@
       </div>
     </div>
 
-    <!-- Geographic Utilities & Atlas Tools -->
+    <!-- Map Base Styles (Direct Tile Switcher) -->
     <div class="mobile-nav-section">
-      <div class="mobile-nav-heading">Geographic Utilities &amp; Styles</div>
+      <div class="mobile-nav-heading">Map Base Styles</div>
+      <button class="mobile-menu-item mobile-base-item active" id="mobNavReliefBtn" data-style="parchment">
+        <span>📜</span>
+        <div style="flex: 1;">
+          <div class="menu-title-bold">Ancient Shaded Relief</div>
+          <div class="menu-subtitle-muted">Biblical parchment cartography (Default)</div>
+        </div>
+        <span class="base-check-mark" id="checkRelief">✓</span>
+      </button>
+      <button class="mobile-menu-item mobile-base-item" id="mobNavModernEarthBtn" data-style="satellite">
+        <span>🛰️</span>
+        <div style="flex: 1;">
+          <div class="menu-title-bold">Satellite Earth Terrain</div>
+          <div class="menu-subtitle-muted">Real high-resolution satellite imagery</div>
+        </div>
+        <span class="base-check-mark" id="checkSatellite" style="display:none;">✓</span>
+      </button>
+      <button class="mobile-menu-item mobile-base-item" id="mobNavModernRoadsBtn" data-style="modern">
+        <span>🗺️</span>
+        <div style="flex: 1;">
+          <div class="menu-title-bold">Modern Roads &amp; Infrastructure</div>
+          <div class="menu-subtitle-muted">Contemporary roads, cities &amp; boundaries</div>
+        </div>
+        <span class="base-check-mark" id="checkModern" style="display:none;">✓</span>
+      </button>
+    </div>
+
+    <!-- Geographic Utilities & Features -->
+    <div class="mobile-nav-section">
+      <div class="mobile-nav-heading">Geographic Utilities &amp; Features</div>
       <button class="mobile-menu-item" id="mobNavDistanceToolBtn">
         <span>📏</span>
-        <span>Biblical Distances &amp; Travel Calculator</span>
+        <div>
+          <div class="menu-title-bold">Biblical Distances &amp; Travel Calculator</div>
+          <div class="menu-subtitle-muted">Calculate Roman road miles &amp; foot travel days</div>
+        </div>
       </button>
       <button class="mobile-menu-item" id="mobNavLegendBtn">
         <span>🗺️</span>
-        <span>Atlas Map Legend</span>
+        <div>
+          <div class="menu-title-bold">Atlas Map Legend</div>
+          <div class="menu-subtitle-muted">Marker symbology, lines &amp; route keys</div>
+        </div>
       </button>
-      <button class="mobile-menu-item" id="mobNavSatelliteBtn">
+      <button class="mobile-menu-item" id="mobNavSatelliteExplorerBtn">
         <span>🏛️</span>
-        <span>1st-Century Architectural Satellite</span>
+        <div>
+          <div class="menu-title-bold">1st-Century Orbital Satellite Explorer</div>
+          <div class="menu-subtitle-muted">Open high-res reconstructed aerial view modal</div>
+        </div>
       </button>
-      <button class="mobile-menu-item" id="mobNavReliefBtn">
-        <span>📜</span>
-        <span>Ancient Shaded Relief Base</span>
-      </button>
-      <button class="mobile-menu-item" id="mobNavModernEarthBtn">
-        <span>🛰️</span>
-        <span>Satellite Earth Terrain</span>
-      </button>
+    </div>
+
+    <!-- Timeline & Biblical Eras -->
+    <div class="mobile-nav-section">
+      <div class="mobile-nav-heading">Timeline &amp; Biblical Eras</div>
+      <div class="mobile-nav-chips">
+        <button class="filter-chip mob-era-chip" data-year="0">🌟 Nativity (6 BC)</button>
+        <button class="filter-chip mob-era-chip" data-year="27">✝️ Ministry (AD 27)</button>
+        <button class="filter-chip mob-era-chip" data-year="33">🌅 Resurrection (AD 33)</button>
+        <button class="filter-chip mob-era-chip" data-year="47">⛵ Paul 1st Journey (AD 47)</button>
+        <button class="filter-chip mob-era-chip" data-year="60">🦅 Paul in Rome (AD 60)</button>
+        <button class="filter-chip mob-era-chip" data-year="95">📜 Revelation (AD 95)</button>
+      </div>
     </div>
 
     <!-- Quick Region Focus -->
@@ -867,10 +917,10 @@
   <script src="js/data/archaeologyData.js?v=4.1"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.1"></script>
-  <script src="js/timelineController.js?v=4.1"></script>
-  <script src="js/uiController.js?v=4.1"></script>
-  <script src="js/satelliteExplorer.js?v=4.1"></script>
-  <script src="js/app.js?v=4.1"></script>
+  <script src="js/mapController.js?v=4.3"></script>
+  <script src="js/timelineController.js?v=4.3"></script>
+  <script src="js/uiController.js?v=4.3"></script>
+  <script src="js/satelliteExplorer.js?v=4.3"></script>
+  <script src="js/app.js?v=4.3"></script>
 </body>
 </html>

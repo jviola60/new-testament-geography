@@ -386,6 +386,8 @@ class UIController {
       if (chipLegendToggle) chipLegendToggle.classList.toggle("active", legendBox.style.display !== "none");
     };
 
+    this.toggleLegend = toggleLegend;
+
     if (chipLegendToggle) chipLegendToggle.addEventListener("click", toggleLegend);
     if (legendToolMenuItem) {
       legendToolMenuItem.addEventListener("click", () => {
@@ -667,37 +669,61 @@ class UIController {
       });
     }
 
-    // Secondary tool items in drawer
+    // Recenter & Reset Atlas View
+    const mobNavRecenterBtn = document.getElementById("mobNavRecenterBtn");
+    if (mobNavRecenterBtn) {
+      mobNavRecenterBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.map) window.app.map.recenter();
+        this.showWelcome();
+      });
+    }
+
+    // Secondary tool items in drawer: Distance Tool
     const mobDistanceBtn = document.getElementById("mobNavDistanceToolBtn");
     if (mobDistanceBtn) {
       mobDistanceBtn.addEventListener("click", () => {
         this.closeAllMobileSheets();
-        const modal = document.getElementById("distanceCalculatorModal");
-        if (modal) modal.style.display = "flex";
+        const distBtn = document.getElementById("distanceToolBtn");
+        if (distBtn) {
+          distBtn.click();
+        } else {
+          const modal = document.getElementById("distanceModal");
+          if (modal) modal.classList.add("show");
+        }
       });
     }
 
+    // Atlas Map Legend
     const mobLegendBtn = document.getElementById("mobNavLegendBtn");
     if (mobLegendBtn) {
       mobLegendBtn.addEventListener("click", () => {
         this.closeAllMobileSheets();
-        const legendBox = document.getElementById("mapLegendBox");
-        if (legendBox) {
-          const isHidden = legendBox.style.display === "none" || !legendBox.style.display;
-          legendBox.style.display = isHidden ? "block" : "none";
+        if (this.toggleLegend) {
+          this.toggleLegend();
+        } else {
+          const legend = document.getElementById("mapLegend");
+          if (legend) {
+            const isHidden = legend.style.display === "none" || !legend.style.display;
+            legend.style.display = isHidden ? "block" : "none";
+          }
         }
       });
     }
 
-    const mobSatelliteBtn = document.getElementById("mobNavSatelliteBtn");
-    if (mobSatelliteBtn) {
-      mobSatelliteBtn.addEventListener("click", () => {
-        this.closeAllMobileSheets();
-        if (window.app && window.app.satelliteExplorer) {
-          window.app.satelliteExplorer.open("holy-land");
-        }
+    // Map Base Style Switcher with checkmarks
+    const updateBaseStyleChecks = (activeStyle) => {
+      const checkRelief = document.getElementById("checkRelief");
+      const checkSatellite = document.getElementById("checkSatellite");
+      const checkModern = document.getElementById("checkModern");
+      if (checkRelief) checkRelief.style.display = activeStyle === "parchment" ? "inline-block" : "none";
+      if (checkSatellite) checkSatellite.style.display = (activeStyle === "satellite" || activeStyle === "modern-satellite") ? "inline-block" : "none";
+      if (checkModern) checkModern.style.display = activeStyle === "modern" ? "inline-block" : "none";
+
+      document.querySelectorAll(".mobile-base-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.style === activeStyle);
       });
-    }
+    };
 
     const mobReliefBtn = document.getElementById("mobNavReliefBtn");
     if (mobReliefBtn) {
@@ -706,6 +732,7 @@ class UIController {
         if (window.app && window.app.map) {
           window.app.map.setMapStyle("parchment");
         }
+        updateBaseStyleChecks("parchment");
       });
     }
 
@@ -716,8 +743,42 @@ class UIController {
         if (window.app && window.app.map) {
           window.app.map.setMapStyle("satellite");
         }
+        updateBaseStyleChecks("satellite");
       });
     }
+
+    const mobModernRoadsBtn = document.getElementById("mobNavModernRoadsBtn");
+    if (mobModernRoadsBtn) {
+      mobModernRoadsBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.map) {
+          window.app.map.setMapStyle("modern");
+        }
+        updateBaseStyleChecks("modern");
+      });
+    }
+
+    // 1st-Century Orbital Satellite Explorer Modal
+    const mobSatExplorerBtn = document.getElementById("mobNavSatelliteExplorerBtn") || document.getElementById("mobNavSatelliteBtn");
+    if (mobSatExplorerBtn) {
+      mobSatExplorerBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.satelliteExplorer) {
+          window.app.satelliteExplorer.open("holy-land");
+        }
+      });
+    }
+
+    // Timeline Era Quick Jumps
+    document.querySelectorAll(".mob-era-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const year = parseInt(chip.dataset.year, 10);
+        this.closeAllMobileSheets();
+        if (!isNaN(year) && window.app && window.app.timeline) {
+          window.app.timeline.setYear(year);
+        }
+      });
+    });
 
     // Region focus items in drawer
     document.querySelectorAll(".mob-region-btn").forEach(btn => {

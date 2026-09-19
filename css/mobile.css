@@ -186,7 +186,7 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   .mobile-nav-sheet.open {
@@ -429,7 +429,7 @@
 
   .mobile-picker-list {
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     padding: 0.4rem 0;
     flex: 1;
   }

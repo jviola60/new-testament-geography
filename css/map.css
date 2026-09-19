@@ -16,48 +16,107 @@
   filter: none;
 }
 
+/* Leaflet Zoom Control Styling & Clear Spacing */
+.leaflet-top.leaflet-left {
+  top: 12px;
+  left: 12px;
+  z-index: 850;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid var(--border-parchment-dark) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-md) !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(247, 243, 233, 0.95) !important;
+  color: var(--text-primary) !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 16px !important;
+  transition: all 0.15s ease;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #FFFFFF !important;
+  color: var(--color-crimson) !important;
+}
+
 /* Map Overlays & Watermarks */
 .floating-era-badge {
   position: absolute;
-  top: 16px;
-  left: 20px;
+  top: 12px;
+  left: 60px;
   z-index: 800;
-  background: rgba(247, 243, 233, 0.94);
+  background: rgba(247, 243, 233, 0.95);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border: 1px solid var(--color-gold);
-  border-left: 5px solid var(--color-crimson);
+  border-left: 4px solid var(--color-crimson);
   border-radius: 8px;
-  padding: 0.75rem 1.15rem;
-  max-width: 360px;
+  padding: 0.55rem 0.9rem;
+  max-width: 340px;
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+}
+
+.era-badge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .era-tag {
   font-family: var(--font-serif-title);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--color-crimson);
   text-transform: uppercase;
-  margin-bottom: 2px;
+}
+
+.era-badge-toggle-btn {
+  background: transparent;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  color: var(--color-crimson);
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.era-badge-toggle-btn:hover {
+  background: rgba(180, 83, 9, 0.12);
+  border-color: var(--color-crimson);
 }
 
 .era-title {
   font-family: var(--font-serif-title);
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.25;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .era-desc {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 /* Floating Action Buttons on Map */
@@ -1104,5 +1163,118 @@
   font-size: 0.65rem;
   color: #9CA3AF;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVE MAP STYLES (Cleaned for Mobile Viewports <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Leaflet Controls */
+  .leaflet-top.leaflet-left {
+    top: 8px;
+    left: 8px;
+  }
+
+  .leaflet-control-zoom a {
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    font-size: 15px !important;
+  }
+
+  /* Compact Collapsible Era Badge */
+  .floating-era-badge {
+    top: 8px;
+    left: 48px;
+    right: 50px;
+    max-width: none;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+  }
+
+  .floating-era-badge .era-badge-header {
+    margin-bottom: 0;
+  }
+
+  .floating-era-badge .era-tag {
+    font-size: 0.6rem;
+  }
+
+  .floating-era-badge .era-title {
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0;
+  }
+
+  .floating-era-badge .era-desc {
+    display: none;
+    font-size: 0.74rem;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px dashed rgba(180, 83, 9, 0.25);
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .floating-era-badge.is-expanded {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .floating-era-badge.is-expanded .era-title {
+    white-space: normal;
+  }
+
+  .floating-era-badge.is-expanded .era-desc {
+    display: block;
+  }
+
+  /* Compact Map Action Buttons */
+  .map-floating-actions {
+    top: 8px;
+    right: 8px;
+    gap: 5px;
+  }
+
+  .floating-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .holy-land-btn-label {
+    font-size: 9.5px;
+    line-height: 1.05;
+  }
+
+  .jerusalem-btn-icon {
+    font-size: 13px;
+  }
+
+  /* City Labels: Crisp & Non-Cluttering on Mobile */
+  .city-label-text {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .city-label-major {
+    font-size: 11px;
+    text-decoration: none;
+    border-bottom: 1.5px solid rgba(197, 160, 89, 0.8);
+  }
+
+  /* Attribution Bar: Never Obscure Map */
+  .leaflet-control-attribution {
+    font-size: 8px !important;
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 
 

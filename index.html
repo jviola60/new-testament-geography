@@ -25,11 +25,11 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=3.1">
-  <link rel="stylesheet" href="css/map.css?v=3.1">
-  <link rel="stylesheet" href="css/timeline.css?v=3.1">
-  <link rel="stylesheet" href="css/sidebar.css?v=3.1">
-  <link rel="stylesheet" href="css/components.css?v=3.1">
+  <link rel="stylesheet" href="css/main.css?v=3.8">
+  <link rel="stylesheet" href="css/map.css?v=3.8">
+  <link rel="stylesheet" href="css/timeline.css?v=3.8">
+  <link rel="stylesheet" href="css/sidebar.css?v=3.8">
+  <link rel="stylesheet" href="css/components.css?v=3.8">
 </head>
 <body class="parchment-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
@@ -243,7 +243,10 @@
 
     <!-- Active Era Banner / Watermark (Floating on Map) -->
     <div class="floating-era-badge" id="floatingEraBadge">
-      <div class="era-tag" id="eraTag">ERA</div>
+      <div class="era-badge-header">
+        <div class="era-tag" id="eraTag">ERA</div>
+        <button class="era-badge-toggle-btn" id="eraBadgeToggleBtn" aria-label="Toggle era details" title="Collapse / expand era details">−</button>
+      </div>
       <div class="era-title" id="eraTitle">The Roman Republic to Augustus</div>
       <div class="era-desc" id="eraDesc">Herod the Great rules Judea under Roman suzerainty.</div>
     </div>
@@ -684,26 +687,26 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=3.7"></script>
-  <script src="js/data/regions.js?v=3.7"></script>
-  <script src="js/data/cities.js?v=3.7"></script>
-  <script src="js/data/jerusalemSites.js?v=3.7"></script>
-  <script src="js/data/jerusalemGeography.js?v=3.7"></script>
-  <script src="js/data/saviorEvents.js?v=3.7"></script>
-  <script src="js/data/missionaryJourneys.js?v=3.7"></script>
-  <script src="js/data/communities.js?v=3.7"></script>
-  <script src="js/data/placeDossiers.js?v=3.7"></script>
-  <script src="js/data/scriptureTranslations.js?v=3.7"></script>
-  <script src="js/data/churchVideos.js?v=3.7"></script>
-  <script src="js/data/timelineEvents.js?v=3.7"></script>
-  <script src="js/data/tours.js?v=3.7"></script>
-  <script src="js/data/archaeologyData.js?v=3.7"></script>
+  <script src="js/data/hydrography.js?v=3.8"></script>
+  <script src="js/data/regions.js?v=3.8"></script>
+  <script src="js/data/cities.js?v=3.8"></script>
+  <script src="js/data/jerusalemSites.js?v=3.8"></script>
+  <script src="js/data/jerusalemGeography.js?v=3.8"></script>
+  <script src="js/data/saviorEvents.js?v=3.8"></script>
+  <script src="js/data/missionaryJourneys.js?v=3.8"></script>
+  <script src="js/data/communities.js?v=3.8"></script>
+  <script src="js/data/placeDossiers.js?v=3.8"></script>
+  <script src="js/data/scriptureTranslations.js?v=3.8"></script>
+  <script src="js/data/churchVideos.js?v=3.8"></script>
+  <script src="js/data/timelineEvents.js?v=3.8"></script>
+  <script src="js/data/tours.js?v=3.8"></script>
+  <script src="js/data/archaeologyData.js?v=3.8"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=3.7"></script>
-  <script src="js/timelineController.js?v=3.7"></script>
-  <script src="js/uiController.js?v=3.7"></script>
-  <script src="js/satelliteExplorer.js?v=3.7"></script>
-  <script src="js/app.js?v=3.7"></script>
+  <script src="js/mapController.js?v=3.8"></script>
+  <script src="js/timelineController.js?v=3.8"></script>
+  <script src="js/uiController.js?v=3.8"></script>
+  <script src="js/satelliteExplorer.js?v=3.8"></script>
+  <script src="js/app.js?v=3.8"></script>
 </body>
 </html>

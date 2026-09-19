@@ -882,16 +882,83 @@ html, body {
   :root {
     --sidebar-width: 100vw;
   }
-  
+
+  /* Cross-Atlas Trilogy Bar: Clean & Uncut on Mobile */
+  .cross-atlas-bar {
+    height: 24px;
+    padding: 0 0.35rem;
+    font-size: 0.65rem;
+    justify-content: center;
+  }
+
+  .cross-atlas-container {
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .cross-atlas-label {
+    display: none;
+  }
+
+  .atlas-current-badge {
+    display: none;
+  }
+
+  .cross-atlas-links {
+    gap: 0.15rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .atlas-link {
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    gap: 2px;
+  }
+
+  /* App Header */
+  .app-header {
+    padding: 0.35rem 0.5rem;
+    gap: 4px;
+  }
+
+  .app-branding {
+    gap: 6px;
+  }
+
+  .brand-symbol svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .brand-title {
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+  }
+
   .brand-subtitle {
     display: none;
   }
-  
+
   .header-center {
-    max-width: 175px;
-    margin: 0 0.25rem;
+    flex: 1;
+    max-width: none;
+    margin: 0 0.2rem;
   }
-  
+
+  .search-box-wrapper input {
+    font-size: 0.76rem;
+    padding: 6px 24px 6px 26px;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .header-quick-jump-container {
+    display: none;
+  }
+
   .stat-pill {
     display: none;
   }
@@ -903,10 +970,9 @@ html, body {
   /* Touch-friendly target sizing */
   .filter-chip,
   .btn-ctrl,
-  .floating-btn,
-  .header-quick-jump-select {
-    min-height: 44px;
-    min-width: 44px;
+  .floating-btn {
+    min-height: 38px;
+    min-width: 38px;
   }
 }
 

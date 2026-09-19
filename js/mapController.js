@@ -95,6 +95,9 @@ class MapController {
       const center = this.map.getCenter();
       const isJerusalemVicinity = Math.abs(center.lat - 31.777) < 0.08 && Math.abs(center.lng - 35.234) < 0.08;
 
+      // 0. Update city label visibility based on zoom level
+      this.updateCityVisibility(zoom);
+
       // 1. Show granular Jerusalem sites only when zoomed deeply into the city (zoom >= 14)
       if (this.filterState.jerusalemSites) {
         if (zoom >= 14 && isJerusalemVicinity) {
@@ -444,11 +447,17 @@ class MapController {
   // Draw New Testament Cities & Demographic Pins
   drawCities() {
     if (!CITIES_DATA) return;
+    this.cityMarkers = [];
+
+    // Core Tier-1 imperial metropolises & primary biblical anchors (always visible at Mediterranean zoom)
+    const TIER1_IDS = new Set([
+      "jerusalem", "rome", "athens", "corinth", "ephesus", 
+      "antioch-syria", "alexandria", "damascus"
+    ]);
 
     CITIES_DATA.forEach(city => {
-
-      // Create custom HTML label
-      const isMajor = city.isMajor;
+      const isTier1 = TIER1_IDS.has(city.id);
+      const isMajor = city.isMajor || isTier1;
       const labelHtml = `<div class="city-label-text ${isMajor ? 'city-label-major' : ''}">${city.name}</div>`;
 
       const textMarker = L.marker([city.lat, city.lng], {
@@ -458,7 +467,7 @@ class MapController {
           iconSize: [80, 20],
           iconAnchor: [40, 10]
         }),
-        zIndexOffset: isMajor ? 300 : 100
+        zIndexOffset: isTier1 ? 400 : (isMajor ? 200 : 80)
       });
 
       textMarker.on("click", (e) => {
@@ -470,7 +479,35 @@ class MapController {
         this.jerusalemCityMarker = textMarker;
       }
 
-      this.layers.cities.addLayer(textMarker);
+      this.cityMarkers.push({
+        marker: textMarker,
+        city: city,
+        isTier1: isTier1,
+        isMajor: isMajor
+      });
+    });
+
+    const initialZoom = this.map ? (typeof this.map.getZoom === "function" ? this.map.getZoom() : 6) : 6;
+    this.updateCityVisibility(initialZoom);
+  }
+
+  // Cartographic tiering to prevent label clutter and collision at low zoom levels
+  updateCityVisibility(zoom = 6) {
+    if (!this.cityMarkers || !this.layers || !this.layers.cities) return;
+    this.layers.cities.clearLayers();
+
+    this.cityMarkers.forEach(item => {
+      // Zoom logic:
+      // Zoom < 6: only Tier 1 imperial metropolises (Rome, Athens, Corinth, Ephesus, Antioch, Alexandria, Jerusalem, Damascus)
+      // Zoom 6-7: Tier 1 + Major biblical regional centers (Bethlehem, Nazareth, Capernaum, Caesarea, Tarsus, Philippi, etc.)
+      // Zoom >= 8: all cities, towns, and local holy sites
+      if (zoom < 6) {
+        if (item.isTier1) this.layers.cities.addLayer(item.marker);
+      } else if (zoom < 8) {
+        if (item.isMajor) this.layers.cities.addLayer(item.marker);
+      } else {
+        this.layers.cities.addLayer(item.marker);
+      }
     });
   }
 

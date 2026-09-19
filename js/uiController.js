@@ -66,6 +66,23 @@ class UIController {
       edgeToggleBtn.addEventListener("click", () => this.toggleSidebar());
     }
 
+    // Floating Era Badge Collapse / Expand Toggle
+    const eraBadge = document.getElementById("floatingEraBadge");
+    const eraBadgeToggleBtn = document.getElementById("eraBadgeToggleBtn");
+    if (eraBadge && eraBadgeToggleBtn) {
+      const toggleEra = (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const isExp = eraBadge.classList.toggle("is-expanded");
+        eraBadgeToggleBtn.textContent = isExp ? "−" : "+";
+      };
+      eraBadgeToggleBtn.addEventListener("click", toggleEra);
+      eraBadge.addEventListener("click", (e) => {
+        if (window.innerWidth <= 768 && e.target !== eraBadgeToggleBtn) {
+          toggleEra(e);
+        }
+      });
+    }
+
     // Sidebar Tab Switching
     this.tabButtons.forEach(tab => {
       tab.addEventListener("click", () => {

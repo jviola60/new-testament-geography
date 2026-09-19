@@ -60,7 +60,7 @@ class MapController {
       zoom: 6,
       minZoom: 4,
       maxZoom: 18,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false
     });
 
@@ -1159,7 +1159,7 @@ class MapController {
     // Show the legend container
     legendEl.style.display = "block";
     // On mobile screens, default to minimized pill so it doesn't cover up the map
-    if (window.innerWidth <= 768) {
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
       legendEl.classList.add("is-minimized");
     }
     const chip = document.getElementById("chipLegendToggle");

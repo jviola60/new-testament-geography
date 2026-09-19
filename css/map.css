@@ -16,40 +16,16 @@
   filter: none;
 }
 
-/* Leaflet Zoom Control Styling & Clear Spacing */
-.leaflet-top.leaflet-left {
-  top: 12px;
-  left: 12px;
-  z-index: 850;
-}
-
+/* Hide Leaflet Zoom Buttons (Touch pinch-to-zoom & mousewheel supported) */
 .leaflet-control-zoom {
-  border: 1px solid var(--border-parchment-dark) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-md) !important;
-  overflow: hidden;
-}
-
-.leaflet-control-zoom a {
-  background: rgba(247, 243, 233, 0.95) !important;
-  color: var(--text-primary) !important;
-  width: 34px !important;
-  height: 34px !important;
-  line-height: 34px !important;
-  font-size: 16px !important;
-  transition: all 0.15s ease;
-}
-
-.leaflet-control-zoom a:hover {
-  background: #FFFFFF !important;
-  color: var(--color-crimson) !important;
+  display: none !important;
 }
 
 /* Map Overlays & Watermarks */
 .floating-era-badge {
   position: absolute;
-  top: 12px;
-  left: 60px;
+  top: 14px;
+  left: 16px;
   z-index: 800;
   background: rgba(247, 243, 233, 0.95);
   -webkit-backdrop-filter: blur(8px);
@@ -59,6 +35,10 @@
   border-radius: 8px;
   padding: 0.55rem 0.9rem;
   max-width: 340px;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  transition: all 0.25s ease;
+}
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   transition: all 0.25s ease;
@@ -1202,23 +1182,10 @@
    MOBILE RESPONSIVE MAP STYLES (Cleaned for Mobile Viewports <= 768px)
    ========================================================================== */
 @media (max-width: 768px) {
-  /* Leaflet Controls */
-  .leaflet-top.leaflet-left {
-    top: 8px;
-    left: 8px;
-  }
-
-  .leaflet-control-zoom a {
-    width: 32px !important;
-    height: 32px !important;
-    line-height: 32px !important;
-    font-size: 15px !important;
-  }
-
-  /* Compact Collapsible Era Badge */
+  /* Compact Collapsible Era Badge (No zoom buttons obstructing the left) */
   .floating-era-badge {
     top: 8px;
-    left: 48px;
+    left: 10px;
     right: 50px;
     max-width: none;
     padding: 0.35rem 0.65rem;

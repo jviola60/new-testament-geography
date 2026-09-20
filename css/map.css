@@ -1326,5 +1326,128 @@
   }
 }
 
+/* ==========================================================================
+   GUIDED TOUR INTERACTIVE STOPS & ANIMATED ACTIVE HALO
+   ========================================================================== */
+.tour-stop-marker-wrap {
+  background: transparent !important;
+  border: none !important;
+}
+
+.tour-station-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFFDF9;
+  border: 2px solid #D97706;
+  color: #991B1B;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tour-station-badge:hover {
+  transform: scale(1.2);
+  background: #FEF3C7;
+  border-color: #B45309;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+/* Active Stop Marker Pin with Pulsing Halo & Title Callout */
+.tour-active-pin-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.tour-active-pin-pulse {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.35);
+  animation: tour-halo-pulse 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes tour-halo-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.tour-active-pin-core {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #B91C1C 0%, #7F1D1D 100%);
+  border: 2.5px solid #FDE047;
+  color: #FFFDF9;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.8), 0 3px 8px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.tour-active-pin-badge {
+  margin-left: 8px;
+  background: rgba(36, 26, 19, 0.94);
+  border: 1.5px solid #F59E0B;
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.tour-badge-stop-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #FDE047;
+  text-transform: uppercase;
+}
+
+.tour-badge-stop-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFFDF9;
+  line-height: 1.2;
+}
+
+.tour-journey-polyline {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 
 

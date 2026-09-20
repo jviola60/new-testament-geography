@@ -23,7 +23,8 @@ class MapController {
       jerusalemSites: L.layerGroup(),
       jerusalemGeography: L.layerGroup(),
       firstCenturySatellite: L.layerGroup(),
-      distanceRoute: L.layerGroup()
+      distanceRoute: L.layerGroup(),
+      tour: L.layerGroup()
     };
 
     // Tile layers
@@ -88,6 +89,7 @@ class MapController {
     this.drawSaviorRoute();
     this.drawMissionaryJourneys();
     this.drawJewishDiaspora();
+    this.layers.tour.addTo(this.map);
 
     // Dynamic Zoom & Region Adaptations
     this.map.on("zoomend moveend", () => {
@@ -1257,10 +1259,155 @@ class MapController {
     });
   }
 
-  clearDistanceRoute() {
-    if (this.layers.distanceRoute) {
-      this.layers.distanceRoute.clearLayers();
+  // =========================================================================
+  // GUIDED TOUR VISUALIZATION SYSTEM
+  // Rich labeled map, interactive journey path, station badges, and pulsing active stop
+  // =========================================================================
+
+  startTourVisualization(tour, stopIndex = 0) {
+    this.clearTourVisualization();
+    if (!tour || !tour.stops || tour.stops.length === 0) return;
+
+    // 1. Ensure essential rich contextual layers are mounted so the map is never plain
+    if (!this.map.hasLayer(this.layers.cities)) this.map.addLayer(this.layers.cities);
+    if (!this.map.hasLayer(this.layers.hydrography)) this.map.addLayer(this.layers.hydrography);
+
+    if (tour.category === "apostles") {
+      if (!this.map.hasLayer(this.layers.missionaryJourneys)) this.map.addLayer(this.layers.missionaryJourneys);
+      if (!this.map.hasLayer(this.layers.churches)) this.map.addLayer(this.layers.churches);
+      if (!this.map.hasLayer(this.layers.provinces)) this.map.addLayer(this.layers.provinces);
+    } else {
+      // Savior & Resurrection tours: keep Savior routes, Jerusalem geography, and sacred sites visible
+      if (!this.map.hasLayer(this.layers.saviorRoute)) this.map.addLayer(this.layers.saviorRoute);
+      if (!this.map.hasLayer(this.layers.jerusalemGeography)) this.map.addLayer(this.layers.jerusalemGeography);
+      if (!this.map.hasLayer(this.layers.jerusalemSites)) this.map.addLayer(this.layers.jerusalemSites);
     }
+
+    // 2. Draw complete journey path connecting all stops
+    const pathCoords = tour.stops.map(s => [s.lat, s.lng]);
+    if (pathCoords.length > 1) {
+      // Glowing luminous underlay
+      const glowPolyline = L.polyline(pathCoords, {
+        color: "#FDE68A",
+        weight: 7,
+        opacity: 0.6,
+        lineCap: "round",
+        lineJoin: "round"
+      });
+      this.layers.tour.addLayer(glowPolyline);
+
+      // Main dashed journey line
+      const tourPolyline = L.polyline(pathCoords, {
+        color: "#B91C1C",
+        weight: 3.5,
+        dashArray: "7, 9",
+        opacity: 0.95,
+        lineCap: "round",
+        lineJoin: "round",
+        className: "tour-journey-polyline"
+      });
+      this.layers.tour.addLayer(tourPolyline);
+    }
+
+    // 3. Render markers for all stops with numbered badges and active pulsing pin
+    this.renderTourStopMarkers(tour, stopIndex);
+
+    // 4. Smoothly pan & zoom to initial stop
+    const initialStop = tour.stops[stopIndex];
+    if (initialStop) {
+      this.panToTourStop(initialStop.lat, initialStop.lng, initialStop.zoom || 12);
+    }
+  }
+
+  renderTourStopMarkers(tour, activeIndex) {
+    if (this.tourStopMarkers) {
+      this.tourStopMarkers.forEach(m => this.layers.tour.removeLayer(m));
+    }
+    this.tourStopMarkers = [];
+
+    tour.stops.forEach((stop, idx) => {
+      const isCurrent = (idx === activeIndex);
+      const icon = L.divIcon({
+        className: `tour-stop-marker-wrap ${isCurrent ? 'is-active-stop' : 'is-passive-stop'}`,
+        html: isCurrent ? `
+          <div class="tour-active-pin-container">
+            <div class="tour-active-pin-pulse"></div>
+            <div class="tour-active-pin-core">
+              <span class="tour-active-num">${idx + 1}</span>
+            </div>
+            <div class="tour-active-pin-badge">
+              <span class="tour-badge-stop-tag">STOP ${idx + 1} OF ${tour.stops.length}</span>
+              <span class="tour-badge-stop-title">${stop.title}</span>
+            </div>
+          </div>
+        ` : `
+          <div class="tour-station-badge" title="Stop ${idx + 1}: ${stop.title}">
+            <span class="tour-station-num">${idx + 1}</span>
+          </div>
+        `,
+        iconSize: isCurrent ? [180, 50] : [26, 26],
+        iconAnchor: isCurrent ? [90, 25] : [13, 13]
+      });
+
+      const marker = L.marker([stop.lat, stop.lng], {
+        icon: icon,
+        zIndexOffset: isCurrent ? 1500 : 900
+      });
+
+      marker.on("click", (e) => {
+        if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
+        if (window.app && window.app.ui) {
+          window.app.ui.goToTourStop(idx);
+        }
+      });
+
+      if (!isCurrent) {
+        marker.bindTooltip(`
+          <div class="custom-bible-tooltip">
+            <strong>Stop ${idx + 1}: ${stop.title}</strong><br>
+            <small style="color:#D97706;">Click to view this stop</small>
+          </div>
+        `, { direction: "top", offset: [0, -10] });
+      }
+
+      this.layers.tour.addLayer(marker);
+      this.tourStopMarkers.push(marker);
+    });
+  }
+
+  updateTourActiveStop(tour, stopIndex) {
+    if (!tour || !tour.stops || !tour.stops[stopIndex]) return;
+    this.renderTourStopMarkers(tour, stopIndex);
+    const stop = tour.stops[stopIndex];
+    this.panToTourStop(stop.lat, stop.lng, stop.zoom || 12);
+  }
+
+  panToTourStop(lat, lng, zoom = 12) {
+    // Cinematic camera travel with viewport compensation
+    let targetLat = lat;
+    let targetLng = lng;
+
+    const zoomFactor = Math.pow(2, 12 - zoom);
+
+    if (window.innerWidth <= 768) {
+      // Mobile: bottom sheet occupies ~48dvh, so offset camera south to elevate marker in upper viewport
+      targetLat = lat - (0.012 * zoomFactor);
+    } else {
+      // Desktop: sidebar occupies 310px on right, so offset camera east to position marker in open area
+      targetLng = lng + (0.015 * zoomFactor);
+    }
+
+    this.map.flyTo([targetLat, targetLng], zoom, {
+      duration: 1.8,
+      easeLinearity: 0.25
+    });
+  }
+
+  clearTourVisualization() {
+    if (this.layers.tour) {
+      this.layers.tour.clearLayers();
+    }
+    this.tourStopMarkers = [];
   }
 
   recenter() {

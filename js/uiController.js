@@ -592,7 +592,11 @@ class UIController {
     const container = document.getElementById("mobileToursBody");
     if (!container || typeof TOURS_DATA === "undefined") return;
 
-    container.innerHTML = TOURS_DATA.map(tour => `
+    const saviorTours = TOURS_DATA.filter(t => t.category === "savior");
+    const resurrectionTours = TOURS_DATA.filter(t => t.category === "resurrection");
+    const apostolicTours = TOURS_DATA.filter(t => t.category === "apostles");
+
+    const renderCard = (tour) => `
       <div class="tour-mini-card ${tour.id === 'start-here-jesus' ? 'tour-card-featured' : ''}" data-tour-id="${tour.id}">
         <div class="tour-icon">${tour.icon || '🕊️'}</div>
         <div class="tour-meta">
@@ -600,7 +604,27 @@ class UIController {
           <span class="tour-era">${tour.eraText || ''}</span>
         </div>
       </div>
-    `).join("");
+    `;
+
+    container.innerHTML = `
+      <div class="tour-group-header" style="margin-bottom:0.4rem; padding:0.3rem 0;">
+        <span class="tour-group-icon">✦</span>
+        <span class="tour-group-title" style="font-size:0.92rem;">Ministry & Life of Jesus Christ (${saviorTours.length})</span>
+      </div>
+      ${saviorTours.map(renderCard).join("")}
+
+      <div class="tour-group-header" style="margin-top:1.1rem; margin-bottom:0.4rem; padding:0.3rem 0;">
+        <span class="tour-group-icon">🌅</span>
+        <span class="tour-group-title" style="font-size:0.92rem;">The Resurrected Lord (${resurrectionTours.length})</span>
+      </div>
+      ${resurrectionTours.map(renderCard).join("")}
+
+      <div class="tour-group-header" style="margin-top:1.1rem; margin-bottom:0.4rem; padding:0.3rem 0;">
+        <span class="tour-group-icon">⛵</span>
+        <span class="tour-group-title" style="font-size:0.92rem;">Apostolic Acts & Missions (${apostolicTours.length})</span>
+      </div>
+      ${apostolicTours.map(renderCard).join("")}
+    `;
 
     container.querySelectorAll(".tour-mini-card").forEach(card => {
       card.addEventListener("click", () => {
@@ -4453,14 +4477,24 @@ class UIController {
       toursBtn.addEventListener("click", () => {
         // Populate modal with categorized tours
         if (tourModalBody) {
-          const saviorTours = TOURS_DATA.filter(t => ["start-here-jesus", "savior-life", "passion-week", "living-christ"].includes(t.id));
-          const apostolicTours = TOURS_DATA.filter(t => !["start-here-jesus", "savior-life", "passion-week", "living-christ"].includes(t.id));
+          const saviorTours = TOURS_DATA.filter(t => t.category === "savior");
+          const resurrectionTours = TOURS_DATA.filter(t => t.category === "resurrection");
+          const apostolicTours = TOURS_DATA.filter(t => t.category === "apostles");
 
           tourModalBody.innerHTML = `
-            <div class="tour-modal-group">
+            <!-- Category Filter Tabs -->
+            <div class="tour-modal-category-tabs" style="display:flex; gap:6px; margin-bottom:1.1rem; flex-wrap:wrap;">
+              <button class="btn btn-sm btn-primary tour-cat-tab active" data-cat="all" style="font-size:0.8rem; padding:4px 10px;">All Tours (15)</button>
+              <button class="btn btn-sm btn-outline tour-cat-tab" data-cat="savior" style="font-size:0.8rem; padding:4px 10px;">✦ Savior's Ministry (${saviorTours.length})</button>
+              <button class="btn btn-sm btn-outline tour-cat-tab" data-cat="resurrection" style="font-size:0.8rem; padding:4px 10px;">🌅 Resurrected Lord (${resurrectionTours.length})</button>
+              <button class="btn btn-sm btn-outline tour-cat-tab" data-cat="apostles" style="font-size:0.8rem; padding:4px 10px;">⛵ Apostolic Acts (${apostolicTours.length})</button>
+            </div>
+
+            <!-- Group 1: Ministry & Life of Jesus Christ -->
+            <div class="tour-modal-group" data-group-cat="savior">
               <div class="tour-group-header">
                 <span class="tour-group-icon">✦</span>
-                <span class="tour-group-title">Guided Tours of Jesus' Life & Ministry</span>
+                <span class="tour-group-title">Ministry, Miracles & Life of Jesus Christ</span>
               </div>
               <p class="tour-group-sub">Walk where the Savior was born, taught, healed, suffered for us, and rose again in victory.</p>
               <div class="tour-cards-grid">
@@ -4479,12 +4513,36 @@ class UIController {
               </div>
             </div>
 
-            <div class="tour-modal-group" style="margin-top: 1.25rem;">
+            <!-- Group 2: The Resurrected Lord & Holy Appearances -->
+            <div class="tour-modal-group" data-group-cat="resurrection" style="margin-top: 1.35rem;">
+              <div class="tour-group-header">
+                <span class="tour-group-icon">🌅</span>
+                <span class="tour-group-title">The Resurrected Lord & Holy Appearances</span>
+              </div>
+              <p class="tour-group-sub">Witness testimonies of the Living Christ: the empty tomb, Emmaus, the upper room, and the shores of Galilee.</p>
+              <div class="tour-cards-grid">
+                ${resurrectionTours.map(tour => `
+                  <div class="tour-select-card" data-tour-id="${tour.id}">
+                    <div class="tour-card-icon">${tour.icon}</div>
+                    <div class="tour-card-body">
+                      <span class="tour-card-title">${tour.title}</span>
+                      <span class="tour-card-desc">${tour.description}</span>
+                      <div class="tour-card-footer">
+                        <span>${tour.eraText}</span> • <span>Click to Begin</span>
+                      </div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <!-- Group 3: Apostolic Acts & Spreading the Gospel -->
+            <div class="tour-modal-group" data-group-cat="apostles" style="margin-top: 1.35rem;">
               <div class="tour-group-header">
                 <span class="tour-group-icon">⛵</span>
-                <span class="tour-group-title">Apostolic Missions & Early Church</span>
+                <span class="tour-group-title">Apostolic Acts & Spreading the Gospel</span>
               </div>
-              <p class="tour-group-sub">Follow the Apostles bearing witness of the Risen Christ across the Mediterranean world.</p>
+              <p class="tour-group-sub">Follow Peter, Paul, and the early Apostles bearing witness across Judea, Samaria, and the Roman Empire.</p>
               <div class="tour-cards-grid">
                 ${apostolicTours.map(tour => `
                   <div class="tour-select-card" data-tour-id="${tour.id}">
@@ -4501,6 +4559,28 @@ class UIController {
               </div>
             </div>
           `;
+
+          // Category filter tabs interaction
+          const catTabs = tourModalBody.querySelectorAll(".tour-cat-tab");
+          const groups = tourModalBody.querySelectorAll(".tour-modal-group");
+          catTabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+              catTabs.forEach(t => {
+                t.classList.remove("active", "btn-primary");
+                t.classList.add("btn-outline");
+              });
+              tab.classList.add("active", "btn-primary");
+              tab.classList.remove("btn-outline");
+              const cat = tab.dataset.cat;
+              groups.forEach(g => {
+                if (cat === "all" || g.dataset.groupCat === cat) {
+                  g.style.display = "flex";
+                } else {
+                  g.style.display = "none";
+                }
+              });
+            });
+          });
 
           tourModalBody.querySelectorAll(".tour-select-card").forEach(c => {
             c.addEventListener("click", () => {
@@ -4570,6 +4650,11 @@ class UIController {
       stepperBar.style.display = "flex";
     }
 
+    // Initialize map route and stop markers
+    if (window.app && window.app.map) {
+      window.app.map.startTourVisualization(tour, 0);
+    }
+
     this.goToTourStop(0);
   }
 
@@ -4597,9 +4682,9 @@ class UIController {
       window.app.timeline.setYear(stop.year);
     }
 
-    // Fly camera smoothly
+    // Smoothly pan camera & update active stop on map
     if (window.app && window.app.map) {
-      window.app.map.flyToLocation(stop.lat, stop.lng, stop.zoom || 12);
+      window.app.map.updateTourActiveStop(this.activeTour, index);
     }
 
     // Render dedicated Tour Stop in the Detail Sidebar / Bottom Sheet
@@ -4632,6 +4717,16 @@ class UIController {
     // Context from associated event or site
     let extraContextHtml = "";
     let eventRef = "";
+
+    if (stop.scriptureRef) {
+      eventRef += `
+        <a href="${this.getChurchScriptureLink(stop.scriptureRef)}" target="_blank" rel="noopener" class="church-scripture-btn" style="margin-top:4px;">
+          <span>📖 Read ${stop.scriptureRef} (KJV)</span>
+          <span class="btn-arrow">↗</span>
+        </a>
+      `;
+    }
+
     if (stop.eventId && typeof TIMELINE_EVENTS !== "undefined") {
       const event = TIMELINE_EVENTS.find(e => e.id === stop.eventId);
       if (event) {
@@ -4644,12 +4739,17 @@ class UIController {
           `;
         }
         if (event.scriptures && event.scriptures.length) {
-          eventRef = event.scriptures.map(s => `
-            <a href="${this.getChurchScriptureLink(s.ref || s)}" target="_blank" rel="noopener" class="church-scripture-btn" style="margin-top:4px;">
-              <span>📖 Read ${s.ref || s} (KJV)</span>
-              <span class="btn-arrow">↗</span>
-            </a>
-          `).join("");
+          event.scriptures.forEach(s => {
+            const refStr = s.ref || s;
+            if (!eventRef.includes(refStr)) {
+              eventRef += `
+                <a href="${this.getChurchScriptureLink(refStr)}" target="_blank" rel="noopener" class="church-scripture-btn" style="margin-top:4px;">
+                  <span>📖 Read ${refStr} (KJV)</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+              `;
+            }
+          });
         }
       }
     }
@@ -4698,6 +4798,9 @@ class UIController {
     const stepperBar = document.getElementById("tourStepperBar");
     if (stepperBar) {
       stepperBar.style.display = "none";
+    }
+    if (window.app && window.app.map) {
+      window.app.map.clearTourVisualization();
     }
     this.showWelcome();
     if (window.innerWidth <= 768 && this.sidebar) {

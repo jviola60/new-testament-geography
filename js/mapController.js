@@ -52,6 +52,8 @@ class MapController {
 
     this.currentYear = -6;
     this.activeHighlightMarker = null;
+    this.isTourActive = false;
+    this.activeTourObj = null;
   }
 
   init(containerId = "map") {
@@ -67,7 +69,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri Shaded, Imagery & OSM')
+      .addAttribution('New Testament Atlas • Cartography: CartoDB Voyager, Esri & OSM')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -99,6 +101,9 @@ class MapController {
 
       // 0. Update city label visibility based on zoom level
       this.updateCityVisibility(zoom);
+
+      // If a Guided Tour is active, preserve all tour stops and surrounding contextual layers
+      if (this.isTourActive) return;
 
       // 1. Show granular Jerusalem sites only when zoomed deeply into the city (zoom >= 14)
       if (this.filterState.jerusalemSites) {
@@ -156,14 +161,15 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Clean Ancient Shaded Relief (Default: pure historical terrain without modern street names or city labels)
+    // 1. CartoDB Voyager: Rich warm parchment historical cartography with physical terrain, mountain relief, water bodies, and crisp geographic labels at all zoom levels (z 1-19)
     this.tileLayers.parchment = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
+      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
       {
-        maxNativeZoom: 13,
-        maxZoom: 18,
-        opacity: 0.95,
-        attribution: "Cartography &copy; Esri World Shaded Relief"
+        subdomains: "abcd",
+        maxNativeZoom: 19,
+        maxZoom: 19,
+        opacity: 1.0,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       }
     );
 
@@ -1014,16 +1020,49 @@ class MapController {
       }
     }
 
-    // 4. Update UI Stat counters
-    if (document.getElementById("statEventsCount")) {
-      document.getElementById("statEventsCount").textContent = visibleEventsCount;
+    // 4. Update UI Stat counters with real, accurate data
+    this.updateStatCounters(year);
+  }
+
+  // Calculate and update Atlas Stat Counters with real, accurate data from atlas content
+  updateStatCounters(year = this.currentYear) {
+    const elEvents = document.getElementById("statEventsCount");
+    const elChurches = document.getElementById("statChurchesCount");
+    const elDiaspora = document.getElementById("statDiasporaCount");
+    if (!elEvents && !elChurches && !elDiaspora) return;
+
+    // 1. Events count: If guided tour is active, show tour stops; otherwise chronological events up to current year
+    let eventsVal = 0;
+    if (this.isTourActive && this.activeTourObj && this.activeTourObj.stops) {
+      eventsVal = this.activeTourObj.stops.length;
+    } else {
+      const allEvents = (typeof TIMELINE_EVENTS !== "undefined" && TIMELINE_EVENTS.length > 0)
+        ? TIMELINE_EVENTS
+        : (typeof SAVIOR_EVENTS !== "undefined" ? SAVIOR_EVENTS : []);
+      const pastEvents = allEvents.filter(e => e.year <= year);
+      eventsVal = Math.max(1, pastEvents.length);
     }
-    if (document.getElementById("statChurchesCount")) {
-      document.getElementById("statChurchesCount").textContent = this.filterState.churches ? activeChurchesCount : 0;
+
+    // 2. Churches count: Dynamically multiplies from Jerusalem seed (1) up to 17 churches across the Roman Empire
+    let churchesVal = 0;
+    if (typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.churchesMultiplication) {
+      if (year >= 30) {
+        churchesVal = COMMUNITIES_DATA.churchesMultiplication.filter(c => c.foundedYear <= year).length;
+      } else {
+        // Nascent Gospel seed in Jerusalem prior to Pentecost (~30 AD)
+        churchesVal = 1;
+      }
     }
-    if (document.getElementById("statDiasporaCount")) {
-      document.getElementById("statDiasporaCount").textContent = this.filterState.diaspora && typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.diasporaSettlements ? COMMUNITIES_DATA.diasporaSettlements.length : 0;
+
+    // 3. Diaspora Hubs count: 9 well-documented permanent Jewish settlements across the Mediterranean
+    let diasporaVal = 0;
+    if (typeof COMMUNITIES_DATA !== "undefined" && COMMUNITIES_DATA.diasporaSettlements) {
+      diasporaVal = COMMUNITIES_DATA.diasporaSettlements.length;
     }
+
+    if (elEvents) elEvents.textContent = String(eventsVal);
+    if (elChurches) elChurches.textContent = String(churchesVal);
+    if (elDiaspora) elDiaspora.textContent = String(diasporaVal);
   }
 
   // Filter Layer Visibility by Toggle
@@ -1268,7 +1307,13 @@ class MapController {
     this.clearTourVisualization();
     if (!tour || !tour.stops || tour.stops.length === 0) return;
 
-    // 1. Ensure essential rich contextual layers are mounted so the map is never plain
+    this.isTourActive = true;
+    this.activeTourObj = tour;
+
+    // 1. Ensure the rich basemap and foundational geographic layers are present so the map is never plain
+    if (this.currentTheme === "parchment" && !this.map.hasLayer(this.tileLayers.parchment)) {
+      this.tileLayers.parchment.addTo(this.map);
+    }
     if (!this.map.hasLayer(this.layers.cities)) this.map.addLayer(this.layers.cities);
     if (!this.map.hasLayer(this.layers.hydrography)) this.map.addLayer(this.layers.hydrography);
 
@@ -1317,6 +1362,9 @@ class MapController {
     if (initialStop) {
       this.panToTourStop(initialStop.lat, initialStop.lng, initialStop.zoom || 12);
     }
+
+    // 5. Update stat counters to reflect active tour stop count
+    this.updateStatCounters(initialStop ? initialStop.year : this.currentYear);
   }
 
   renderTourStopMarkers(tour, activeIndex) {
@@ -1351,7 +1399,7 @@ class MapController {
 
       const marker = L.marker([stop.lat, stop.lng], {
         icon: icon,
-        zIndexOffset: isCurrent ? 1500 : 900
+        zIndexOffset: isCurrent ? 2000 : 900
       });
 
       marker.on("click", (e) => {
@@ -1383,6 +1431,10 @@ class MapController {
   }
 
   panToTourStop(lat, lng, zoom = 12) {
+    if (!this.map) return;
+    // Halt any active animation so transitions are always smooth and sequential
+    this.map.stop();
+
     // Cinematic camera travel with viewport compensation
     let targetLat = lat;
     let targetLng = lng;
@@ -1390,24 +1442,28 @@ class MapController {
     const zoomFactor = Math.pow(2, 12 - zoom);
 
     if (window.innerWidth <= 768) {
-      // Mobile: bottom sheet occupies ~48dvh, so offset camera south to elevate marker in upper viewport
-      targetLat = lat - (0.012 * zoomFactor);
+      // Mobile: bottom sheet occupies partial height, offset south so stop marker stays visible in upper viewport
+      targetLat = lat - (0.014 * zoomFactor);
     } else {
-      // Desktop: sidebar occupies 310px on right, so offset camera east to position marker in open area
+      // Desktop: sidebar occupies 310px on right, offset east to position marker in open area
       targetLng = lng + (0.015 * zoomFactor);
     }
 
     this.map.flyTo([targetLat, targetLng], zoom, {
-      duration: 1.8,
+      animate: true,
+      duration: 2.0,
       easeLinearity: 0.25
     });
   }
 
   clearTourVisualization() {
+    this.isTourActive = false;
+    this.activeTourObj = null;
     if (this.layers.tour) {
       this.layers.tour.clearLayers();
     }
     this.tourStopMarkers = [];
+    this.updateStatCounters(this.currentYear);
   }
 
   recenter() {

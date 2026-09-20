@@ -1356,6 +1356,17 @@
     transform: translateY(100%);
   }
 
+  /* Partial-Height Bottom Sheet during Guided Tours (Keeps substantial map visible at all times) */
+  body.tour-is-active .detail-sidebar {
+    max-height: 46vh !important;
+    height: 46vh !important;
+    overflow-y: hidden;
+  }
+
+  body.tour-is-active .detail-sidebar .sidebar-content {
+    padding: 0.65rem 0.95rem;
+  }
+
   .sidebar-header {
     padding: 0.8rem 1rem;
     border-radius: 16px 16px 0 0;

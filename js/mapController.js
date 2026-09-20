@@ -69,7 +69,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: CartoDB Voyager, Esri & OSM')
+      .addAttribution('New Testament Atlas • Cartography: Esri Topo, Imagery & OSM')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -161,15 +161,14 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. CartoDB Voyager: Rich warm parchment historical cartography with physical terrain, mountain relief, water bodies, and crisp geographic labels at all zoom levels (z 1-19)
+    // 1. Esri World Topographic Map: Rich parchment physical cartography with mountain relief, contours, water bodies, and geographic labels at all zoom levels (z 1-19). Free, open, no API key required!
     this.tileLayers.parchment = L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
       {
-        subdomains: "abcd",
         maxNativeZoom: 19,
         maxZoom: 19,
-        opacity: 1.0,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        opacity: 0.95,
+        attribution: "Cartography &copy; Esri World Topo, USGS, FAO, NPS, NRCAN"
       }
     );
 

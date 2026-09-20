@@ -113,10 +113,10 @@ vm.runInThisContext(mapControllerCode);
 const mapCtrl = new MapController();
 mapCtrl.init("map");
 
-// 1. Verify Parchment Tile Layer is CartoDB Voyager
-assert(mapCtrl.tileLayers.parchment.url.includes("cartocdn.com/rastertiles/voyager"), "Parchment basemap must be CartoDB Voyager");
-assert.strictEqual(mapCtrl.tileLayers.parchment.opts.maxNativeZoom, 19, "Voyager must support maxNativeZoom 19");
-console.log("✓ Parchment basemap is configured to CartoDB Voyager with maxNativeZoom 19.");
+// 1. Verify Parchment Tile Layer is Esri World Topo Map (No API key, No watermark, Zoom 1-19)
+assert(mapCtrl.tileLayers.parchment.url.includes("server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map"), "Parchment basemap must be Esri World Topo Map");
+assert.strictEqual(mapCtrl.tileLayers.parchment.opts.maxNativeZoom, 19, "Esri Topo must support maxNativeZoom 19");
+console.log("✓ Parchment basemap is configured to Esri World Topo Map with maxNativeZoom 19 (Zero API key / zero watermark).");
 
 // 2. Verify Initial Stat Counters (-6 BC)
 console.log(`Initial stats: Events=${domElements.statEventsCount.textContent}, Churches=${domElements.statChurchesCount.textContent}, Diaspora=${domElements.statDiasporaCount.textContent}`);

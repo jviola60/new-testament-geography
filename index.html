@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>New Testament Geography - Interactive Atlas (~6 BC – 100 AD)</title>
   <meta name="description" content="An interactive cartographic atlas of the New Testament world spanning 6 BC to 100 AD. Explore the life and ministry of Jesus Christ, Paul's missionary journeys, Jewish diaspora communities, and the exponential growth of early Christian churches across the Roman Empire.">
   <meta name="keywords" content="New Testament Geography, Bible Atlas, Life of Jesus Christ, Paul's Missionary Journeys, Holy Land Map, Early Christian Church, Jewish Diaspora, Roman Empire">
@@ -25,12 +25,35 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=4.1">
-  <link rel="stylesheet" href="css/map.css?v=4.1">
-  <link rel="stylesheet" href="css/timeline.css?v=4.1">
-  <link rel="stylesheet" href="css/sidebar.css?v=4.1">
-  <link rel="stylesheet" href="css/components.css?v=4.1">
-  <link rel="stylesheet" href="css/mobile.css?v=4.3">
+  <link rel="stylesheet" href="css/main.css?v=5.0">
+  <link rel="stylesheet" href="css/map.css?v=5.0">
+  <link rel="stylesheet" href="css/timeline.css?v=5.0">
+  <link rel="stylesheet" href="css/sidebar.css?v=5.0">
+  <link rel="stylesheet" href="css/components.css?v=5.0">
+  <link rel="stylesheet" href="css/mobile.css?v=5.0">
+
+  <!-- Mobile Viewport & Phone Shell Detection (Map-First) -->
+  <script>
+    (function () {
+      var phone = window.matchMedia("(max-width: 768px)").matches || /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+      document.documentElement.classList.toggle("layout-mobile", phone);
+      if (phone) {
+        var vv = window.visualViewport;
+        var h = Math.round((vv && vv.height) || window.innerHeight);
+        if (h) document.documentElement.style.setProperty("--app-vh", h + "px");
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        document.body.classList.toggle("layout-mobile", phone);
+        if (phone) {
+          var sidebar = document.getElementById("detailSidebar");
+          if (sidebar) {
+            sidebar.classList.add("peek");
+            sidebar.classList.remove("closed");
+          }
+        }
+      });
+    })();
+  </script>
 </head>
 <body class="parchment-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
@@ -38,7 +61,7 @@
     <div class="cross-atlas-container">
       <span class="cross-atlas-label">Scriptural Atlases:</span>
       <div class="cross-atlas-links">
-        <a href="https://jviola60.github.io/old-testament-geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
+        <a href="https://www.interactivebibleatlas.xyz/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
           <span>📜 Old Testament Atlas</span>
           <span class="atlas-ext-arrow">↗</span>
         </a>
@@ -182,9 +205,6 @@
         <button class="filter-chip" data-filter="heatmaps" id="chipHeatmaps" title="Radiant Christian Growth Heatmap">
           <span class="chip-dot dot-heatmap"></span>Growth Heatmap
         </button>
-        <button class="filter-chip filter-chip-legend" id="chipLegendToggle" title="Show / hide the Atlas Map Legend">
-          <span>🗺️ Legend</span>
-        </button>
         <button class="filter-chip filter-chip-toggle" id="toggleFiltersPanelBtn" title="Open full atlas layers & filters drawer" aria-expanded="false">
           <span>⚙️ Filters</span>
           <span class="active-filters-badge" id="activeFiltersBadge">0</span>
@@ -242,13 +262,19 @@
         </div>
 
         <div class="df-section">
-          <span class="df-section-title">Empire & Diaspora:</span>
+          <span class="df-section-title">Empire, Diaspora & Waters:</span>
           <div class="df-chips">
             <button class="filter-chip" data-filter="diaspora" title="Jewish Synagogues and Diaspora Communities">
               <span class="chip-dot dot-diaspora"></span>Jewish Diaspora
             </button>
             <button class="filter-chip" data-filter="provinces" title="Roman Imperial and Senatorial Provincial Boundaries">
               <span class="chip-dot dot-provinces"></span>Roman Provinces
+            </button>
+            <button class="filter-chip" data-filter="decapolis" title="The Decapolis League of Ten Hellenistic Cities">
+              <span class="chip-dot dot-decapolis"></span>Decapolis League
+            </button>
+            <button class="filter-chip" data-filter="hydrography" title="Sacred Rivers, Seas, and Waterways">
+              <span class="chip-dot dot-hydrography"></span>Waters & Rivers
             </button>
             <button class="filter-chip" data-filter="all" title="Toggle all foundational layers">
               <span class="chip-dot dot-all"></span>All Visible
@@ -257,6 +283,9 @@
         </div>
 
         <div class="df-actions">
+          <button id="chipLegendToggle" class="btn btn-outline btn-sm" title="Toggle Atlas Map Legend">
+            <span>🗺️ Map Legend</span>
+          </button>
           <button id="clearAllFiltersBtn" class="btn btn-outline btn-sm">Reset Layers</button>
           <button id="closeFiltersPanelBtn" class="btn btn-primary btn-sm">Done</button>
         </div>
@@ -764,15 +793,15 @@
     <!-- Scriptural Atlases Trilogy -->
     <div class="mobile-nav-section">
       <div class="mobile-nav-heading">Scriptural Atlases Trilogy</div>
-      <a href="https://jviola60.github.io/old-testament-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer">
+      <a href="https://www.interactivebibleatlas.xyz/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
         <span>📜 Old Testament Atlas (~4000 BC – 400 BC)</span>
         <span class="ext-link-arrow">↗</span>
       </a>
-      <div class="mobile-atlas-link active">
+      <div class="mobile-atlas-link active" title="Currently viewing New Testament Geography">
         <span>✝️ New Testament Atlas (~6 BC – 100 AD)</span>
         <span class="pill-current">Current</span>
       </div>
-      <a href="https://jviola60.github.io/book-of-mormon-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer">
+      <a href="https://jviola60.github.io/book-of-mormon-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Book of Mormon Geography (~2200 BC – AD 421)">
         <span>📖 Book of Mormon Atlas (~2200 BC – AD 421)</span>
         <span class="ext-link-arrow">↗</span>
       </a>
@@ -883,8 +912,9 @@
     </div>
   </aside>
 
-  <!-- Mobile Search & Landmark Picker Sheet (Full Width, never cut off) -->
+  <!-- Mobile Search & Landmark Picker Sheet (Partial-height 48–50dvh, map-first) -->
   <div class="mobile-picker-sheet" id="mobilePickerSheet" aria-label="Quick Landmark Selector">
+    <div class="mobile-drag-handle" id="mobilePickerDragHandle" aria-hidden="true"><span class="drag-pill"></span></div>
     <div class="mobile-sheet-header">
       <h3 class="mobile-sheet-title" id="mobilePickerTitle">Search &amp; Jump to Location</h3>
       <button class="close-btn" id="closeMobilePickerBtn">&times;</button>
@@ -896,6 +926,80 @@
       <!-- Injected via JS -->
     </div>
   </div>
+
+  <!-- Mobile Filter Bottom Sheet (Partial-height 48–50dvh, map-first) -->
+  <div class="mobile-filter-sheet" id="mobileFiltersSheet" aria-label="Mobile Filter Options">
+    <div class="mobile-drag-handle" id="mobileFiltersDragHandle" aria-hidden="true"><span class="drag-pill"></span></div>
+    <div class="mobile-sheet-header">
+      <h3 class="mobile-sheet-title">Filter Map Layers</h3>
+      <button class="close-btn" id="closeMobileFiltersBtn">&times;</button>
+    </div>
+    <div class="mobile-sheet-body">
+      <div class="mobile-filter-section-title">Primary Focus</div>
+      <div class="mobile-chips-grid">
+        <button class="filter-chip" data-filter="all"><span class="chip-dot dot-all"></span>All Visible</button>
+        <button class="filter-chip" data-filter="savior"><span class="chip-dot dot-savior"></span>Savior's Ministry</button>
+        <button class="filter-chip" data-filter="journeys"><span class="chip-dot dot-journey"></span>Paul's Journeys</button>
+        <button class="filter-chip" data-filter="heatmaps"><span class="chip-dot dot-heatmap"></span>Growth Heatmap</button>
+      </div>
+
+      <div class="mobile-filter-section-title">Jerusalem &amp; Holy Land</div>
+      <div class="mobile-chips-grid">
+        <button class="filter-chip" data-filter="jerusalemSites"><span class="chip-dot dot-jerusalem"></span>Jerusalem Landmarks</button>
+        <button class="filter-chip" data-filter="jerusalemGeography"><span class="chip-dot dot-quarters"></span>Quarters &amp; Walls</button>
+        <button class="filter-chip" data-filter="hydrography"><span class="chip-dot dot-hydrography"></span>Waters &amp; Rivers</button>
+        <button class="filter-chip" data-filter="decapolis"><span class="chip-dot dot-decapolis"></span>Decapolis League</button>
+      </div>
+
+      <div class="mobile-filter-section-title">Early Church &amp; Empire</div>
+      <div class="mobile-chips-grid">
+        <button class="filter-chip" data-filter="churches"><span class="chip-dot dot-churches"></span>Christian Churches</button>
+        <button class="filter-chip" data-filter="diaspora"><span class="chip-dot dot-diaspora"></span>Jewish Diaspora</button>
+        <button class="filter-chip" data-filter="provinces"><span class="chip-dot dot-provinces"></span>Roman Provinces</button>
+      </div>
+
+      <div class="mobile-filter-actions">
+        <button class="btn btn-outline btn-sm" id="mobFiltersResetBtn">Reset All</button>
+        <button class="btn btn-primary btn-sm" id="mobFiltersDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Guided Tours Bottom Sheet (Partial-height 48–50dvh, map-first) -->
+  <div class="mobile-tours-sheet" id="mobileToursSheet" aria-label="Mobile Guided Tours">
+    <div class="mobile-drag-handle" id="mobileToursDragHandle" aria-hidden="true"><span class="drag-pill"></span></div>
+    <div class="mobile-sheet-header">
+      <h3 class="mobile-sheet-title">Guided Scriptural Tours</h3>
+      <button class="close-btn" id="closeMobileToursBtn">&times;</button>
+    </div>
+    <div class="mobile-sheet-body" id="mobileToursBody">
+      <!-- Tour mini-cards dynamically injected / synced from TOURS_DATA -->
+    </div>
+  </div>
+
+  <!-- Mobile Thumb-Friendly Bottom Navigation Bar (52px, Pinned) -->
+  <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="Mobile Navigation Bar">
+    <button class="mobile-bottom-btn" id="mobBottomSearchBtn" type="button" aria-label="Search Places">
+      <span class="mobile-bottom-icon">🔍</span>
+      <span>Search</span>
+    </button>
+    <button class="mobile-bottom-btn" id="mobBottomJumpBtn" type="button" aria-label="Jump to Landmark">
+      <span class="mobile-bottom-icon">📍</span>
+      <span>Jump</span>
+    </button>
+    <button class="mobile-bottom-btn" id="mobBottomToursBtn" type="button" aria-label="Guided Tours">
+      <span class="mobile-bottom-icon">🧭</span>
+      <span>Tours</span>
+    </button>
+    <button class="mobile-bottom-btn" id="mobBottomFiltersBtn" type="button" aria-label="Filter Map Layers">
+      <span class="mobile-bottom-icon">⚙️</span>
+      <span>Filters</span>
+    </button>
+    <button class="mobile-bottom-btn" id="mobBottomDetailsBtn" type="button" aria-label="Scriptural Details">
+      <span class="mobile-bottom-icon">📜</span>
+      <span>Details</span>
+    </button>
+  </nav>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

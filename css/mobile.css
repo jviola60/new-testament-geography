@@ -7,11 +7,15 @@
 /* --------------------------------------------------------------------------
    Desktop Defaults: Mobile elements hidden
    -------------------------------------------------------------------------- */
+.mobile-bottom-bar,
 .mobile-nav-sheet,
+.mobile-filter-sheet,
+.mobile-tours-sheet,
 .mobile-picker-sheet,
 .mobile-sheet-backdrop,
 .mobile-menu-btn,
-.mobile-header-actions {
+.mobile-header-actions,
+.mobile-drag-handle {
   display: none;
 }
 
@@ -22,6 +26,43 @@
   :root {
     --header-height: 50px;
     --filterbar-height: 0px;
+    --mobile-nav-height: 52px;
+    --footer-height: 98px;
+    --sidebar-width: 100vw;
+    --tap-min: 44px;
+  }
+
+  html, body {
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .app-container {
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Main Map Viewport on Mobile: Ensure map has primary view */
+  .app-main-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    height: calc(100dvh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height));
+    background: #FAF5EB;
+  }
+
+  .map-viewport {
+    width: 100%;
+    height: 100%;
+    background: #FAF5EB;
   }
 
   /* 1. Hide desktop elements on phone */
@@ -154,14 +195,14 @@
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(20, 15, 10, 0.65);
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-    z-index: 2500;
+    bottom: var(--mobile-nav-height, 52px);
+    background: rgba(20, 15, 10, 0.28);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    z-index: 2190;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.2s ease;
     display: block;
   }
 
@@ -361,27 +402,303 @@
     gap: 2px;
   }
 
-  /* 5. Full-Width Mobile Picker Sheet (Search & Jump) */
-  .mobile-picker-sheet {
+  /* --------------------------------------------------------------------------
+     Mobile Detail Sidebar -> Collapsible Bottom Sheet (Map First: max 50dvh)
+     -------------------------------------------------------------------------- */
+  .detail-sidebar {
+    position: fixed !important;
+    top: auto !important;
+    bottom: var(--mobile-nav-height, 52px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 48dvh;
+    max-height: 50dvh !important;
+    background: #FFFDF9;
+    border-top: 2px solid var(--color-gold);
+    border-left: none !important;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+    z-index: 2200;
+    transform: translateY(calc(100% - 44px)); /* Thin bottom sheet peek: 44px drag handle / header visible */
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .detail-sidebar.closed {
+    transform: translateY(115%) !important;
+  }
+
+  .detail-sidebar.peek {
+    transform: translateY(calc(100% - 44px)) !important;
+  }
+
+  .detail-sidebar:not(.closed):not(.peek) {
+    transform: translateY(0) !important;
+    height: 48dvh;
+    max-height: 50dvh !important;
+  }
+
+  .detail-sidebar.expanded {
+    height: 50dvh !important;
+    max-height: 52dvh !important;
+    transform: translateY(0) !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     Active Tour Mobile Mode: Maximize Map Visibility (38dvh sheet, 62% map)
+     -------------------------------------------------------------------------- */
+  .tour-stepper-bar,
+  body.tour-is-active .tour-stepper-bar {
+    display: none !important;
+  }
+
+  body.tour-is-active .sidebar-tabs {
+    display: none !important;
+  }
+
+  body.tour-is-active .detail-sidebar {
+    height: 38dvh !important;
+    max-height: 40dvh !important;
+  }
+
+  body.tour-is-active .detail-sidebar:not(.closed):not(.peek) {
+    height: 38dvh !important;
+    max-height: 40dvh !important;
+    transform: translateY(0) !important;
+  }
+
+  body.tour-is-active .detail-sidebar.peek {
+    transform: translateY(calc(100% - 44px)) !important;
+  }
+
+  body.tour-is-active .sidebar-header {
+    padding: 0.35rem 0.9rem 0.35rem !important;
+    background: #E8DCC4 !important;
+  }
+
+  body.tour-is-active .sidebar-eyebrow {
+    font-size: 0.62rem !important;
+    color: var(--color-crimson) !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  body.tour-is-active .sidebar-title {
+    font-size: 0.92rem !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.tour-is-active .sidebar-content {
+    padding: 0.5rem 0.85rem 1rem !important;
+  }
+
+  /* Mobile Drag Handle */
+  .mobile-drag-handle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    cursor: pointer;
+    flex-shrink: 0;
+    background: transparent;
+    padding-top: 4px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .drag-pill {
+    width: 36px;
+    height: 4px;
+    background: #D4AF37;
+    border-radius: 9999px;
+    opacity: 0.75;
+  }
+
+  /* Mobile Thumb-Friendly Bottom Navigation Bar (52px) */
+  .mobile-bottom-bar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-around;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 82dvh;
-    max-height: 82dvh;
+    height: var(--mobile-nav-height, 52px);
+    background: #231812;
+    border-top: 1.5px solid rgba(212, 160, 23, 0.4);
+    z-index: 2300;
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-bottom-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: #E2D9CC;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    min-width: 54px;
+    min-height: 48px;
+    height: 100%;
+    transition: color 0.15s ease, transform 0.15s ease;
+    padding: 3px 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-bottom-btn:hover,
+  .mobile-bottom-btn.active {
+    color: var(--color-gold, #F6D678);
+  }
+
+  .mobile-bottom-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  /* --------------------------------------------------------------------------
+     Mobile Partial Bottom Sheets: Search/Jump, Filters, Tours (Max 50dvh)
+     -------------------------------------------------------------------------- */
+  .mobile-picker-sheet,
+  .mobile-filter-sheet,
+  .mobile-tours-sheet {
+    position: fixed;
+    bottom: var(--mobile-nav-height, 52px);
+    left: 0;
+    right: 0;
+    height: 48dvh;
+    max-height: 50dvh !important;
     background: #FFFDF9;
     border-top: 2.5px solid var(--color-gold);
     border-radius: 18px 18px 0 0;
-    z-index: 2600;
-    transform: translateY(105%);
+    z-index: 2250;
+    transform: translateY(115%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
-  .mobile-picker-sheet.open {
+  .mobile-picker-sheet.open,
+  .mobile-filter-sheet.open,
+  .mobile-tours-sheet.open {
     transform: translateY(0);
+  }
+
+  .mobile-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding: 0.75rem 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .mobile-filter-section-title {
+    font-family: var(--font-serif-title);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-crimson);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  .mobile-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .mobile-chips-grid .filter-chip {
+    height: 34px;
+    font-size: 0.78rem;
+    padding: 0 0.75rem;
+    border-radius: 17px;
+    background: #FAF5EB;
+    border: 1px solid var(--border-parchment-dark);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+  }
+
+  .mobile-chips-grid .filter-chip.active {
+    background: var(--color-crimson);
+    color: #FFF;
+    border-color: var(--color-crimson);
+    font-weight: 700;
+  }
+
+  .mobile-filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-parchment);
+  }
+
+  /* Tour mini cards in Mobile Tours Sheet */
+  .mobile-tours-sheet .tour-mini-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    background: #FAF5EB;
+    border: 1px solid var(--border-parchment-dark);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 0.5rem;
+  }
+
+  .mobile-tours-sheet .tour-mini-card:active {
+    background: #F4EAD6;
+    transform: scale(0.98);
+  }
+
+  .mobile-tours-sheet .tour-card-featured {
+    border-color: var(--color-gold);
+    background: linear-gradient(180deg, #FFFDF9 0%, #FEF9EE 100%);
+  }
+
+  .mobile-tours-sheet .tour-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-tours-sheet .tour-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .mobile-tours-sheet .tour-name {
+    font-family: var(--font-serif-title);
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+  }
+
+  .mobile-tours-sheet .tour-era {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 2px;
   }
 
   .mobile-sheet-header {

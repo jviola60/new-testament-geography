@@ -94,15 +94,28 @@
   line-height: 1.35;
 }
 
-/* Floating Action Buttons on Map */
+/* Floating Action Buttons on Map (Recenter, Holy Land, Jerusalem) */
 .map-floating-actions {
   position: absolute;
   top: 16px;
-  right: 20px;
-  z-index: 800;
+  right: 48px;
+  z-index: 850;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 769px) {
+  .map-floating-actions {
+    right: 48px;
+  }
+
+  .app-main-container:has(#detailSidebar:not(.closed)) .map-floating-actions,
+  body.sidebar-open .map-floating-actions,
+  .app-main-container.sidebar-open .map-floating-actions {
+    right: calc(var(--sidebar-width) + 16px);
+  }
 }
 
 .floating-btn {

@@ -44,9 +44,36 @@ class UIController {
     this.setupMobileInterface();
     this.updateActiveFiltersBadge();
 
-    // Mobile map-first experience: keep map visible on initial load
-    if (typeof window !== "undefined" && window.innerWidth <= 900) {
+    // Mobile map-first experience: keep map dominant, start sidebar in subtle peek state
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      if (this.sidebar) {
+        this.sidebar.classList.add("peek");
+        this.sidebar.classList.remove("closed");
+      }
+    } else if (typeof window !== "undefined" && window.innerWidth <= 1024) {
       this.closeSidebar();
+    } else {
+      if (this.sidebar && !this.sidebar.classList.contains("closed")) {
+        document.body.classList.add("sidebar-open");
+        const mainContainer = document.querySelector(".app-main-container");
+        if (mainContainer) mainContainer.classList.add("sidebar-open");
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", () => {
+        if (window.innerWidth <= 768) {
+          document.body.classList.remove("sidebar-open");
+          const mainContainer = document.querySelector(".app-main-container");
+          if (mainContainer) mainContainer.classList.remove("sidebar-open");
+        } else {
+          if (this.sidebar && !this.sidebar.classList.contains("closed")) {
+            document.body.classList.add("sidebar-open");
+            const mainContainer = document.querySelector(".app-main-container");
+            if (mainContainer) mainContainer.classList.add("sidebar-open");
+          }
+        }
+      });
     }
   }
 
@@ -530,8 +557,12 @@ class UIController {
   // DEDICATED MOBILE INTERFACE (HAMBURGER DRAWER & FULL-WIDTH SEARCH SHEET)
   // Matches Book of Mormon Atlas mobile patterns
   // =========================================================================
+  // =========================================================================
+  // DEDICATED MOBILE INTERFACE (BOTTOM BAR, PARTIAL SHEETS & DRAG HANDLES)
+  // Matches Book of Mormon Atlas mobile patterns (Map-First Architecture)
+  // =========================================================================
   closeAllMobileSheets() {
-    document.querySelectorAll(".mobile-nav-sheet, .mobile-picker-sheet").forEach(s => s.classList.remove("open"));
+    document.querySelectorAll(".mobile-nav-sheet, .mobile-picker-sheet, .mobile-filter-sheet, .mobile-tours-sheet").forEach(s => s.classList.remove("open"));
     const backdrop = document.getElementById("mobileSheetBackdrop");
     if (backdrop) backdrop.classList.remove("active");
   }
@@ -541,6 +572,43 @@ class UIController {
     if (sheet) sheet.classList.add("open");
     const backdrop = document.getElementById("mobileSheetBackdrop");
     if (backdrop) backdrop.classList.add("active");
+  }
+
+  setupSwipeDown(el, onSwipeDown) {
+    if (!el) return;
+    let startY = 0;
+    el.addEventListener("touchstart", (e) => {
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    el.addEventListener("touchend", (e) => {
+      const endY = e.changedTouches[0].clientY;
+      if (endY - startY > 35) {
+        onSwipeDown();
+      }
+    }, { passive: true });
+  }
+
+  renderMobileToursList() {
+    const container = document.getElementById("mobileToursBody");
+    if (!container || typeof TOURS_DATA === "undefined") return;
+
+    container.innerHTML = TOURS_DATA.map(tour => `
+      <div class="tour-mini-card ${tour.id === 'start-here-jesus' ? 'tour-card-featured' : ''}" data-tour-id="${tour.id}">
+        <div class="tour-icon">${tour.icon || '🕊️'}</div>
+        <div class="tour-meta">
+          <span class="tour-name">${tour.title}</span>
+          <span class="tour-era">${tour.eraText || ''}</span>
+        </div>
+      </div>
+    `).join("");
+
+    container.querySelectorAll(".tour-mini-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const tourId = card.dataset.tourId;
+        this.closeAllMobileSheets();
+        this.startTour(tourId);
+      });
+    });
   }
 
   setupMobileInterface() {
@@ -555,6 +623,21 @@ class UIController {
     const mobilePickerSheet = document.getElementById("mobilePickerSheet");
     const closeMobilePickerBtn = document.getElementById("closeMobilePickerBtn");
     const mobilePickerSearchInput = document.getElementById("mobilePickerSearchInput");
+
+    const mobileFiltersSheet = document.getElementById("mobileFiltersSheet");
+    const closeMobileFiltersBtn = document.getElementById("closeMobileFiltersBtn");
+    const mobFiltersDoneBtn = document.getElementById("mobFiltersDoneBtn");
+    const mobFiltersResetBtn = document.getElementById("mobFiltersResetBtn");
+
+    const mobileToursSheet = document.getElementById("mobileToursSheet");
+    const closeMobileToursBtn = document.getElementById("closeMobileToursBtn");
+
+    // Mobile Bottom Navigation Bar Buttons (Thumb-friendly)
+    const mobBottomSearchBtn = document.getElementById("mobBottomSearchBtn");
+    const mobBottomJumpBtn = document.getElementById("mobBottomJumpBtn");
+    const mobBottomToursBtn = document.getElementById("mobBottomToursBtn");
+    const mobBottomFiltersBtn = document.getElementById("mobBottomFiltersBtn");
+    const mobBottomDetailsBtn = document.getElementById("mobBottomDetailsBtn");
 
     const mobNavSearchBtn = document.getElementById("mobNavSearchBtn");
     const mobNavJumpBtn = document.getElementById("mobNavJumpBtn");
@@ -584,6 +667,123 @@ class UIController {
       this.renderMobilePickerList(query);
     };
 
+    // Mobile Bottom Navigation Bar Event Listeners
+    if (mobBottomSearchBtn) {
+      mobBottomSearchBtn.addEventListener("click", () => openSearchPicker());
+    }
+    if (mobBottomJumpBtn) {
+      mobBottomJumpBtn.addEventListener("click", () => openSearchPicker(""));
+    }
+    if (mobBottomToursBtn && mobileToursSheet) {
+      mobBottomToursBtn.addEventListener("click", () => {
+        this.renderMobileToursList();
+        this.openMobileSheet(mobileToursSheet);
+      });
+    }
+    if (mobBottomFiltersBtn && mobileFiltersSheet) {
+      mobBottomFiltersBtn.addEventListener("click", () => {
+        this.openMobileSheet(mobileFiltersSheet);
+      });
+    }
+    if (mobBottomDetailsBtn) {
+      mobBottomDetailsBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (this.sidebar) {
+          if (this.sidebar.classList.contains("closed") || this.sidebar.classList.contains("peek")) {
+            this.openSidebar();
+          } else {
+            this.sidebar.classList.add("peek");
+          }
+        }
+      });
+    }
+
+    // Drag handles & touch dismissals
+    const mobileDragHandle = document.getElementById("mobileDragHandle");
+    if (mobileDragHandle && this.sidebar) {
+      mobileDragHandle.addEventListener("click", () => {
+        if (this.sidebar.classList.contains("peek") || this.sidebar.classList.contains("closed")) {
+          this.openSidebar();
+        } else {
+          this.sidebar.classList.add("peek");
+        }
+      });
+      this.setupSwipeDown(mobileDragHandle, () => {
+        this.sidebar.classList.add("peek");
+      });
+    }
+    const sidebarHeader = document.querySelector("#detailSidebar .sidebar-header");
+    if (sidebarHeader && this.sidebar) {
+      this.setupSwipeDown(sidebarHeader, () => {
+        if (window.innerWidth <= 768) {
+          this.sidebar.classList.add("peek");
+        }
+      });
+    }
+
+    const mobilePickerDragHandle = document.getElementById("mobilePickerDragHandle");
+    if (mobilePickerDragHandle) {
+      mobilePickerDragHandle.addEventListener("click", () => this.closeAllMobileSheets());
+      this.setupSwipeDown(mobilePickerDragHandle, () => this.closeAllMobileSheets());
+    }
+    const mobileFiltersDragHandle = document.getElementById("mobileFiltersDragHandle");
+    if (mobileFiltersDragHandle) {
+      mobileFiltersDragHandle.addEventListener("click", () => this.closeAllMobileSheets());
+      this.setupSwipeDown(mobileFiltersDragHandle, () => this.closeAllMobileSheets());
+    }
+    const mobileToursDragHandle = document.getElementById("mobileToursDragHandle");
+    if (mobileToursDragHandle) {
+      mobileToursDragHandle.addEventListener("click", () => this.closeAllMobileSheets());
+      this.setupSwipeDown(mobileToursDragHandle, () => this.closeAllMobileSheets());
+    }
+
+    // Filter sheet buttons
+    if (closeMobileFiltersBtn) closeMobileFiltersBtn.addEventListener("click", () => this.closeAllMobileSheets());
+    if (mobFiltersDoneBtn) mobFiltersDoneBtn.addEventListener("click", () => this.closeAllMobileSheets());
+    if (closeMobileToursBtn) closeMobileToursBtn.addEventListener("click", () => this.closeAllMobileSheets());
+
+    // Layer filter chips in mobile filter sheet
+    const filterSheetChips = document.querySelectorAll("#mobileFiltersSheet .filter-chip[data-filter]");
+    filterSheetChips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        const filterKey = chip.dataset.filter;
+        if (!filterKey) return;
+        const willBeActive = !chip.classList.contains("active");
+
+        if (filterKey === "all") {
+          const allChips = document.querySelectorAll(".filter-chip[data-filter]");
+          allChips.forEach(c => c.classList.toggle("active", willBeActive));
+          if (window.app && window.app.map) {
+            ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis"].forEach(k => {
+              window.app.map.setLayerFilter(k, willBeActive);
+            });
+          }
+        } else {
+          chip.classList.toggle("active", willBeActive);
+          const otherChips = document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`);
+          otherChips.forEach(c => c.classList.toggle("active", willBeActive));
+
+          if (window.app && window.app.map) {
+            window.app.map.setLayerFilter(filterKey, willBeActive);
+          }
+        }
+        this.updateActiveFiltersBadge();
+      });
+    });
+
+    if (mobFiltersResetBtn) {
+      mobFiltersResetBtn.addEventListener("click", () => {
+        const allChips = document.querySelectorAll(".filter-chip[data-filter]");
+        allChips.forEach(c => c.classList.add("active"));
+        if (window.app && window.app.map) {
+          ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis", "all"].forEach(k => {
+            window.app.map.setLayerFilter(k, true);
+          });
+        }
+        this.updateActiveFiltersBadge();
+      });
+    }
+
     // Mobile Header Quick Action Buttons
     if (mobileSearchToggleBtn) {
       mobileSearchToggleBtn.addEventListener("click", () => openSearchPicker());
@@ -611,8 +811,8 @@ class UIController {
     if (mobNavToursBtn) {
       mobNavToursBtn.addEventListener("click", () => {
         this.closeAllMobileSheets();
-        const toursBtn = document.getElementById("storyToursBtn");
-        if (toursBtn) toursBtn.click();
+        this.renderMobileToursList();
+        if (mobileToursSheet) this.openMobileSheet(mobileToursSheet);
       });
     }
 
@@ -644,8 +844,8 @@ class UIController {
           }
         } else {
           chip.classList.toggle("active", willBeActive);
-          const desktopChip = document.querySelector(`.layer-filter-bar .filter-chip[data-filter="${filterKey}"]`);
-          if (desktopChip) desktopChip.classList.toggle("active", willBeActive);
+          const otherChips = document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`);
+          otherChips.forEach(c => c.classList.toggle("active", willBeActive));
 
           if (window.app && window.app.map) {
             window.app.map.setLayerFilter(filterKey, willBeActive);
@@ -1162,10 +1362,15 @@ class UIController {
     });
   }
 
-  // Sidebar Controls
+  // Sidebar Controls (Desktop Flyout & Mobile Bottom Sheet)
   openSidebar() {
     if (this.sidebar) {
-      this.sidebar.classList.remove("closed");
+      this.sidebar.classList.remove("closed", "peek");
+      if (window.innerWidth > 768) {
+        document.body.classList.add("sidebar-open");
+        const mainContainer = document.querySelector(".app-main-container");
+        if (mainContainer) mainContainer.classList.add("sidebar-open");
+      }
       const edgeBtn = document.getElementById("sidebarEdgeToggleBtn");
       if (edgeBtn) {
         const icon = edgeBtn.querySelector(".edge-toggle-icon");
@@ -1176,7 +1381,16 @@ class UIController {
 
   closeSidebar() {
     if (this.sidebar) {
-      this.sidebar.classList.add("closed");
+      if (window.innerWidth <= 768) {
+        this.sidebar.classList.add("peek");
+        this.sidebar.classList.remove("closed");
+      } else {
+        this.sidebar.classList.add("closed");
+        this.sidebar.classList.remove("peek");
+      }
+      document.body.classList.remove("sidebar-open");
+      const mainContainer = document.querySelector(".app-main-container");
+      if (mainContainer) mainContainer.classList.remove("sidebar-open");
       const edgeBtn = document.getElementById("sidebarEdgeToggleBtn");
       if (edgeBtn) {
         const icon = edgeBtn.querySelector(".edge-toggle-icon");
@@ -1187,7 +1401,7 @@ class UIController {
 
   toggleSidebar() {
     if (this.sidebar) {
-      if (this.sidebar.classList.contains("closed")) {
+      if (this.sidebar.classList.contains("closed") || (window.innerWidth <= 768 && this.sidebar.classList.contains("peek"))) {
         this.openSidebar();
       } else {
         this.closeSidebar();
@@ -4291,27 +4505,38 @@ class UIController {
           tourModalBody.querySelectorAll(".tour-select-card").forEach(c => {
             c.addEventListener("click", () => {
               const tid = c.dataset.tourId;
-              tourModal.style.display = "none";
+              tourModal.classList.remove("open", "show");
+              tourModal.style.display = "";
               this.startTour(tid);
             });
           });
         }
-        tourModal.style.display = "flex";
+        tourModal.classList.add("open", "show");
       });
 
       // Click outside modal card to close
       tourModal.addEventListener("click", (e) => {
         if (e.target === tourModal) {
-          tourModal.style.display = "none";
+          tourModal.classList.remove("open", "show");
+          tourModal.style.display = "";
         }
       });
     }
 
     if (closeTourModalBtn && tourModal) {
       closeTourModalBtn.addEventListener("click", () => {
-        tourModal.style.display = "none";
+        tourModal.classList.remove("open", "show");
+        tourModal.style.display = "";
       });
     }
+
+    // Escape key closes tour modal
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && tourModal && (tourModal.classList.contains("show") || tourModal.classList.contains("open"))) {
+        tourModal.classList.remove("open", "show");
+        tourModal.style.display = "";
+      }
+    });
 
     // Tour Stepper Controls
     const prevStepBtn = document.getElementById("tourPrevStepBtn");
@@ -4335,8 +4560,9 @@ class UIController {
 
     this.activeTour = tour;
     this.currentTourStopIndex = 0;
+    document.body.classList.add("tour-is-active");
 
-    // Show tour stepper bar
+    // Show tour stepper bar on desktop
     const stepperBar = document.getElementById("tourStepperBar");
     const tourName = document.getElementById("stepperTourName");
     if (stepperBar && tourName) {
@@ -4360,7 +4586,7 @@ class UIController {
     this.currentTourStopIndex = index;
     const stop = this.activeTour.stops[index];
 
-    // Update indicator
+    // Update indicator on desktop stepper
     const stepCount = document.getElementById("stepperStepCount");
     if (stepCount) {
       stepCount.textContent = `Stop ${index + 1} of ${this.activeTour.stops.length}: ${stop.title}`;
@@ -4371,40 +4597,111 @@ class UIController {
       window.app.timeline.setYear(stop.year);
     }
 
-    // Fly camera
+    // Fly camera smoothly
     if (window.app && window.app.map) {
       window.app.map.flyToLocation(stop.lat, stop.lng, stop.zoom || 12);
     }
 
-    // Open detail in sidebar (Event, Jerusalem Site, or City)
+    // Render dedicated Tour Stop in the Detail Sidebar / Bottom Sheet
+    this.showTourStopDetail(this.activeTour, stop, index);
+  }
+
+  showTourStopDetail(tour, stop, index) {
+    this.currentActiveItem = { type: "tourStop", data: { tour, stop, index } };
+    if (this.sidebarEyebrow) {
+      this.sidebarEyebrow.textContent = `GUIDED SCRIPTURE TOUR • STOP ${index + 1} OF ${tour.stops.length}`;
+    }
+    if (this.sidebarTitle) {
+      this.sidebarTitle.textContent = `${tour.icon || "🕊️"} ${stop.title}`;
+    }
+
+    const prevDisabled = index === 0 ? 'disabled' : '';
+    const nextLabel = index === tour.stops.length - 1 ? 'Finish Tour ✓' : 'Next Stop ▶';
+
+    let scriptureHtml = "";
+    if (stop.summary) {
+      scriptureHtml = `
+        <div class="hero-quote" style="margin-bottom:0.75rem;">
+          <div class="quote-text" style="font-size:0.96rem; font-style:normal; font-family:var(--font-serif); line-height:1.5; color:#382B1E;">
+            ${stop.summary}
+          </div>
+        </div>
+      `;
+    }
+
+    // Context from associated event or site
+    let extraContextHtml = "";
+    let eventRef = "";
     if (stop.eventId && typeof TIMELINE_EVENTS !== "undefined") {
       const event = TIMELINE_EVENTS.find(e => e.id === stop.eventId);
       if (event) {
-        this.showEventDetail(event);
-        return;
+        if (event.description && event.description !== stop.summary) {
+          extraContextHtml += `
+            <div class="history-block" style="margin-bottom:0.75rem;">
+              <h4>Scriptural Context & Event Details</h4>
+              <p style="font-size:0.86rem; line-height:1.5;">${event.description}</p>
+            </div>
+          `;
+        }
+        if (event.scriptures && event.scriptures.length) {
+          eventRef = event.scriptures.map(s => `
+            <a href="${this.getChurchScriptureLink(s.ref || s)}" target="_blank" rel="noopener" class="church-scripture-btn" style="margin-top:4px;">
+              <span>📖 Read ${s.ref || s} (KJV)</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+          `).join("");
+        }
       }
     }
-    if (stop.siteId && typeof JERUSALEM_SITES !== "undefined") {
-      const site = JERUSALEM_SITES.find(s => s.id === stop.siteId);
-      if (site) {
-        this.showJerusalemSiteDetail(site);
-        return;
+
+    this.sidebarContent.innerHTML = `
+      <div class="sidebar-section active-tour-panel" style="display:flex; flex-direction:column; gap:0.6rem;">
+        <div class="city-detail-badge-row" style="margin-bottom:0.25rem;">
+          <span class="city-badge badge-savior">${tour.title}</span>
+          <span class="city-badge badge-province">Stop ${index + 1} of ${tour.stops.length}</span>
+          ${stop.year !== undefined ? `<span class="city-badge" style="background:#FEF3C7; color:#92400E;">${stop.year < 0 ? Math.abs(stop.year) + ' BC' : stop.year + ' AD'}</span>` : ''}
+        </div>
+
+        ${scriptureHtml}
+        ${extraContextHtml}
+        ${eventRef ? `<div class="feature-card" style="margin-bottom:0.5rem;"><h3>Related Scripture Passages</h3><div style="display:flex; flex-direction:column; gap:4px;">${eventRef}</div></div>` : ''}
+
+        <div class="tour-inline-controls" style="display:flex; gap:8px; margin-top:0.4rem; padding-top:0.4rem; border-top:1px solid var(--border-parchment);">
+          <button id="tourInlinePrevBtn" class="btn btn-outline btn-sm" style="flex:1;" ${prevDisabled}>◀ Previous</button>
+          <button id="tourInlineNextBtn" class="btn btn-primary btn-sm glow-gold" style="flex:1.2;">${nextLabel}</button>
+          <button id="tourInlineExitBtn" class="btn btn-outline btn-sm" style="flex:0.8;">Exit</button>
+        </div>
+      </div>
+    `;
+
+    // Bind inline controls
+    const prevBtn = document.getElementById("tourInlinePrevBtn");
+    const nextBtn = document.getElementById("tourInlineNextBtn");
+    const exitBtn = document.getElementById("tourInlineExitBtn");
+
+    if (prevBtn) prevBtn.addEventListener("click", () => this.stepTour(-1));
+    if (nextBtn) nextBtn.addEventListener("click", () => {
+      if (index === tour.stops.length - 1) {
+        this.exitTour();
+      } else {
+        this.stepTour(1);
       }
-    }
-    if (stop.cityId) {
-      const city = this.findCityByName(stop.cityId);
-      if (city) {
-        this.showCityDetail(city);
-        return;
-      }
-    }
+    });
+    if (exitBtn) exitBtn.addEventListener("click", () => this.exitTour());
+
+    this.openSidebar();
   }
 
   exitTour() {
     this.activeTour = null;
+    document.body.classList.remove("tour-is-active");
     const stepperBar = document.getElementById("tourStepperBar");
     if (stepperBar) {
       stepperBar.style.display = "none";
+    }
+    this.showWelcome();
+    if (window.innerWidth <= 768 && this.sidebar) {
+      this.sidebar.classList.add("peek");
     }
   }
 

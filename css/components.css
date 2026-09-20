@@ -273,8 +273,8 @@
 /* Tour Stepper Bar (Active During Curated Story Run) */
 .tour-stepper-bar {
   display: none;
-  position: absolute;
-  top: 16px;
+  position: fixed;
+  top: 112px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1100;

@@ -94,6 +94,15 @@ class UIController {
       edgeToggleBtn.addEventListener("click", () => this.toggleSidebar());
     }
 
+    // App Branding Logo / Title Click -> Recenter map & return to Atlas Overview
+    const brandLogoBtn = document.getElementById("brandLogoBtn");
+    if (brandLogoBtn) {
+      brandLogoBtn.addEventListener("click", () => {
+        if (window.app && window.app.map) window.app.map.recenter();
+        this.showWelcome();
+      });
+    }
+
     // Floating Era Badge Collapse / Expand Toggle
     const eraBadge = document.getElementById("floatingEraBadge");
     const eraBadgeToggleBtn = document.getElementById("eraBadgeToggleBtn");
@@ -148,6 +157,8 @@ class UIController {
             if (window.app && window.app.satelliteExplorer) {
               window.app.satelliteExplorer.open("holy-land");
             }
+          } else if (style === "dare" || style === "imperium") {
+            window.app.map.setMapStyle("dare");
           } else if (style === "modern-satellite" || style === "satellite") {
             window.app.map.setMapStyle("satellite");
           } else if (style === "modern") {
@@ -349,40 +360,43 @@ class UIController {
     const clearFiltersBtn = document.getElementById("clearAllFiltersBtn");
     if (clearFiltersBtn) {
       clearFiltersBtn.addEventListener("click", () => {
+        const allKeys = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis", "all"];
         document.querySelectorAll(".filter-chip[data-filter]").forEach(c => {
-          c.classList.remove("active");
+          c.classList.add("active");
         });
         if (window.app && window.app.map) {
-          const allKeys = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "all"];
-          allKeys.forEach(k => window.app.map.setLayerFilter(k, false));
+          allKeys.forEach(k => window.app.map.setLayerFilter(k, true));
         }
         this.updateActiveFiltersBadge();
       });
     }
 
-    // Filter Chips (Both primary toolbar chips and expandable filters panel chips)
+    // Filter Chips (Unified handler for desktop toolbar chips, flyout panel chips, mobile drawer, and bottom sheet)
+    const allFilterKeys = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis"];
     document.querySelectorAll(".filter-chip[data-filter]").forEach(chip => {
       chip.addEventListener("click", () => {
         const filterKey = chip.dataset.filter;
         if (!filterKey) return;
         const willBeActive = !chip.classList.contains("active");
 
-        // Synchronize all chips sharing this filterKey across toolbar and flyout panel
-        document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`).forEach(c => {
-          c.classList.toggle("active", willBeActive);
-        });
-
-        // Special handling for 'All Visible'
         if (filterKey === "all") {
-          const foundational = ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces"];
-          foundational.forEach(fk => {
-            document.querySelectorAll(`.filter-chip[data-filter="${fk}"]`).forEach(c => {
-              c.classList.toggle("active", willBeActive);
-            });
+          document.querySelectorAll(".filter-chip[data-filter]").forEach(c => {
+            c.classList.toggle("active", willBeActive);
           });
+          if (window.app && window.app.map) {
+            allFilterKeys.forEach(fk => {
+              window.app.map.setLayerFilter(fk, willBeActive);
+            });
+          }
+        } else {
+          document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`).forEach(c => {
+            c.classList.toggle("active", willBeActive);
+          });
+          if (window.app && window.app.map) {
+            window.app.map.setLayerFilter(filterKey, willBeActive);
+          }
         }
 
-        window.app.map.setLayerFilter(filterKey, willBeActive);
         this.updateActiveFiltersBadge();
       });
     });
@@ -420,7 +434,11 @@ class UIController {
       legendToolMenuItem.addEventListener("click", () => {
         toggleLegend();
         const toolsMenu = document.getElementById("toolsDropdownMenu");
-        if (toolsMenu) toolsMenu.classList.remove("show");
+        if (toolsMenu) {
+          toolsMenu.classList.remove("open");
+          const toolsBtn = document.getElementById("toolsDropdownBtn");
+          if (toolsBtn) toolsBtn.setAttribute("aria-expanded", "false");
+        }
       });
     }
 
@@ -766,35 +784,6 @@ class UIController {
     if (mobFiltersDoneBtn) mobFiltersDoneBtn.addEventListener("click", () => this.closeAllMobileSheets());
     if (closeMobileToursBtn) closeMobileToursBtn.addEventListener("click", () => this.closeAllMobileSheets());
 
-    // Layer filter chips in mobile filter sheet
-    const filterSheetChips = document.querySelectorAll("#mobileFiltersSheet .filter-chip[data-filter]");
-    filterSheetChips.forEach(chip => {
-      chip.addEventListener("click", () => {
-        const filterKey = chip.dataset.filter;
-        if (!filterKey) return;
-        const willBeActive = !chip.classList.contains("active");
-
-        if (filterKey === "all") {
-          const allChips = document.querySelectorAll(".filter-chip[data-filter]");
-          allChips.forEach(c => c.classList.toggle("active", willBeActive));
-          if (window.app && window.app.map) {
-            ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis"].forEach(k => {
-              window.app.map.setLayerFilter(k, willBeActive);
-            });
-          }
-        } else {
-          chip.classList.toggle("active", willBeActive);
-          const otherChips = document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`);
-          otherChips.forEach(c => c.classList.toggle("active", willBeActive));
-
-          if (window.app && window.app.map) {
-            window.app.map.setLayerFilter(filterKey, willBeActive);
-          }
-        }
-        this.updateActiveFiltersBadge();
-      });
-    });
-
     if (mobFiltersResetBtn) {
       mobFiltersResetBtn.addEventListener("click", () => {
         const allChips = document.querySelectorAll(".filter-chip[data-filter]");
@@ -849,35 +838,6 @@ class UIController {
         this.renderMobilePickerList(e.target.value);
       });
     }
-
-    // Synchronize layer chips inside mobile drawer
-    const drawerChips = document.querySelectorAll("#mobileNavFiltersSection .filter-chip[data-filter]");
-    drawerChips.forEach(chip => {
-      chip.addEventListener("click", () => {
-        const filterKey = chip.dataset.filter;
-        if (!filterKey) return;
-        const willBeActive = !chip.classList.contains("active");
-
-        if (filterKey === "all") {
-          const allChips = document.querySelectorAll(".filter-chip[data-filter]");
-          allChips.forEach(c => c.classList.toggle("active", willBeActive));
-          if (window.app && window.app.map) {
-            ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis"].forEach(k => {
-              window.app.map.setLayerFilter(k, willBeActive);
-            });
-          }
-        } else {
-          chip.classList.toggle("active", willBeActive);
-          const otherChips = document.querySelectorAll(`.filter-chip[data-filter="${filterKey}"]`);
-          otherChips.forEach(c => c.classList.toggle("active", willBeActive));
-
-          if (window.app && window.app.map) {
-            window.app.map.setLayerFilter(filterKey, willBeActive);
-          }
-        }
-        this.updateActiveFiltersBadge();
-      });
-    });
 
     const resetBtn = document.getElementById("mobNavResetFiltersBtn");
     if (resetBtn) {
@@ -950,6 +910,17 @@ class UIController {
           window.app.map.setMapStyle("parchment");
         }
         updateBaseStyleChecks("parchment");
+      });
+    }
+
+    const mobDareBtn = document.getElementById("mobNavDareBtn");
+    if (mobDareBtn) {
+      mobDareBtn.addEventListener("click", () => {
+        this.closeAllMobileSheets();
+        if (window.app && window.app.map) {
+          window.app.map.setMapStyle("dare");
+        }
+        updateBaseStyleChecks("dare");
       });
     }
 

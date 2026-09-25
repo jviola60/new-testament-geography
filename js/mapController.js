@@ -5,7 +5,7 @@
 class MapController {
   constructor() {
     this.map = null;
-    this.currentTheme = "parchment"; // 'parchment' or 'satellite'
+    this.currentTheme = "dare"; // Default: Digital Atlas of the Roman Empire (DARE Antiquity)
     
     // Layer Groups
     this.layers = {
@@ -29,7 +29,8 @@ class MapController {
 
     // Tile layers
     this.tileLayers = {
-      parchment: null,
+      dare: null,      // Digital Atlas of the Roman Empire (DARE) - Default 1st Century Antiquity Basemap
+      parchment: null, // Pure Physical Terrain (No Labels)
       satellite: null,
       modern: null,
       modernOverlay: null
@@ -69,7 +70,7 @@ class MapController {
 
     // Custom attribution control positioned bottom right
     L.control.attribution({ position: "bottomright", prefix: false })
-      .addAttribution('New Testament Atlas • Cartography: Esri Topo, Imagery & OSM')
+      .addAttribution('New Testament Atlas • Cartography: DARE / Univ. of Gothenburg & Esri Physical Relief')
       .addTo(this.map);
 
     // Setup Tile Layers
@@ -161,38 +162,51 @@ class MapController {
   }
 
   setupTileLayers() {
-    // 1. Esri World Topographic Map: Rich parchment physical cartography with mountain relief, contours, water bodies, and geographic labels at all zoom levels (z 1-19). Free, open, no API key required!
-    this.tileLayers.parchment = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    // 1. Digital Atlas of the Roman Empire (DARE / Imperium Romanum) - DEFAULT MAP
+    // Authentic classical antiquity (500 BC – 500 AD): 1st-century ancient cities, Roman roads & historical relief
+    this.tileLayers.dare = L.tileLayer(
+      "https://dh.gu.se/tiles/imperium/{z}/{x}/{y}.png",
       {
-        maxNativeZoom: 19,
-        maxZoom: 19,
-        opacity: 0.95,
-        attribution: "Cartography &copy; Esri World Topo, USGS, FAO, NPS, NRCAN"
+        maxNativeZoom: 11,
+        maxZoom: 18,
+        opacity: 1.0,
+        attribution: 'Historical Cartography &copy; <a href="https://dh.gu.se/dare/" target="_blank">DARE / Univ. of Gothenburg</a>'
       }
     );
 
-    // 2. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
+    // 2. Pure Physical Terrain (No Labels)
+    // Pristine natural biblical topography: mountain ranges, valleys, and waters with ZERO modern city/street labels
+    this.tileLayers.parchment = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxNativeZoom: 13,
+        maxZoom: 18,
+        opacity: 0.95,
+        attribution: "Terrain Cartography &copy; Esri World Shaded Relief, USGS"
+      }
+    );
+
+    // 3. Pure Satellite Earth Imagery (Continuous global aerial photography covering the whole world)
     this.tileLayers.satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "Cartography &copy; Esri World Satellite Imagery" }
     );
 
-    // 3. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
+    // 4. Full Modern Street Map (OpenStreetMap with modern streets, cities, and borders)
     this.tileLayers.modern = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 1.0, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // 4. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
+    // 5. Modern Streets Overlay Layer (Semi-transparent modern road & street grid for cross-referencing)
     this.tileLayers.modernOverlay = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxNativeZoom: 18, maxZoom: 18, opacity: 0.55, attribution: "&copy; OpenStreetMap contributors" }
     );
 
-    // Default to clean ancient shaded relief
-    this.tileLayers.parchment.addTo(this.map);
-    document.body.classList.add("parchment-theme");
+    // Default to DARE Roman Empire Classical Map (Antiquity)
+    this.tileLayers.dare.addTo(this.map);
+    document.body.classList.add("dare-theme");
   }
 
   setMapStyle(theme) {
@@ -200,22 +214,27 @@ class MapController {
     const body = document.body;
 
     // Remove all basemap tiles first
+    if (this.tileLayers.dare) this.map.removeLayer(this.tileLayers.dare);
     this.map.removeLayer(this.tileLayers.parchment);
     this.map.removeLayer(this.tileLayers.satellite);
     this.map.removeLayer(this.tileLayers.modern);
 
     // Remove theme classes
-    body.classList.remove("parchment-theme", "satellite-theme", "modern-theme");
+    body.classList.remove("parchment-theme", "dare-theme", "satellite-theme", "modern-theme");
 
-    if (theme === "satellite" || theme === "modern-satellite") {
+    if (theme === "parchment" || theme === "physical-relief") {
+      this.tileLayers.parchment.addTo(this.map);
+      body.classList.add("parchment-theme");
+    } else if (theme === "satellite" || theme === "modern-satellite") {
       this.tileLayers.satellite.addTo(this.map);
       body.classList.add("satellite-theme");
     } else if (theme === "modern") {
       this.tileLayers.modern.addTo(this.map);
       body.classList.add("modern-theme");
     } else {
-      this.tileLayers.parchment.addTo(this.map);
-      body.classList.add("parchment-theme");
+      // Default: DARE Roman Empire Classical Map
+      this.tileLayers.dare.addTo(this.map);
+      body.classList.add("dare-theme");
     }
   }
 
@@ -1310,8 +1329,23 @@ class MapController {
     this.activeTourObj = tour;
 
     // 1. Ensure the rich basemap and foundational geographic layers are present so the map is never plain
-    if (this.currentTheme === "parchment" && !this.map.hasLayer(this.tileLayers.parchment)) {
-      this.tileLayers.parchment.addTo(this.map);
+    if (this.currentTheme === "dare") {
+      if (this.tileLayers.dare && !this.map.hasLayer(this.tileLayers.dare)) {
+        this.tileLayers.dare.addTo(this.map);
+      }
+    } else if (this.currentTheme === "satellite") {
+      if (this.tileLayers.satellite && !this.map.hasLayer(this.tileLayers.satellite)) {
+        this.tileLayers.satellite.addTo(this.map);
+      }
+    } else if (this.currentTheme === "modern") {
+      if (this.tileLayers.modern && !this.map.hasLayer(this.tileLayers.modern)) {
+        this.tileLayers.modern.addTo(this.map);
+      }
+    } else {
+      // Default: Pure Physical Terrain (No Labels)
+      if (this.tileLayers.parchment && !this.map.hasLayer(this.tileLayers.parchment)) {
+        this.tileLayers.parchment.addTo(this.map);
+      }
     }
     if (!this.map.hasLayer(this.layers.cities)) this.map.addLayer(this.layers.cities);
     if (!this.map.hasLayer(this.layers.hydrography)) this.map.addLayer(this.layers.hydrography);

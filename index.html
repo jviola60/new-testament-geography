@@ -55,7 +55,7 @@
     })();
   </script>
 </head>
-<body class="parchment-theme">
+<body class="dare-theme">
   <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
   <nav class="cross-atlas-bar" id="crossAtlasBar" aria-label="Scriptural Atlases Navigation">
     <div class="cross-atlas-container">
@@ -153,10 +153,11 @@
           </button>
           <div class="dropdown-divider"></div>
           <div class="dropdown-heading">Map Base Style</div>
-          <button data-style="parchment" class="dropdown-item map-style-item active-style">📜 Ancient Shaded Relief (Biblical)</button>
+          <button data-style="dare" class="dropdown-item map-style-item active-style">🏛️ Roman Empire Classical Map (DARE Antiquity) — Default</button>
+          <button data-style="parchment" class="dropdown-item map-style-item">🏔️ Pure Physical Terrain (No Labels)</button>
           <button data-style="satellite" class="dropdown-item map-style-item">🛰️ Satellite Earth Terrain</button>
           <button data-style="first-century-satellite" class="dropdown-item map-style-item dropdown-item-gold">🏛️ 1st-C. Architectural Satellite</button>
-          <button data-style="modern" class="dropdown-item map-style-item">🗺️ Modern Roads & Infrastructure</button>
+          <button data-style="modern" class="dropdown-item map-style-item">🗺️ Modern Roads &amp; Infrastructure</button>
           <div class="dropdown-divider"></div>
           <div class="dropdown-heading">Region Focus</div>
           <button data-region="holy-land" class="dropdown-item region-item">📍 Holy Land (Galilee & Judea)</button>
@@ -831,11 +832,19 @@
     <!-- Map Base Styles (Direct Tile Switcher) -->
     <div class="mobile-nav-section">
       <div class="mobile-nav-heading">Map Base Styles</div>
-      <button class="mobile-menu-item mobile-base-item active" id="mobNavReliefBtn" data-style="parchment">
-        <span>📜</span>
+      <button class="mobile-menu-item mobile-base-item active" id="mobNavDareBtn" data-style="dare">
+        <span>🏛️</span>
         <div class="mobile-base-text">
-          <div class="menu-title-bold">Ancient Shaded Relief</div>
-          <div class="menu-subtitle-muted">Biblical parchment cartography (Default)</div>
+          <div class="menu-title-bold">Roman Empire Classical Map (DARE) — Default</div>
+          <div class="menu-subtitle-muted">1st-Century ancient cities &amp; Roman roads</div>
+        </div>
+        <span class="base-check-mark" id="checkDare">✓</span>
+      </button>
+      <button class="mobile-menu-item mobile-base-item" id="mobNavReliefBtn" data-style="parchment">
+        <span>🏔️</span>
+        <div class="mobile-base-text">
+          <div class="menu-title-bold">Pure Physical Terrain</div>
+          <div class="menu-subtitle-muted">Natural ancient mountains, waters &amp; relief</div>
         </div>
         <span class="base-check-mark" id="checkRelief">✓</span>
       </button>

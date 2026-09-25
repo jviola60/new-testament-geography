@@ -113,10 +113,26 @@ vm.runInThisContext(mapControllerCode);
 const mapCtrl = new MapController();
 mapCtrl.init("map");
 
-// 1. Verify Parchment Tile Layer is Esri World Topo Map (No API key, No watermark, Zoom 1-19)
-assert(mapCtrl.tileLayers.parchment.url.includes("server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map"), "Parchment basemap must be Esri World Topo Map");
-assert.strictEqual(mapCtrl.tileLayers.parchment.opts.maxNativeZoom, 19, "Esri Topo must support maxNativeZoom 19");
-console.log("✓ Parchment basemap is configured to Esri World Topo Map with maxNativeZoom 19 (Zero API key / zero watermark).");
+// 1. Verify Default Basemap is DARE (Digital Atlas of the Roman Empire)
+assert(mapCtrl.tileLayers.dare.url.includes("dh.gu.se/tiles/imperium"), "Default basemap must be DARE Roman Empire");
+assert.strictEqual(mapCtrl.tileLayers.dare.opts.maxNativeZoom, 11, "DARE has maxNativeZoom 11");
+assert(mapCtrl.map._mapLayers.has(mapCtrl.tileLayers.dare), "DARE layer must be active on map by default");
+console.log("✓ Default basemap is configured to DARE Roman Empire Classical Antiquity (No Modern Countries).");
+
+// Verify Pure Physical Terrain option exists
+assert(mapCtrl.tileLayers.parchment.url.includes("server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief"), "Pure Physical Terrain basemap must be available");
+assert.strictEqual(mapCtrl.tileLayers.parchment.opts.maxNativeZoom, 13, "World_Shaded_Relief has maxNativeZoom 13");
+console.log("✓ Selectable Pure Physical Terrain basemap (World_Shaded_Relief) is configured and ready.");
+
+// Test switching to parchment style and back to DARE
+mapCtrl.setMapStyle("parchment");
+assert(mapCtrl.map._mapLayers.has(mapCtrl.tileLayers.parchment), "Physical terrain should be active on map");
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.tileLayers.dare), "DARE layer should be detached");
+
+mapCtrl.setMapStyle("dare");
+assert(mapCtrl.map._mapLayers.has(mapCtrl.tileLayers.dare), "DARE layer should be active on map");
+assert(!mapCtrl.map._mapLayers.has(mapCtrl.tileLayers.parchment), "Physical terrain layer should be detached");
+console.log("✓ Map style switcher smoothly toggles between DARE Roman Empire and Pure Physical Terrain.");
 
 // 2. Verify Initial Stat Counters (-6 BC)
 console.log(`Initial stats: Events=${domElements.statEventsCount.textContent}, Churches=${domElements.statChurchesCount.textContent}, Diaspora=${domElements.statDiasporaCount.textContent}`);

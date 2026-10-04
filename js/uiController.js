@@ -2789,19 +2789,24 @@ class UIController {
             </div>
             <p class="atlas-card-sub">Explore the sacred geography of all the standard works of scripture:</p>
             <div class="atlas-links-grid">
-              <a href="https://www.interactivebibleatlas.xyz/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas">
-                <span class="atlas-nav-badge">📜 Old Testament</span>
+              <a href="https://jviola60.github.io/old-testament-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas (~4000 BC – 400 BC)">
+                <span class="atlas-nav-badge">🕎 Old Testament</span>
                 <span class="atlas-nav-name">Old Testament Atlas</span>
                 <span class="atlas-nav-arrow">↗</span>
               </a>
-              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas">
+              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas (~6 BC – 100 AD)">
                 <span class="atlas-nav-badge">✝️ New Testament</span>
                 <span class="atlas-nav-name">New Testament Atlas (Current)</span>
                 <span class="atlas-nav-arrow">✓</span>
               </a>
-              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas">
+              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas (~2200 BC – AD 421)">
                 <span class="atlas-nav-badge">🪙 Book of Mormon</span>
                 <span class="atlas-nav-name">Book of Mormon Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
+              <a href="https://jviola60.github.io/Doctrine-and-Covenants-Geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Doctrine &amp; Covenants Interactive Atlas (~1805 – 1890)">
+                <span class="atlas-nav-badge">📜 Doctrine &amp; Covenants</span>
+                <span class="atlas-nav-name">Doctrine &amp; Covenants Atlas</span>
                 <span class="atlas-nav-arrow">↗</span>
               </a>
             </div>

@@ -25,12 +25,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=5.0">
-  <link rel="stylesheet" href="css/map.css?v=5.0">
-  <link rel="stylesheet" href="css/timeline.css?v=5.0">
-  <link rel="stylesheet" href="css/sidebar.css?v=5.0">
-  <link rel="stylesheet" href="css/components.css?v=5.0">
-  <link rel="stylesheet" href="css/mobile.css?v=5.0">
+  <link rel="stylesheet" href="css/main.css?v=5.1">
+  <link rel="stylesheet" href="css/map.css?v=5.1">
+  <link rel="stylesheet" href="css/timeline.css?v=5.1">
+  <link rel="stylesheet" href="css/sidebar.css?v=5.1">
+  <link rel="stylesheet" href="css/components.css?v=5.1">
+  <link rel="stylesheet" href="css/mobile.css?v=5.1">
 
   <!-- Mobile Viewport & Phone Shell Detection (Map-First) -->
   <script>
@@ -56,13 +56,13 @@
   </script>
 </head>
 <body class="dare-theme">
-  <!-- Scriptural Atlases Trilogy Navigation Bar (Subdued 26px) -->
+  <!-- Companion Scriptural Atlases Navigation Bar (Subdued 26px) -->
   <nav class="cross-atlas-bar" id="crossAtlasBar" aria-label="Scriptural Atlases Navigation">
     <div class="cross-atlas-container">
-      <span class="cross-atlas-label">Scriptural Atlases:</span>
+      <span class="cross-atlas-label">Companion Scriptural Atlases:</span>
       <div class="cross-atlas-links">
-        <a href="https://www.interactivebibleatlas.xyz/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
-          <span>📜 Old Testament Atlas</span>
+        <a href="https://jviola60.github.io/old-testament-geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
+          <span>🕎 Old Testament Atlas</span>
           <span class="atlas-ext-arrow">↗</span>
         </a>
         <span class="atlas-link active" title="Currently viewing New Testament Geography (~6 BC – 100 AD)">
@@ -70,7 +70,11 @@
           <span class="atlas-current-badge">Current</span>
         </span>
         <a href="https://jviola60.github.io/book-of-mormon-geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Book of Mormon Geography (~2200 BC – AD 421)">
-          <span>📖 Book of Mormon Atlas</span>
+          <span>🪙 Book of Mormon Atlas</span>
+          <span class="atlas-ext-arrow">↗</span>
+        </a>
+        <a href="https://jviola60.github.io/Doctrine-and-Covenants-Geography/" class="atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Doctrine &amp; Covenants Geography (~1805 – 1890)">
+          <span>📜 Doctrine &amp; Covenants Atlas</span>
           <span class="atlas-ext-arrow">↗</span>
         </a>
       </div>
@@ -168,6 +172,20 @@
           <button data-region="greece" class="dropdown-item region-item">🏛️ Greece & Macedonia</button>
           <button data-region="rome" class="dropdown-item region-item">🦅 Rome & Italy</button>
           <button data-region="egypt" class="dropdown-item region-item">🏺 Egypt & Alexandria</button>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-heading">Companion Scriptural Atlases</div>
+          <a href="https://jviola60.github.io/old-testament-geography/" target="_blank" rel="noopener noreferrer" class="dropdown-item">
+            <span>🕎</span> Old Testament Atlas (~4000 BC – 400 BC)
+          </a>
+          <div class="dropdown-item active-style">
+            <span>✝️</span> New Testament Atlas (Current)
+          </div>
+          <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener noreferrer" class="dropdown-item">
+            <span>🪙</span> Book of Mormon Atlas (~2200 BC – AD 421)
+          </a>
+          <a href="https://jviola60.github.io/Doctrine-and-Covenants-Geography/" target="_blank" rel="noopener noreferrer" class="dropdown-item">
+            <span>📜</span> Doctrine &amp; Covenants Atlas (~1805 – 1890)
+          </a>
         </div>
       </div>
 
@@ -518,19 +536,24 @@
             </div>
             <p class="atlas-card-sub">Explore the sacred geography of all the standard works of scripture:</p>
             <div class="atlas-links-grid">
-              <a href="https://www.interactivebibleatlas.xyz/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas">
-                <span class="atlas-nav-badge">📜 Old Testament</span>
+              <a href="https://jviola60.github.io/old-testament-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Old Testament Interactive Atlas (~4000 BC – 400 BC)">
+                <span class="atlas-nav-badge">🕎 Old Testament</span>
                 <span class="atlas-nav-name">Old Testament Atlas</span>
                 <span class="atlas-nav-arrow">↗</span>
               </a>
-              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas">
+              <a href="https://jviola60.github.io/new-testament-geography/index.html" class="atlas-nav-link active-atlas-link" title="You are currently viewing the New Testament Atlas (~6 BC – 100 AD)">
                 <span class="atlas-nav-badge">✝️ New Testament</span>
                 <span class="atlas-nav-name">New Testament Atlas (Current)</span>
                 <span class="atlas-nav-arrow">✓</span>
               </a>
-              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas">
+              <a href="https://jviola60.github.io/book-of-mormon-geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Book of Mormon Interactive Atlas (~2200 BC – AD 421)">
                 <span class="atlas-nav-badge">🪙 Book of Mormon</span>
                 <span class="atlas-nav-name">Book of Mormon Atlas</span>
+                <span class="atlas-nav-arrow">↗</span>
+              </a>
+              <a href="https://jviola60.github.io/Doctrine-and-Covenants-Geography/" target="_blank" rel="noopener" class="atlas-nav-link" title="Open Doctrine &amp; Covenants Interactive Atlas (~1805 – 1890)">
+                <span class="atlas-nav-badge">📜 Doctrine &amp; Covenants</span>
+                <span class="atlas-nav-name">Doctrine &amp; Covenants Atlas</span>
                 <span class="atlas-nav-arrow">↗</span>
               </a>
             </div>
@@ -791,11 +814,11 @@
       </button>
     </div>
 
-    <!-- Scriptural Atlases Trilogy -->
+    <!-- Companion Scriptural Atlases -->
     <div class="mobile-nav-section">
-      <div class="mobile-nav-heading">Scriptural Atlases Trilogy</div>
-      <a href="https://www.interactivebibleatlas.xyz/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
-        <span>📜 Old Testament Atlas (~4000 BC – 400 BC)</span>
+      <div class="mobile-nav-heading">Companion Scriptural Atlases</div>
+      <a href="https://jviola60.github.io/old-testament-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Old Testament Geography (~4000 BC – 400 BC)">
+        <span>🕎 Old Testament Atlas (~4000 BC – 400 BC)</span>
         <span class="ext-link-arrow">↗</span>
       </a>
       <div class="mobile-atlas-link active" title="Currently viewing New Testament Geography">
@@ -803,7 +826,11 @@
         <span class="pill-current">Current</span>
       </div>
       <a href="https://jviola60.github.io/book-of-mormon-geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Book of Mormon Geography (~2200 BC – AD 421)">
-        <span>📖 Book of Mormon Atlas (~2200 BC – AD 421)</span>
+        <span>🪙 Book of Mormon Atlas (~2200 BC – AD 421)</span>
+        <span class="ext-link-arrow">↗</span>
+      </a>
+      <a href="https://jviola60.github.io/Doctrine-and-Covenants-Geography/" class="mobile-atlas-link" target="_blank" rel="noopener noreferrer" title="Explore Doctrine &amp; Covenants Geography (~1805 – 1890)">
+        <span>📜 Doctrine &amp; Covenants Atlas (~1805 – 1890)</span>
         <span class="ext-link-arrow">↗</span>
       </a>
     </div>
@@ -1030,10 +1057,10 @@
   <script src="js/data/archaeologyData.js?v=4.1"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.3"></script>
-  <script src="js/timelineController.js?v=4.3"></script>
-  <script src="js/uiController.js?v=4.3"></script>
-  <script src="js/satelliteExplorer.js?v=4.3"></script>
-  <script src="js/app.js?v=4.3"></script>
+  <script src="js/mapController.js?v=4.4"></script>
+  <script src="js/timelineController.js?v=4.4"></script>
+  <script src="js/uiController.js?v=4.4"></script>
+  <script src="js/satelliteExplorer.js?v=4.4"></script>
+  <script src="js/app.js?v=4.4"></script>
 </body>
 </html>

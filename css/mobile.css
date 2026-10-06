@@ -790,7 +790,6 @@
     background: #F4EEDF !important;
     border-bottom: 1px solid var(--border-gold, #C5A059) !important;
     scroll-snap-type: x mandatory !important;
-    -webkit-overflow-scrolling: touch;
   }
 
   @supports (scrollbar-width: none) {

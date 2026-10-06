@@ -583,6 +583,9 @@ class UIController {
     document.querySelectorAll(".mobile-nav-sheet, .mobile-picker-sheet, .mobile-filter-sheet, .mobile-tours-sheet").forEach(s => s.classList.remove("open"));
     const backdrop = document.getElementById("mobileSheetBackdrop");
     if (backdrop) backdrop.classList.remove("active");
+    if (window.app && window.app.mobile && typeof window.app.mobile.updateBottomNavState === "function") {
+      window.app.mobile.updateBottomNavState();
+    }
   }
 
   openMobileSheet(sheet) {
@@ -596,6 +599,9 @@ class UIController {
     if (sheet) sheet.classList.add("open");
     const backdrop = document.getElementById("mobileSheetBackdrop");
     if (backdrop) backdrop.classList.add("active");
+    if (window.app && window.app.mobile && typeof window.app.mobile.updateBottomNavState === "function") {
+      window.app.mobile.updateBottomNavState();
+    }
   }
 
   setupSwipeDown(el, onSwipeDown) {
@@ -715,36 +721,8 @@ class UIController {
       this.renderMobilePickerList(query);
     };
 
-    // Mobile Bottom Navigation Bar Event Listeners
-    if (mobBottomSearchBtn) {
-      mobBottomSearchBtn.addEventListener("click", () => openSearchPicker());
-    }
-    if (mobBottomJumpBtn) {
-      mobBottomJumpBtn.addEventListener("click", () => openSearchPicker(""));
-    }
-    if (mobBottomToursBtn && mobileToursSheet) {
-      mobBottomToursBtn.addEventListener("click", () => {
-        this.renderMobileToursList();
-        this.openMobileSheet(mobileToursSheet);
-      });
-    }
-    if (mobBottomFiltersBtn && mobileFiltersSheet) {
-      mobBottomFiltersBtn.addEventListener("click", () => {
-        this.openMobileSheet(mobileFiltersSheet);
-      });
-    }
-    if (mobBottomDetailsBtn) {
-      mobBottomDetailsBtn.addEventListener("click", () => {
-        this.closeAllMobileSheets();
-        if (this.sidebar) {
-          if (this.sidebar.classList.contains("closed") || this.sidebar.classList.contains("peek")) {
-            this.openSidebar();
-          } else {
-            this.sidebar.classList.add("peek");
-          }
-        }
-      });
-    }
+    // Mobile search picker helper
+    this.openSearchPicker = openSearchPicker;
 
     // Drag handles & touch dismissals
     const mobileDragHandle = document.getElementById("mobileDragHandle");

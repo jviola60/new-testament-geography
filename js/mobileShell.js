@@ -484,19 +484,10 @@ class MobileShell {
   // Biblical Locations Quick Picker Sheet
   setupMobilePicker() {
     const closeBtn = document.getElementById("closeMobilePickerBtn");
-    const searchInput = document.getElementById("mobilePickerSearchInput");
 
     if (closeBtn) {
       closeBtn.addEventListener("click", () => this.closePickerSheet());
     }
-
-    if (searchInput) {
-      searchInput.addEventListener("input", (e) => {
-        this.renderPickerList(e.target.value.trim().toLowerCase());
-      });
-    }
-
-    this.renderPickerList("");
   }
 
   openPickerSheet() {
@@ -507,7 +498,11 @@ class MobileShell {
     const searchInput = document.getElementById("mobilePickerSearchInput");
     if (searchInput) {
       searchInput.value = "";
-      this.renderPickerList("");
+      if (window.app && window.app.ui && typeof window.app.ui.renderMobilePickerList === "function") {
+        window.app.ui.renderMobilePickerList("");
+      } else {
+        this.renderPickerList("");
+      }
       setTimeout(() => searchInput.focus(), 150);
     }
     this.updateBottomNavState();
@@ -520,6 +515,10 @@ class MobileShell {
   }
 
   renderPickerList(filterText = "") {
+    if (window.app && window.app.ui && typeof window.app.ui.renderMobilePickerList === "function") {
+      window.app.ui.renderMobilePickerList(filterText);
+      return;
+    }
     const listContainer = document.getElementById("mobilePickerList");
     if (!listContainer || typeof CITIES_DATA === "undefined") return;
 
@@ -571,42 +570,18 @@ class MobileShell {
     if (closeBtn) closeBtn.addEventListener("click", () => this.closeFiltersSheet());
     if (doneBtn) doneBtn.addEventListener("click", () => this.closeFiltersSheet());
 
-    if (this.filtersSheet) {
-      this.filtersSheet.querySelectorAll(".filter-chip").forEach(chip => {
-        chip.addEventListener("click", () => {
-          const filterKey = chip.getAttribute("data-filter");
-          const isActive = chip.classList.contains("active");
-
-          if (filterKey === "all") {
-            const newState = !isActive;
-            this.filtersSheet.querySelectorAll(".filter-chip").forEach(c => c.classList.toggle("active", newState));
-            document.querySelectorAll(".layer-filter-bar .filter-chip").forEach(c => c.classList.toggle("active", newState));
-            if (window.app && window.app.map) window.app.map.setLayerFilter("all", newState);
-            return;
-          }
-
-          chip.classList.toggle("active");
-          const activeNow = chip.classList.contains("active");
-
-          const desktopChip = document.querySelector(`.layer-filter-bar .filter-chip[data-filter="${filterKey}"]`);
-          if (desktopChip) desktopChip.classList.toggle("active", activeNow);
-
-          if (window.app && window.app.map) {
-            window.app.map.setLayerFilter(filterKey, activeNow);
-          }
-        });
-      });
-    }
-
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
-        const chips = this.filtersSheet.querySelectorAll(".filter-chip");
+        const chips = this.filtersSheet ? this.filtersSheet.querySelectorAll(".filter-chip") : document.querySelectorAll(".filter-chip");
         chips.forEach(c => c.classList.add("active"));
         document.querySelectorAll(".layer-filter-bar .filter-chip").forEach(c => c.classList.add("active"));
         if (window.app && window.app.map) {
           ["savior", "jerusalemSites", "jerusalemGeography", "journeys", "churches", "heatmaps", "diaspora", "provinces", "hydrography", "decapolis", "all"].forEach(k => {
             window.app.map.setLayerFilter(k, true);
           });
+        }
+        if (window.app && window.app.ui && typeof window.app.ui.updateActiveFiltersBadge === "function") {
+          window.app.ui.updateActiveFiltersBadge();
         }
       });
     }

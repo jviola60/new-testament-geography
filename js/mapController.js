@@ -48,7 +48,9 @@ class MapController {
       modernOverlay: false,
       jerusalemSites: false,
       jerusalemGeography: false,
-      firstCenturySatellite: false
+      firstCenturySatellite: false,
+      hydrography: true,
+      decapolis: true
     };
 
     this.currentYear = -6;
@@ -523,6 +525,9 @@ class MapController {
     this.layers.cities.clearLayers();
 
     this.cityMarkers.forEach(item => {
+      if (this.filterState.decapolis === false && item.city && item.city.region === "Decapolis") {
+        return;
+      }
       // Zoom logic:
       // Zoom < 6: only Tier 1 imperial metropolises (Rome, Athens, Corinth, Ephesus, Antioch, Alexandria, Jerusalem, Damascus)
       // Zoom 6-7: Tier 1 + Major biblical regional centers (Bethlehem, Nazareth, Capernaum, Caesarea, Tarsus, Philippi, etc.)
@@ -1087,7 +1092,7 @@ class MapController {
   setLayerFilter(filterType, isEnabled) {
     if (filterType === "all") {
       this.filterState.all = isEnabled;
-      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography", "heatmaps", "hydrography", "decapolis"];
       coreKeys.forEach(k => {
         this.filterState[k] = isEnabled;
       });
@@ -1100,7 +1105,7 @@ class MapController {
       });
     } else {
       this.filterState[filterType] = isEnabled;
-      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography"];
+      const coreKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "jerusalemSites", "jerusalemGeography", "heatmaps", "hydrography", "decapolis"];
       const allActive = coreKeys.every(k => this.filterState[k]);
       this.filterState.all = allActive;
       const allChip = document.querySelector('.filter-chip[data-filter="all"]');
@@ -1190,6 +1195,20 @@ class MapController {
       if (!this.map.hasLayer(this.layers.firstCenturySatellite)) this.map.addLayer(this.layers.firstCenturySatellite);
     } else {
       this.map.removeLayer(this.layers.firstCenturySatellite);
+    }
+
+    // Waters & Rivers (Hydrography)
+    if (this.filterState.hydrography !== undefined) {
+      if (this.filterState.hydrography) {
+        if (!this.map.hasLayer(this.layers.hydrography)) this.map.addLayer(this.layers.hydrography);
+      } else {
+        this.map.removeLayer(this.layers.hydrography);
+      }
+    }
+
+    // Decapolis League Filter
+    if (this.filterState.decapolis !== undefined) {
+      this.updateCityVisibility(this.map.getZoom());
     }
 
     this.updateTimelineYear(this.currentYear);

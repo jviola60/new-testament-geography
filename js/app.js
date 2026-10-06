@@ -7,6 +7,7 @@ class App {
     this.map = new MapController();
     this.timeline = new TimelineController();
     this.ui = new UIController();
+    this.mobile = new MobileShell();
     this.satelliteExplorer = new SatelliteExplorer();
   }
 
@@ -22,7 +23,10 @@ class App {
     // 3. Initialize UI & Search
     this.ui.init();
 
-    // 4. Initialize 1st Century Satellite Explorer
+    // 4. Initialize Mobile Shell (Dynamic Pill & 3-State Sheet)
+    this.mobile.init();
+
+    // 5. Initialize 1st Century Satellite Explorer
     this.satelliteExplorer.init();
 
     if (typeof CITIES_DATA !== "undefined") window.CITIES_DATA = CITIES_DATA;

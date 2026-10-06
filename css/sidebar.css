@@ -137,6 +137,17 @@
   color: var(--color-crimson);
 }
 
+.sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mobile-expand-btn {
+  display: none;
+}
+
 /* Navigation Tabs - Multi-Row Flex Grid (Double Row: 4 tabs on Row 1, 4 tabs on Row 2) */
 .sidebar-tabs {
   display: flex;

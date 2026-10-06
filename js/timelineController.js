@@ -27,7 +27,8 @@ class TimelineController {
         tag: "ERA I • 6 BC – 4 BC",
         title: "Nativity & Infancy of Jesus",
         desc: "Roman census under Caesar Augustus; birth in Bethlehem, angelic witness, and flight to Egypt.",
-        season: "Roman Census • Bethlehem • Nativity"
+        season: "Roman Census • Bethlehem • Nativity",
+        featured: ["bethlehem", "nazareth", "jerusalem", "alexandria"]
       },
       {
         id: "nazareth",
@@ -36,7 +37,8 @@ class TimelineController {
         tag: "ERA II • 4 BC – 26 AD",
         title: "Silent Years in Nazareth",
         desc: "Jesus grows in wisdom and stature in Galilee; visits the Temple at age twelve.",
-        season: "Nazareth • Carpenter's Youth • Temple Visit"
+        season: "Nazareth • Carpenter's Youth • Temple Visit",
+        featured: ["nazareth", "jerusalem", "capernaum"]
       },
       {
         id: "early-ministry",
@@ -45,7 +47,8 @@ class TimelineController {
         tag: "ERA III • 26 AD – 29 AD",
         title: "Baptism & Early Ministry",
         desc: "Baptism by John in the Jordan River, temptation in wilderness, miracle at Cana, and Nicodemus.",
-        season: "Jordan River Baptism • Sychar • Early Signs"
+        season: "Jordan River Baptism • Sychar • Early Signs",
+        featured: ["cana", "capernaum", "sychar", "jerusalem"]
       },
       {
         id: "galilee-passion",
@@ -54,7 +57,8 @@ class TimelineController {
         tag: "ERA IV • 29 AD – 30 AD",
         title: "Galilean Ministry & Passion Week",
         desc: "Sermon on the Mount, miracles at Sea of Galilee, Transfiguration, Atonement in Gethsemane, Crucifixion & Resurrection.",
-        season: "Sermon on Mount • Gethsemane • Resurrection"
+        season: "Sermon on Mount • Gethsemane • Resurrection",
+        featured: ["capernaum", "bethsaida", "caesarea-philippi", "jerusalem", "jericho"]
       },
       {
         id: "pentecost",
@@ -63,7 +67,8 @@ class TimelineController {
         tag: "ERA V • 30 AD – 47 AD",
         title: "Pentecost & the Early Church",
         desc: "Outpouring of the Holy Ghost, 3,000 baptized, martyrdom of Stephen, and Saul's conversion on Damascus road.",
-        season: "Pentecost • Dispersal • Gentiles at Antioch"
+        season: "Pentecost • Dispersal • Gentiles at Antioch",
+        featured: ["jerusalem", "damascus", "joppa", "caesarea-maritima", "antioch-syria"]
       },
       {
         id: "missionary",
@@ -72,7 +77,8 @@ class TimelineController {
         tag: "ERA VI • 47 AD – 57 AD",
         title: "Paul's Missionary Journeys",
         desc: "Three epic apostolic journeys through Cyprus, Galatia, Macedonia, Greece, and Ephesus planting churches.",
-        season: "Philippi • Mars Hill • Ephesus Revival"
+        season: "Philippi • Mars Hill • Ephesus Revival",
+        featured: ["antioch-syria", "tarsus", "philippi", "thessalonica", "athens", "corinth", "ephesus"]
       },
       {
         id: "rome-70ad",
@@ -81,7 +87,8 @@ class TimelineController {
         tag: "ERA VII • 58 AD – 70 AD",
         title: "Rome, Persecution & Fall of Jerusalem",
         desc: "Paul's voyage and shipwreck at Malta, Roman house arrest, Nero's persecutions, and Titus destroying Jerusalem in 70 AD.",
-        season: "Shipwreck • Rome House Arrest • 70 AD Fall"
+        season: "Shipwreck • Rome House Arrest • 70 AD Fall",
+        featured: ["caesarea-maritima", "malta", "rome", "jerusalem", "colossae"]
       },
       {
         id: "apostolic-age",
@@ -90,7 +97,8 @@ class TimelineController {
         tag: "ERA VIII • 70 AD – 100 AD",
         title: "Close of the Apostolic Era",
         desc: "Spread of the Four Gospels, John's apocalyptic exile on the Isle of Patmos, and letters to the Seven Churches.",
-        season: "Gospel Writings • Patmos • Revelation"
+        season: "Gospel Writings • Patmos • Revelation",
+        featured: ["ephesus", "patmos", "smyrna", "pergamum", "philadelphia", "laodicea", "rome"]
       }
     ];
   }
@@ -213,13 +221,16 @@ class TimelineController {
     }
 
     // Update Floating Era Badge on Map
-    const eraTag = document.getElementById("eraTag");
-    const eraTitle = document.getElementById("eraTitle");
-    const eraDesc = document.getElementById("eraDesc");
-    if (eraTag && eraTitle && eraDesc) {
-      eraTag.textContent = era.tag;
-      eraTitle.textContent = era.title;
-      eraDesc.textContent = era.desc;
+    const eraTag = document.getElementById("floatingEraTag") || document.getElementById("eraTag");
+    const eraTitle = document.getElementById("floatingEraTitle") || document.getElementById("eraTitle");
+    const eraDesc = document.getElementById("floatingEraDesc") || document.getElementById("eraDesc");
+    if (eraTag) eraTag.textContent = "ERA:";
+    if (eraTitle) eraTitle.textContent = `${formattedStr} • ${era.title}`;
+    if (eraDesc) eraDesc.textContent = era.desc;
+
+    // Sync with Mobile Era Capsule
+    if (window.app && window.app.mobile && typeof window.app.mobile.updateEraCapsule === "function") {
+      window.app.mobile.updateEraCapsule(this.currentYear, era);
     }
 
     // Sync Era Tabs

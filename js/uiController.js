@@ -44,11 +44,11 @@ class UIController {
     this.setupMobileInterface();
     this.updateActiveFiltersBadge();
 
-    // Mobile map-first experience: keep map dominant, start sidebar in subtle peek state
+    // Mobile map-first experience: keep map completely unobstructed on startup (State 1: Closed)
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
       if (this.sidebar) {
-        this.sidebar.classList.add("peek");
-        this.sidebar.classList.remove("closed");
+        this.sidebar.classList.add("closed");
+        this.sidebar.classList.remove("peek", "expanded", "open");
       }
     } else if (typeof window !== "undefined" && window.innerWidth <= 1024) {
       this.closeSidebar();
@@ -587,6 +587,12 @@ class UIController {
 
   openMobileSheet(sheet) {
     this.closeAllMobileSheets();
+    if (typeof sheet === "string") {
+      sheet = document.getElementById(sheet) ||
+              document.querySelector(sheet) ||
+              document.getElementById(`mobile${sheet.charAt(0).toUpperCase() + sheet.slice(1)}Sheet`) ||
+              document.getElementById(`mobile${sheet}Sheet`);
+    }
     if (sheet) sheet.classList.add("open");
     const backdrop = document.getElementById("mobileSheetBackdrop");
     if (backdrop) backdrop.classList.add("active");
@@ -1357,9 +1363,13 @@ class UIController {
     });
   }
 
-  // Sidebar Controls (Desktop Flyout & Mobile Bottom Sheet)
+  // Sidebar Controls (Desktop Flyout & 3-State Mobile Bottom Sheet)
   openSidebar() {
     if (this.sidebar) {
+      if (window.innerWidth <= 768 && window.app && window.app.mobile) {
+        window.app.mobile.openPeekSheet();
+        return;
+      }
       this.sidebar.classList.remove("closed", "peek");
       if (window.innerWidth > 768) {
         document.body.classList.add("sidebar-open");
@@ -1376,13 +1386,12 @@ class UIController {
 
   closeSidebar() {
     if (this.sidebar) {
-      if (window.innerWidth <= 768) {
-        this.sidebar.classList.add("peek");
-        this.sidebar.classList.remove("closed");
-      } else {
-        this.sidebar.classList.add("closed");
-        this.sidebar.classList.remove("peek");
+      if (window.innerWidth <= 768 && window.app && window.app.mobile) {
+        window.app.mobile.closeCodexSheet();
+        return;
       }
+      this.sidebar.classList.add("closed");
+      this.sidebar.classList.remove("peek", "expanded", "open");
       document.body.classList.remove("sidebar-open");
       const mainContainer = document.querySelector(".app-main-container");
       if (mainContainer) mainContainer.classList.remove("sidebar-open");
@@ -1391,12 +1400,22 @@ class UIController {
         const icon = edgeBtn.querySelector(".edge-toggle-icon");
         if (icon) icon.textContent = "◀";
       }
+      const timelineFooter = document.querySelector(".app-timeline-footer") || document.getElementById("timelineFooter");
+      if (timelineFooter) {
+        timelineFooter.classList.remove("timeline-hidden");
+      }
+      const expandBtn = document.getElementById("mobileExpandCodexBtn");
+      if (expandBtn) expandBtn.textContent = "⌃ Full Codex";
     }
   }
 
   toggleSidebar() {
     if (this.sidebar) {
-      if (this.sidebar.classList.contains("closed") || (window.innerWidth <= 768 && this.sidebar.classList.contains("peek"))) {
+      if (window.innerWidth <= 768 && window.app && window.app.mobile) {
+        window.app.mobile.toggleCodexMode();
+        return;
+      }
+      if (this.sidebar.classList.contains("closed")) {
         this.openSidebar();
       } else {
         this.closeSidebar();

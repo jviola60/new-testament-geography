@@ -47,8 +47,8 @@
         if (phone) {
           var sidebar = document.getElementById("detailSidebar");
           if (sidebar) {
-            sidebar.classList.add("peek");
-            sidebar.classList.remove("closed");
+            sidebar.classList.add("closed");
+            sidebar.classList.remove("peek", "expanded", "open");
           }
         }
       });
@@ -317,14 +317,21 @@
     <!-- Map Container -->
     <div id="map" class="map-viewport" role="region" aria-label="Interactive Map of New Testament Lands"></div>
 
-    <!-- Active Era Banner / Watermark (Floating on Map) -->
-    <div class="floating-era-badge" id="floatingEraBadge">
-      <div class="era-badge-header">
-        <div class="era-tag" id="eraTag">ERA</div>
-        <button class="era-badge-toggle-btn" id="eraBadgeToggleBtn" aria-label="Toggle era details" title="Collapse / expand era details">−</button>
+    <!-- Top Floating Era Capsule Badge -->
+    <div class="floating-era-badge" id="floatingEraBadge" title="Tap to toggle era details">
+      <div class="floating-era-header" id="floatingEraHeader">
+        <span class="era-live-beacon" aria-hidden="true"></span>
+        <span class="floating-era-tag" id="floatingEraTag">ERA:</span>
+        <span class="floating-era-title" id="floatingEraTitle">6 BC • Nativity &amp; Infancy of Jesus</span>
+        <span class="era-dropdown-caret" id="eraDropdownCaret" aria-hidden="true">▾</span>
       </div>
-      <div class="era-title" id="eraTitle">The Roman Republic to Augustus</div>
-      <div class="era-desc" id="eraDesc">Herod the Great rules Judea under Roman suzerainty.</div>
+      <div class="floating-era-body" id="floatingEraBody">
+        <p class="floating-era-desc" id="floatingEraDesc">Roman census under Caesar Augustus; birth in Bethlehem, angelic witness, and flight to Egypt.</p>
+        <div class="floating-era-featured" id="floatingEraFeatured">
+          <span class="era-featured-label">Featured Sites:</span>
+          <div class="era-featured-chips" id="floatingEraChips"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Map Quick Navigation Floating Controls -->
@@ -364,7 +371,7 @@
     </div>
 
     <!-- Detail Drawer / Sidebar (Thin Flyout matching Book of Mormon Atlas) -->
-    <aside class="detail-sidebar" id="detailSidebar" aria-label="Scripture & Information Panel">
+    <aside class="detail-sidebar closed" id="detailSidebar" aria-label="Scripture & Information Panel">
       <!-- Edge toggle button sticking out on desktop when closed -->
       <button class="sidebar-edge-toggle" id="sidebarEdgeToggleBtn" title="Collapse / Expand Details" aria-label="Toggle Details Panel">
         <span class="edge-toggle-icon" id="edgeToggleIcon">▶</span>
@@ -377,7 +384,10 @@
           <span class="sidebar-eyebrow" id="sidebarEyebrow">SELECTION DETAILS</span>
           <h2 class="sidebar-title" id="sidebarTitle">Welcome to the New Testament Atlas</h2>
         </div>
-        <button id="closeSidebarBtn" class="close-btn" aria-label="Close sidebar">&times;</button>
+        <div class="sidebar-header-actions">
+          <button id="mobileExpandCodexBtn" class="mobile-expand-btn" aria-label="Toggle Full Codex">⌃ Full Codex</button>
+          <button id="closeSidebarBtn" class="close-btn" aria-label="Close sidebar">✕</button>
+        </div>
       </div>
 
       <div class="sidebar-tabs" id="sidebarTabs">
@@ -1013,27 +1023,27 @@
     </div>
   </div>
 
-  <!-- Mobile Thumb-Friendly Bottom Navigation Bar (52px, Pinned) -->
+  <!-- Mobile Thumb-Friendly Bottom Navigation Bar (52px, Pinned, z-index: 1000) -->
   <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="Mobile Navigation Bar">
+    <button class="mobile-bottom-btn active" id="mobBottomMapBtn" type="button" aria-label="Return to Map View">
+      <span class="mobile-bottom-icon">🗺️</span>
+      <span>Map</span>
+    </button>
     <button class="mobile-bottom-btn" id="mobBottomSearchBtn" type="button" aria-label="Search Places">
       <span class="mobile-bottom-icon">🔍</span>
       <span>Search</span>
-    </button>
-    <button class="mobile-bottom-btn" id="mobBottomJumpBtn" type="button" aria-label="Jump to Landmark">
-      <span class="mobile-bottom-icon">📍</span>
-      <span>Jump</span>
-    </button>
-    <button class="mobile-bottom-btn" id="mobBottomToursBtn" type="button" aria-label="Guided Tours">
-      <span class="mobile-bottom-icon">🧭</span>
-      <span>Tours</span>
     </button>
     <button class="mobile-bottom-btn" id="mobBottomFiltersBtn" type="button" aria-label="Filter Map Layers">
       <span class="mobile-bottom-icon">⚙️</span>
       <span>Filters</span>
     </button>
-    <button class="mobile-bottom-btn" id="mobBottomDetailsBtn" type="button" aria-label="Scriptural Details">
+    <button class="mobile-bottom-btn" id="mobBottomCodexBtn" type="button" aria-label="Scriptural Codex">
       <span class="mobile-bottom-icon">📜</span>
-      <span>Details</span>
+      <span>Codex</span>
+    </button>
+    <button class="mobile-bottom-btn" id="mobBottomMenuBtn" type="button" aria-label="Menu &amp; Tools">
+      <span class="mobile-bottom-icon">☰</span>
+      <span>Menu</span>
     </button>
   </nav>
 
@@ -1041,26 +1051,27 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Data Scripts -->
-  <script src="js/data/hydrography.js?v=4.1"></script>
-  <script src="js/data/regions.js?v=4.1"></script>
-  <script src="js/data/cities.js?v=4.1"></script>
-  <script src="js/data/jerusalemSites.js?v=4.1"></script>
-  <script src="js/data/jerusalemGeography.js?v=4.1"></script>
-  <script src="js/data/saviorEvents.js?v=4.1"></script>
-  <script src="js/data/missionaryJourneys.js?v=4.1"></script>
-  <script src="js/data/communities.js?v=4.1"></script>
-  <script src="js/data/placeDossiers.js?v=4.1"></script>
-  <script src="js/data/scriptureTranslations.js?v=4.1"></script>
-  <script src="js/data/churchVideos.js?v=4.1"></script>
-  <script src="js/data/timelineEvents.js?v=4.1"></script>
-  <script src="js/data/tours.js?v=4.1"></script>
-  <script src="js/data/archaeologyData.js?v=4.1"></script>
+  <script src="js/data/hydrography.js?v=5.2"></script>
+  <script src="js/data/regions.js?v=5.2"></script>
+  <script src="js/data/cities.js?v=5.2"></script>
+  <script src="js/data/jerusalemSites.js?v=5.2"></script>
+  <script src="js/data/jerusalemGeography.js?v=5.2"></script>
+  <script src="js/data/saviorEvents.js?v=5.2"></script>
+  <script src="js/data/missionaryJourneys.js?v=5.2"></script>
+  <script src="js/data/communities.js?v=5.2"></script>
+  <script src="js/data/placeDossiers.js?v=5.2"></script>
+  <script src="js/data/scriptureTranslations.js?v=5.2"></script>
+  <script src="js/data/churchVideos.js?v=5.2"></script>
+  <script src="js/data/timelineEvents.js?v=5.2"></script>
+  <script src="js/data/tours.js?v=5.2"></script>
+  <script src="js/data/archaeologyData.js?v=5.2"></script>
 
   <!-- Controller Scripts -->
-  <script src="js/mapController.js?v=4.4"></script>
-  <script src="js/timelineController.js?v=4.4"></script>
-  <script src="js/uiController.js?v=4.4"></script>
-  <script src="js/satelliteExplorer.js?v=4.4"></script>
-  <script src="js/app.js?v=4.4"></script>
+  <script src="js/mapController.js?v=5.2"></script>
+  <script src="js/timelineController.js?v=5.2"></script>
+  <script src="js/uiController.js?v=5.2"></script>
+  <script src="js/mobileShell.js?v=5.2"></script>
+  <script src="js/satelliteExplorer.js?v=5.2"></script>
+  <script src="js/app.js?v=5.2"></script>
 </body>
 </html>

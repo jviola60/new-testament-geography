@@ -39,6 +39,7 @@
   pointer-events: auto;
 }
 
+.floating-era-header,
 .era-badge-header {
   display: flex;
   align-items: center;
@@ -47,6 +48,17 @@
   margin-bottom: 2px;
 }
 
+.era-live-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16A34A;
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.8);
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.floating-era-tag,
 .era-tag {
   font-family: var(--font-serif-title);
   font-size: 0.68rem;
@@ -56,29 +68,7 @@
   text-transform: uppercase;
 }
 
-.era-badge-toggle-btn {
-  background: transparent;
-  border: 1px solid rgba(180, 83, 9, 0.25);
-  color: var(--color-crimson);
-  border-radius: 4px;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: all 0.15s ease;
-}
-
-.era-badge-toggle-btn:hover {
-  background: rgba(180, 83, 9, 0.12);
-  border-color: var(--color-crimson);
-}
-
+.floating-era-title,
 .era-title {
   font-family: var(--font-serif-title);
   font-size: 0.98rem;
@@ -88,10 +78,51 @@
   margin-bottom: 3px;
 }
 
+.floating-era-desc,
 .era-desc {
   font-size: 0.78rem;
   color: var(--text-secondary);
   line-height: 1.35;
+  margin: 0;
+}
+
+.floating-era-featured {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.era-featured-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-crimson);
+  letter-spacing: 0.06em;
+}
+
+.era-featured-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.era-featured-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #FAF5EB;
+  border: 1px solid var(--color-gold);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.era-featured-chip:hover {
+  background: var(--color-crimson);
+  color: #FFF;
+  border-color: var(--color-crimson);
 }
 
 /* Floating Action Buttons on Map (Recenter, Holy Land, Jerusalem) */
@@ -1191,55 +1222,7 @@
    ========================================================================== */
 @media (max-width: 768px) {
   /* Compact Collapsible Era Badge (No zoom buttons obstructing the left) */
-  .floating-era-badge {
-    top: 8px;
-    left: 10px;
-    right: 50px;
-    max-width: none;
-    padding: 0.35rem 0.65rem;
-    border-radius: 6px;
-    box-shadow: var(--shadow-md);
-    cursor: pointer;
-  }
-
-  .floating-era-badge .era-badge-header {
-    margin-bottom: 0;
-  }
-
-  .floating-era-badge .era-tag {
-    font-size: 0.6rem;
-  }
-
-  .floating-era-badge .era-title {
-    font-size: 0.82rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 0;
-  }
-
-  .floating-era-badge .era-desc {
-    display: none;
-    font-size: 0.74rem;
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px dashed rgba(180, 83, 9, 0.25);
-    max-height: 120px;
-    overflow-y: auto;
-  }
-
-  .floating-era-badge.is-expanded {
-    max-height: 220px;
-    overflow-y: auto;
-  }
-
-  .floating-era-badge.is-expanded .era-title {
-    white-space: normal;
-  }
-
-  .floating-era-badge.is-expanded .era-desc {
-    display: block;
-  }
+  /* Floating Era Capsule on Mobile: Defined in mobile.css */
 
   /* Compact Map Action Buttons */
   .map-floating-actions {

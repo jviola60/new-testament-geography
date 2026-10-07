@@ -1298,14 +1298,6 @@
     white-space: normal !important;
     border-radius: 6px !important;
     padding: 5px 9px !important;
-    line-height: 1.35 !important;
-  }
-
-  /* Compact Legend on Mobile */
-  .map-legend-box {
-    bottom: 12px !important;
-    left: 12px !important;
-    max-width: calc(100vw - 60px);
   }
 }
 

@@ -458,6 +458,12 @@ class MobileShell {
       m.style.display = "none";
     });
 
+    const legend = document.getElementById("mapLegend");
+    if (legend && window.innerWidth <= 768) {
+      if (legend.classList) legend.classList.remove("user-opened-mobile");
+      legend.style.display = "none";
+    }
+
     this.updateBottomNavState();
   }
 

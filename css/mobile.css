@@ -1168,17 +1168,32 @@
   /* 6. Mobile Map Legend (Positioned safely above timeline footer) */
   #mapLegend.map-legend-box {
     position: fixed !important;
-    bottom: calc(var(--footer-height, 98px) + 12px) !important;
+    bottom: 140px !important;
     left: 12px !important;
     right: auto !important;
     max-width: min(300px, calc(100vw - 24px)) !important;
     max-height: 48vh !important;
-    z-index: 1250 !important;
-    background: rgba(253, 250, 243, 0.96) !important;
+    z-index: 860 !important;
+    background: rgba(253, 250, 243, 0.98) !important;
     border: 1.5px solid var(--color-gold) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
     overflow-y: auto !important;
+  }
+
+  #mapLegend.map-legend-box .legend-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 8px 12px 10px !important;
+  }
+
+  #mapLegend.map-legend-box .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.74rem;
+    color: var(--text-primary, #2A1F16);
   }
 
   /* 7. Mobile Distance Calculator Modal */

@@ -49,8 +49,8 @@ class MapController {
       jerusalemSites: false,
       jerusalemGeography: false,
       firstCenturySatellite: false,
-      hydrography: true,
-      decapolis: true
+      hydrography: false,
+      decapolis: false
     };
 
     this.currentYear = -6;
@@ -1220,28 +1220,36 @@ class MapController {
     const legendEl = document.getElementById("mapLegend");
     if (!legendEl) return;
 
-    // Check if any overlay layer is active (excluding the base map)
-    const activeOverlayKeys = Object.entries(this.filterState)
-      .filter(([k, v]) => k !== "all" && Boolean(v))
-      .map(([k]) => k);
-
+    // Check if any thematic overlay layer is active (excluding base map layers)
+    const thematicKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "heatmaps", "jerusalemSites", "jerusalemGeography"];
+    const activeOverlayKeys = thematicKeys.filter(k => Boolean(this.filterState[k]));
     const hasActiveLayers = activeOverlayKeys.length > 0;
 
     if (!hasActiveLayers) {
       legendEl.style.display = "none";
+      if (legendEl.classList) legendEl.classList.remove("user-opened-mobile");
       const chip = document.getElementById("chipLegendToggle");
       if (chip) chip.classList.remove("active");
       return;
     }
 
+    // On mobile screens (<=768px), do not automatically pop up floating map legend
+    // so it never obstructs the map canvas or collides with the timeline.
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      if (!legendEl.classList || !legendEl.classList.contains("user-opened-mobile")) {
+        legendEl.style.display = "none";
+        return;
+      }
+    }
+
     // Show the legend container
     legendEl.style.display = "block";
-    // On mobile screens, default to minimized pill so it doesn't cover up the map
-    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-      legendEl.classList.add("is-minimized");
-    }
+    if (legendEl.classList) legendEl.classList.remove("is-minimized");
     const chip = document.getElementById("chipLegendToggle");
     if (chip) chip.classList.add("active");
+
+    const legendBody = document.getElementById("legendBody");
+    if (legendBody) legendBody.style.display = "flex";
 
     // Show only the legend items matching the active layer(s)
     const items = legendEl.querySelectorAll(".legend-item[data-layer]");

@@ -413,15 +413,31 @@ class UIController {
       if (!legendBox) return;
       const isHidden = legendBox.style.display === "none" || !legendBox.style.display;
       if (isHidden) {
+        if (legendBox.classList) {
+          legendBox.classList.add("user-opened-mobile");
+          legendBox.classList.remove("is-minimized");
+        }
         legendBox.style.display = "block";
-        legendBox.classList.remove("is-minimized");
         if (legendBody) legendBody.style.display = "flex";
-        if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
-      } else if (legendBox.classList.contains("is-minimized")) {
-        legendBox.classList.remove("is-minimized");
-        if (legendBody) legendBody.style.display = "flex";
-        if (legendCollapseBtn) legendCollapseBtn.textContent = "−";
+        if (legendCollapseBtn) legendCollapseBtn.textContent = window.innerWidth <= 768 ? "✕" : "−";
+
+        // If no specific layer is active, show all legend items so the user can read the symbology
+        const thematicKeys = ["savior", "diaspora", "churches", "journeys", "provinces", "heatmaps", "jerusalemSites", "jerusalemGeography"];
+        const hasSpecific = window.app && window.app.map && thematicKeys.some(k => window.app.map.filterState[k]);
+        const items = legendBox.querySelectorAll(".legend-item[data-layer]");
+        items.forEach(item => {
+          if (!hasSpecific) {
+            item.style.display = "flex";
+          } else {
+            const layerKey = item.dataset.layer;
+            item.style.display = (window.app && window.app.map && window.app.map.filterState[layerKey]) ? "flex" : "none";
+          }
+        });
       } else {
+        if (legendBox.classList) {
+          legendBox.classList.remove("user-opened-mobile");
+          legendBox.classList.remove("is-minimized");
+        }
         legendBox.style.display = "none";
       }
       if (chipLegendToggle) chipLegendToggle.classList.toggle("active", legendBox.style.display !== "none");
@@ -445,13 +461,23 @@ class UIController {
     if (legendCollapseBtn && legendBox) {
       legendCollapseBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        legendBox.classList.toggle("is-minimized");
+        if (window.innerWidth <= 768) {
+          if (legendBox.classList) legendBox.classList.remove("user-opened-mobile");
+          legendBox.style.display = "none";
+          if (chipLegendToggle) chipLegendToggle.classList.remove("active");
+        } else {
+          legendBox.classList.toggle("is-minimized");
+        }
       });
     }
 
     if (legendHeader && legendBox) {
       legendHeader.addEventListener("click", () => {
-        if (legendBox.classList.contains("is-minimized")) {
+        if (window.innerWidth <= 768) {
+          if (legendBox.classList) legendBox.classList.remove("user-opened-mobile");
+          legendBox.style.display = "none";
+          if (chipLegendToggle) chipLegendToggle.classList.remove("active");
+        } else if (legendBox.classList.contains("is-minimized")) {
           legendBox.classList.remove("is-minimized");
           if (legendBody) legendBody.style.display = "flex";
         } else if (legendBody) {
